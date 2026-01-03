@@ -13,6 +13,7 @@ import { trainerRoute } from "./routes/trainers";
 import { trainerMemoryRoute } from "./routes/trainerMemory";
 import { authRoute } from "./routes/auth";
 import { userRoute } from "./routes/user";
+import { qaRoute } from "./routes/qa";
 // removed MongoDB connection; auth will use Convex
 
 // Initialize Convex globally
@@ -37,6 +38,7 @@ trainerRoute(app);
 trainerMemoryRoute(app);
 authRoute(app);
 userRoute(app);
+qaRoute(app);
 
 app.get("/", (req, res) => {
   console.log("localhost is running");
