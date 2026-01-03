@@ -191,6 +191,7 @@ export const createTrainer = mutation({
       trainerId,
       systemPrompt: args.systemPrompt,
       contexts: [],
+      contextTexts: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });

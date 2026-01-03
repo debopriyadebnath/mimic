@@ -10,7 +10,7 @@ export default defineSchema({
     userName: v.string(),
     email: v.optional(v.string()),
     passwordHash: v.optional(v.string()),
-    
+
     createdAt: v.number(),
   }).index("by_email", ["email"]),
 
@@ -141,8 +141,14 @@ export default defineSchema({
     systemPrompt: v.string(),
     contexts: v.array(
       v.object({
+        embedding: v.array(v.number()),  // Vector embedding only
+        createdAt: v.number(),
+      })
+    ),
+    contextTexts: v.array(
+      v.object({
         text: v.string(),
-        embedding: v.array(v.number()),
+        contextIndex: v.number(),  // Reference to corresponding context embedding
         createdAt: v.number(),
       })
     ),
