@@ -46,7 +46,15 @@ export const authRoute = (app: Express) => {
       });
       const id = created?.id ?? created;
       const token = signJwt({ sub: id, email: email.toLowerCase() });
-      return res.status(201).json({ token, user: { id, email: email.toLowerCase(), name } });
+      return res.status(201).json({ 
+        token, 
+        user: { 
+          id, 
+          email: email.toLowerCase(), 
+          userName: name,
+          profilePhoto: null
+        } 
+      });
     } catch (error) {
       console.error("Signup error:", error);
       return res.status(400).json({ error: error instanceof Error ? error.message : "Signup failed" });
@@ -84,7 +92,15 @@ export const authRoute = (app: Express) => {
       if (!ok) return res.status(401).json({ error: "Invalid credentials" });
       const id = user.id ?? user._id ?? null;
       const token = signJwt({ sub: id, email: user.email });
-      return res.status(200).json({ token, user: { id, email: user.email, name: user.userName || user.name } });
+      return res.status(200).json({ 
+        token, 
+        user: { 
+          id, 
+          email: user.email, 
+          userName: user.userName || user.name,
+          profilePhoto: user.profilePhoto || null
+        } 
+      });
     } catch (error) {
       console.error("Signin error:", error);
       return res.status(500).json({ error: "Signin failed" });

@@ -11,7 +11,9 @@ export default defineSchema({
     email: v.optional(v.string()),
     passwordHash: v.optional(v.string()),
     profilePhoto: v.optional(v.string()),
+    token: v.optional(v.string()),  // JWT token for authentication
     createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
   }).index("by_email", ["email"]),
 
   avatars: defineTable({

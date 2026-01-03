@@ -15,6 +15,7 @@ import type * as emotions from "../emotions.js";
 import type * as memories from "../memories.js";
 import type * as trainerMemory from "../trainerMemory.js";
 import type * as trainers from "../trainers.js";
+import type * as user from "../user.js";
 
 import type {
   ApiFromModules,
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   memories: typeof memories;
   trainerMemory: typeof trainerMemory;
   trainers: typeof trainers;
+  user: typeof user;
 }>;
 
 /**

@@ -12,6 +12,7 @@ import { avatarChatRoute } from "./routes/avatarChat";
 import { trainerRoute } from "./routes/trainers";
 import { trainerMemoryRoute } from "./routes/trainerMemory";
 import { authRoute } from "./routes/auth";
+import { userRoute } from "./routes/user";
 // removed MongoDB connection; auth will use Convex
 
 // Initialize Convex globally
@@ -35,6 +36,7 @@ avatarChatRoute(app);
 trainerRoute(app);
 trainerMemoryRoute(app);
 authRoute(app);
+userRoute(app);
 
 app.get("/", (req, res) => {
   console.log("localhost is running");
