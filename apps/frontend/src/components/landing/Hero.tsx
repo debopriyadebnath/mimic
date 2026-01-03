@@ -4,7 +4,13 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { GlowingButton } from "../ui/glowing-button"
 
-const roles = ["building interfaces", "exploring systems", "breaking barriers", "forging ideas", "crafting code"]
+const roles = [
+  "privacy-first memories",
+  "trusted identities",
+  "explainable decisions",
+  "trust-weighted recall",
+  "reduced hallucination",
+]
 
 export function Hero() {
   const [currentRole, setCurrentRole] = useState(0)
@@ -43,10 +49,10 @@ export function Hero() {
           <div className="space-y-8 sm:space-y-10">
             <div className="space-y-3 animate-fade-in-up">
               <p className="font-mono text-xs uppercase tracking-[0.25em] sm:tracking-[0.35em] text-primary">
-                EvoAvatar — Your Digital Self
+                Mimic — Privacy‑First AI Avatars
               </p>
               <h1 className="text-4xl font-bold tracking-tight sm:text-4xl lg:text-5xl xl:text-6xl text-balance">
-                Forging digital
+                Build an AI that
                 <br />
                 <span className="text-foreground">
                   {displayText || <>&nbsp;</>}
@@ -56,13 +62,12 @@ export function Hero() {
             </div>
 
             <p className="max-w-lg text-base sm:text-lg leading-relaxed text-muted-foreground animate-fade-in-up stagger-2">
-              Welcome to your digital workshop — a space for evolving your AI companion. Here, ideas are forged,
-              tested, and refined. This isn't just a portfolio. It's a laboratory for your digital identity.
+              Create a personal AI identity that only learns what you explicitly add. Store memories as embeddings, recall the most relevant trust‑weighted items, and generate responses grounded in explainable facts — not passive data.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up stagger-3">
               <GlowingButton text="Create Your Avatar" href="/signup" />
-              <GlowingButton text="Sign In" href="/signin" />
+              <GlowingButton text="Explore Demo" href="/demo" />
             </div>
           </div>
 
@@ -75,34 +80,25 @@ export function Hero() {
                 <div className="h-3 w-3 rounded-full bg-primary/60 transition-colors hover:bg-primary" />
               </div>
               <div className="absolute top-3.5 left-1/2 -translate-x-1/2 bg-background/50 rounded-md px-3 py-1 font-mono text-xs text-muted-foreground">
-                terminal://evoavatar
+                terminal://mimic
               </div>
 
               <pre className="mt-6 overflow-hidden font-mono text-primary/80">
                 <code className="sm:hidden block text-xs leading-relaxed">{`┌───────────────────────┐
-│  ██████╗███████╗      │
-│ ██╔════╝██╔════╝      │
-│ ██║     █████╗        │
-│ ██║     ██╔══╝        │
-│ ╚██████╗██║           │
-│  ╚═════╝╚═╝           │
-│                       │
-│  > memories: 4      │
-│  > status: learning   │
+│  > memories: 8        │
+│  > trust-weighted     │
+│  > convo: ephemeral    │
+│  > provenance: on      │
 └───────────────────────┘`}</code>
                 <code className="hidden sm:block text-xs md:text-sm leading-relaxed" style={{color: 'var(--dynamic-text-color)'}}>{`┌──────────────────────────────────────────────────┐
 │                                                  │
-│    ██████╗ ██████╗ ██████╗ ███████╗ ██████╗      │
-│   ██╔════╝██╔═══██╗██╔══██╗██╔════╝██╔═══██╗     │
-│   ██║     ██║   ██║██║  ██║█████╗  ██║   ██║     │
-│   ██║     ██║   ██║██║  ██║██╔══╝  ██║   ██║     │
-│   ╚██████╗╚██████╔╝██████╔╝███████╗╚██████╔╝     │
-│    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝ ╚═════╝      │
-│                  EvoAvatar                       │
+│    Mimic — Privacy‑First AI Avatars               │
 │                                                  │
-│     > memories_created: 4                        │
-│     > status: continuously_learning              │
-│     > last_update: today                         │
+│     > memories_stored: 8                          │
+│     > retrieval: vector-similarity                │
+│     > trust_mode: enabled                         │
+│     > convo_persistence: ephemeral                │
+│     > explainability: shown in responses          │
 │                                                  │
 └──────────────────────────────────────────────────┘`}</code>
               </pre>
@@ -118,7 +114,7 @@ export function Hero() {
               className="absolute -bottom-3 sm:-bottom-6 -left-2 sm:-left-6 rounded-lg border border-border bg-card px-3 sm:px-4 py-1.5 font-mono text-[11px] sm:text-xs text-muted-foreground animate-float"
               style={{ animationDelay: "1s" }}
             >
-              2025 Edition
+              Privacy‑first
             </div>
 
             <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] rounded-full bg-primary/5 blur-3xl" />
