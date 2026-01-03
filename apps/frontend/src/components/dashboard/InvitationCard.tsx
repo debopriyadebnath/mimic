@@ -2,12 +2,12 @@
 "use client"
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { Button } from "../ui/button";
 import Image from "next/image";
@@ -34,7 +34,7 @@ export function InvitationCard({ avatarName, avatarImageUrl, fromUserName, onAcc
     }
 
     const handleReject = () => {
-         toast({
+        toast({
             title: "Invitation Rejected",
             variant: "destructive",
         });
@@ -44,21 +44,28 @@ export function InvitationCard({ avatarName, avatarImageUrl, fromUserName, onAcc
     return (
         <Card className="card-glass flex flex-col">
             <CardHeader>
-                <CardTitle className="font-headline" style={{color: 'var(--dynamic-text-color)'}}>{avatarName}</CardTitle>
+                <CardTitle className="font-headline" style={{ color: 'var(--dynamic-text-color)' }}>{avatarName}</CardTitle>
                 <CardDescription>
                     {fromUserName} has invited you to train this avatar.
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex-grow flex items-center justify-center">
-                 <div className="relative w-40 h-40 rounded-full overflow-hidden border-2 border-primary/50 shadow-lg shadow-primary/20">
+                <div className="relative w-40 h-40 rounded-full overflow-hidden border-2 border-primary/50 shadow-lg shadow-primary/20">
                     <Image src={avatarImageUrl} alt={avatarName} fill className="object-cover" />
                 </div>
             </CardContent>
-            <CardFooter className="flex justify-center gap-4">
-                <Button variant="destructive" onClick={handleReject}>
+            <CardFooter className="flex justify-between gap-4 pt-4">
+                <Button
+                    variant="outline"
+                    onClick={handleReject}
+                    className="flex-1 border-red-500/50 hover:bg-red-500/20 hover:text-red-500 text-red-400 transition-all duration-300"
+                >
                     <X className="mr-2 h-4 w-4" /> Reject
                 </Button>
-                <Button variant="default" onClick={handleAccept}>
+                <Button
+                    onClick={handleAccept}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-[0_0_15px_rgba(22,163,74,0.5)] hover:shadow-[0_0_25px_rgba(22,163,74,0.6)] transition-all duration-300 border-none"
+                >
                     <Check className="mr-2 h-4 w-4" /> Accept
                 </Button>
             </CardFooter>

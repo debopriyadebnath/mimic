@@ -3,12 +3,12 @@
 
 import { useState } from 'react';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +21,14 @@ import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import { UploadCloud } from 'lucide-react';
+import { UploadCloud, Copy, Clock, Check } from 'lucide-react';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 const avatars = PlaceHolderImages.filter(p => p.id.startsWith('avatar-'));
 
@@ -38,6 +45,8 @@ export function CreateAvatarPage() {
     const [uploadedAvatar, setUploadedAvatar] = useState<string | null>(null);
     const [answers, setAnswers] = useState({ q1: '', q2: '', q3: '' });
     const [invitationLink, setInvitationLink] = useState('');
+    const [expirationHours, setExpirationHours] = useState("2");
+    const [isGenerating, setIsGenerating] = useState(false);
     const { toast } = useToast();
 
     const handleNext = () => setStep(prev => prev + 1);
@@ -56,7 +65,7 @@ export function CreateAvatarPage() {
         }
     };
 
-    const handleGenerateLink = () => {
+    const handleGenerateLink = async () => {
         if (!avatarName || !selectedAvatar || Object.values(answers).some(a => !a)) {
             toast({
                 title: "Incomplete Form",
@@ -66,23 +75,60 @@ export function CreateAvatarPage() {
             return;
         }
 
+        setIsGenerating(true);
         toast({
             title: "Generating Invitation Link...",
-            description: "The avatar configuration is being created for your friend.",
+            description: "Creating the avatar configuration...",
         });
 
-        setTimeout(() => {
-            const uniqueCode = btoa(JSON.stringify({ avatarName, selectedAvatar, answers, timestamp: Date.now() }));
-            const link = `/dashboard?view=invite&code=${uniqueCode}`;
-            setInvitationLink(link);
-            setStep(4);
-            toast({
-                title: "Invitation Ready!",
-                description: "The avatar is ready to be trained by your participant.",
+        try {
+            const masterPrompt = `Function: ${answers.q1}\nPersonality: ${answers.q2}\nValues: ${answers.q3}`;
+
+            const response = await fetch('/api/invitations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    avatarName,
+                    avatarId: `generated-${Date.now()}`,
+                    expiresInHours: parseFloat(expirationHours),
+                    masterPrompt,
+                    // Note: sending appearance data if backend supports it would be good, 
+                    // but standard schema currently doesn't show it. Preserving client-side for now.
+                }),
             });
-        }, 1500);
+
+            const data = await response.json();
+
+            if (data.success && data.inviteUrl) {
+                setInvitationLink(data.inviteUrl);
+                setStep(4);
+                toast({
+                    title: "Invitation Ready!",
+                    description: "Link generated successfully.",
+                });
+            } else {
+                throw new Error(data.error || 'Failed to generate link');
+            }
+        } catch (error) {
+            console.error('Generation error:', error);
+            toast({
+                title: "Error",
+                description: "Failed to generate invitation link. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsGenerating(false);
+        }
     };
-    
+
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(invitationLink);
+        toast({
+            title: "Copied!",
+            description: "Invitation link copied to clipboard.",
+        });
+    };
+
     const handleRestart = () => {
         setStep(1);
         setAvatarName('');
@@ -90,6 +136,7 @@ export function CreateAvatarPage() {
         setUploadedAvatar(null);
         setAnswers({ q1: '', q2: '', q3: '' });
         setInvitationLink('');
+        setIsGenerating(false);
     }
 
     const renderStep = () => {
@@ -98,12 +145,12 @@ export function CreateAvatarPage() {
                 return (
                     <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }}>
                         <CardHeader>
-                            <CardTitle style={{color: 'var(--dynamic-text-color)'}}>Step 1: Name the Avatar</CardTitle>
+                            <CardTitle style={{ color: 'var(--dynamic-text-color)' }}>Step 1: Name the Avatar</CardTitle>
                             <CardDescription>Give a name to the avatar you are creating for your participant.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Label htmlFor="avatarName">Avatar Name</Label>
-                            <Input id="avatarName" value={avatarName} onChange={(e) => setAvatarName(e.target.value)} placeholder="e.g., Neo, Aura, K.A.I." className="bg-transparent" />
+                            <Input id="avatarName" value={avatarName} onChange={(e) => setAvatarName(e.target.value)} placeholder="e.g., Neo, Aura, K.A.I." className="bg-transparent mt-2" />
                         </CardContent>
                         <CardFooter className="justify-end">
                             <GlowingButton text="Next" onClick={handleNext} disabled={!avatarName} />
@@ -111,10 +158,11 @@ export function CreateAvatarPage() {
                     </motion.div>
                 );
             case 2:
+                // ... same as before ...
                 return (
                     <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }}>
                         <CardHeader>
-                            <CardTitle style={{color: 'var(--dynamic-text-color)'}}>Step 2: Choose Its Appearance</CardTitle>
+                            <CardTitle style={{ color: 'var(--dynamic-text-color)' }}>Step 2: Choose Its Appearance</CardTitle>
                             <CardDescription>Select a base visual form for the avatar, or upload your own.</CardDescription>
                         </CardHeader>
                         <CardContent className="max-h-[50vh] overflow-y-auto">
@@ -125,14 +173,14 @@ export function CreateAvatarPage() {
                                     <input id="avatar-upload" type="file" className="sr-only" accept="image/*" onChange={handleImageUpload} />
                                 </label>
                                 {uploadedAvatar && (
-                                     <button
+                                    <button
                                         onClick={() => setSelectedAvatar(uploadedAvatar)}
                                         className={cn("relative aspect-square w-full rounded-lg overflow-hidden border-2 transition-all",
                                             selectedAvatar === uploadedAvatar ? 'border-primary ring-2 ring-primary/50' : 'border-border/50 hover:border-primary'
                                         )}
                                     >
                                         <Image src={uploadedAvatar} alt="Uploaded Avatar" fill className="object-cover" />
-                                         {selectedAvatar === uploadedAvatar && <div className="absolute inset-0 bg-primary/50" />}
+                                        {selectedAvatar === uploadedAvatar && <div className="absolute inset-0 bg-primary/50" />}
                                     </button>
                                 )}
                                 {avatars.map(avatar => (
@@ -144,7 +192,7 @@ export function CreateAvatarPage() {
                                         )}
                                     >
                                         <Image src={avatar.imageUrl} alt={avatar.imageHint || 'Avatar image'} fill className="object-cover" data-ai-hint={avatar.imageHint} unoptimized />
-                                         {selectedAvatar === avatar.imageUrl && <div className="absolute inset-0 bg-primary/50" />}
+                                        {selectedAvatar === avatar.imageUrl && <div className="absolute inset-0 bg-primary/50" />}
                                     </button>
                                 ))}
                             </div>
@@ -159,37 +207,64 @@ export function CreateAvatarPage() {
                 return (
                     <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }}>
                         <CardHeader>
-                            <CardTitle style={{color: 'var(--dynamic-text-color)'}}>Step 3: Define Its Personality</CardTitle>
-                            <CardDescription>Answer these questions to shape its core characteristics.</CardDescription>
+                            <CardTitle style={{ color: 'var(--dynamic-text-color)' }}>Step 3: Define & Configure</CardTitle>
+                            <CardDescription>Answer these questions and set invitation settings.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {questions.map(q => (
                                 <div key={q.id} className="grid w-full items-center gap-1.5">
                                     <Label htmlFor={q.id}>{q.label}</Label>
-                                    <Textarea id={q.id} value={answers[q.id as keyof typeof answers]} onChange={(e) => setAnswers({...answers, [q.id]: e.target.value})} placeholder={q.placeholder} className="bg-transparent" />
+                                    <Textarea id={q.id} value={answers[q.id as keyof typeof answers]} onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })} placeholder={q.placeholder} className="bg-transparent" />
                                 </div>
                             ))}
+
+                            <div className="grid w-full items-center gap-1.5 pt-4 border-t border-border/50">
+                                <Label htmlFor="expiration" className="flex items-center gap-2">
+                                    <Clock className="h-4 w-4" /> Link Expiration
+                                </Label>
+                                <Select value={expirationHours} onValueChange={setExpirationHours}>
+                                    <SelectTrigger className="w-full bg-transparent">
+                                        <SelectValue placeholder="Select duration" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="0.5">30 Minutes</SelectItem>
+                                        <SelectItem value="1">1 Hour</SelectItem>
+                                        <SelectItem value="1.5">1.5 Hours</SelectItem>
+                                        <SelectItem value="2">2 Hours</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground">The invitation link will become invalid after this time.</p>
+                            </div>
                         </CardContent>
                         <CardFooter className="justify-between">
-                            <Button variant="ghost" onClick={handleBack}>Back</Button>
-                            <GlowingButton text="Generate Invite Link" onClick={handleGenerateLink} disabled={!avatarName || !selectedAvatar || !answers.q1 || !answers.q2 || !answers.q3} />
+                            <Button variant="ghost" onClick={handleBack} disabled={isGenerating}>Back</Button>
+                            <GlowingButton
+                                text={isGenerating ? "Generating..." : "Generate Invite Link"}
+                                onClick={handleGenerateLink}
+                                disabled={isGenerating || !avatarName || !selectedAvatar || !answers.q1 || !answers.q2 || !answers.q3}
+                            />
                         </CardFooter>
                     </motion.div>
                 );
             case 4:
                 return (
-                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-8">
-                        <CardTitle className="text-2xl font-headline mb-4" style={{color: 'var(--dynamic-text-color)'}}>Invitation Ready!</CardTitle>
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-8">
+                        <CardTitle className="text-2xl font-headline mb-4" style={{ color: 'var(--dynamic-text-color)' }}>Invitation Ready!</CardTitle>
                         <CardDescription className="mb-6">The avatar, {avatarName}, has been created for your participant.</CardDescription>
                         <div className="relative aspect-square max-w-xs mx-auto rounded-lg overflow-hidden border-2 border-primary shadow-2xl shadow-primary/20 mb-8">
-                           {selectedAvatar && <Image src={selectedAvatar} alt="Final Avatar" fill className="object-cover" unoptimized />}
+                            {selectedAvatar && <Image src={selectedAvatar} alt="Final Avatar" fill className="object-cover" unoptimized />}
                         </div>
-                        <div className='flex flex-col items-center gap-4'>
-                            <p className='text-sm text-muted-foreground'>Send the link below to your friend to start training.</p>
-                            <Link href={invitationLink} passHref>
-                                <GlowingButton text="Go to Invitation Page" />
-                            </Link>
-                             <Button variant="ghost" onClick={handleRestart}>Create Another</Button>
+                        <div className='flex flex-col items-center gap-4 w-full max-w-md mx-auto'>
+                            <p className='text-sm text-muted-foreground'>Share this link with your participant:</p>
+
+                            <div className="flex items-center w-full gap-2">
+                                <Input value={invitationLink} readOnly className="bg-secondary/50 font-mono text-sm" />
+                                <Button size="icon" variant="outline" onClick={copyToClipboard}>
+                                    <Copy className="h-4 w-4" />
+                                </Button>
+                            </div>
+
+                            <Button variant="ghost" onClick={handleRestart} className="mt-4">Create Another</Button>
                         </div>
                     </motion.div>
                 );
@@ -207,4 +282,3 @@ export function CreateAvatarPage() {
     );
 }
 
-    

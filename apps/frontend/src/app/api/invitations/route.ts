@@ -24,7 +24,7 @@ function generateToken(): string {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { avatarId, avatarName, createdBy, expiresInHours = 24 } = body;
+    const { avatarId, avatarName, createdBy, expiresInHours = 24, masterPrompt } = body;
 
     if (!avatarId || !avatarName) {
       return NextResponse.json(
@@ -45,6 +45,7 @@ export async function POST(request: Request) {
       createdAt: now,
       expiresAt,
       used: false,
+      masterPrompt,
     };
 
     invitations.set(token, invitation);
