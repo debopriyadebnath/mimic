@@ -1,19 +1,44 @@
-# Mimic
+# ✨ Mimic
 
-Privacy‑first AI avatars that grow only with your explicit, trusted inputs. Instead of passive learning, Mimic stores user‑added memories as embeddings and recalls the most relevant, trust‑weighted items to generate responses — minimizing hallucination while preserving personality and control.
+> Privacy‑first AI avatars that evolve only with your trusted, explicit inputs — explainable, human‑centered, and delightful.
 
-## Highlights
-- Privacy-first: nothing is remembered unless you add it.
-- Trusted memories: add, edit, and weight memories to shape identity.
-- Explainable: responses cite which memories influenced them.
-- Minimal hallucination: only relevant, high‑trust memories are used.
-- Human-centered growth: conversations remain ephemeral; long-term memory is deliberate.
+---
 
-## Philosophy
-AI should reflect people, not generic patterns. Mimic separates short-term chat from long-term memory so your avatar evolves transparently and ethically.
+🎨 Beautifully personal. Ethically built. Technically rigorous.
+
+- 🔒 Privacy-first: nothing is remembered unless you add it.
+- 🧠 Deliberate memory: add opinions, preferences, facts as discrete memories.
+- ⚖️ Trust-weighted: memories carry trust scores to shape answers.
+- 🔎 Explainable: responses reference the memories that influenced them.
+- 🛡️ Reduced hallucination: generation uses only relevant, high‑trust memories.
+
+---
+
+## How it works — at a glance
+1. You (or a trusted trainer) add a memory: a short text + metadata.  
+2. Each memory is converted to an embedding and stored in a vector DB.  
+3. During chat the system retrieves the top‑K most relevant, trust‑weighted memories.  
+4. The model conditions on those results (and ephemeral convo) to generate a grounded, explainable reply.  
+5. Conversations stay ephemeral; long‑term memory grows only by deliberate action.
+
+---
+
+> "An avatar that reflects *you* — not a generic chatbot."
+
+---
 
 ## Try it
-Add a memory (preference, opinion, fact) and start a conversation — see which memories were used to form each reply.
+1. Create an avatar.  
+2. Add a memory (preference / opinion / fact).  
+3. Start a conversation and inspect which memories were used to form each reply.
 
-## License
-MIT
+---
+
+## Quick links
+- 🚀 Create: /signup
+- 🧪 Demo: /demo
+- 📜 License: MIT
+
+---
+
+© {YEAR} Mimic — Privacy‑first AI avatars
