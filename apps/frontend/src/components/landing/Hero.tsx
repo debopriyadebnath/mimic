@@ -4,13 +4,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { GlowingButton } from "../ui/glowing-button"
 
-const roles = [
-  "privacy-first memories",
-  "trusted identities",
-  "explainable decisions",
-  "trust-weighted recall",
-  "reduced hallucination",
-]
+const roles = ["building connection", "exploring relations", "breaking communication barrier", "forging compassion", "crafting understanding"]
 
 export function Hero() {
   const [currentRole, setCurrentRole] = useState(0)
@@ -49,10 +43,10 @@ export function Hero() {
           <div className="space-y-8 sm:space-y-10">
             <div className="space-y-3 animate-fade-in-up">
               <p className="font-mono text-xs uppercase tracking-[0.25em] sm:tracking-[0.35em] text-primary">
-                Mimic — Privacy‑First AI Avatars
+                MIMIC — Your Digital Self
               </p>
               <h1 className="text-4xl font-bold tracking-tight sm:text-4xl lg:text-5xl xl:text-6xl text-balance">
-                Build an AI that
+                Building for you
                 <br />
                 <span className="text-foreground">
                   {displayText || <>&nbsp;</>}
@@ -62,12 +56,12 @@ export function Hero() {
             </div>
 
             <p className="max-w-lg text-base sm:text-lg leading-relaxed text-muted-foreground animate-fade-in-up stagger-2">
-              Create a personal AI identity that only learns what you explicitly add. Store memories as embeddings, recall the most relevant trust‑weighted items, and generate responses grounded in explainable facts — not passive data.
+             
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up stagger-3">
               <GlowingButton text="Create Your Avatar" href="/signup" />
-              <GlowingButton text="Explore Demo" href="/demo" />
+              <GlowingButton text="Sign In" href="/signin" />
             </div>
           </div>
 
@@ -80,28 +74,41 @@ export function Hero() {
                 <div className="h-3 w-3 rounded-full bg-primary/60 transition-colors hover:bg-primary" />
               </div>
               <div className="absolute top-3.5 left-1/2 -translate-x-1/2 bg-background/50 rounded-md px-3 py-1 font-mono text-xs text-muted-foreground">
-                terminal://mimic
+                terminal://evoavatar
               </div>
 
-              <pre className="mt-6 overflow-hidden font-mono text-primary/80">
-                <code className="sm:hidden block text-xs leading-relaxed">{`┌───────────────────────┐
-│  > memories: 8        │
-│  > trust-weighted     │
-│  > convo: ephemeral    │
-│  > provenance: on      │
-└───────────────────────┘`}</code>
-                <code className="hidden sm:block text-xs md:text-sm leading-relaxed" style={{color: 'var(--dynamic-text-color)'}}>{`┌──────────────────────────────────────────────────┐
+              <div className="mt-6 overflow-hidden font-mono text-primary/80 flex items-start gap-4">
+                <div className="flex-1 min-w-0">
+                  <pre className="sm:hidden block text-xs leading-relaxed">{`┌───────────────────────┐
+│  ██████╗███████╗      │
+│ ██╔════╝██╔════╝      │
+│ ██║     █████╗        │
+│ ██║     ██╔══╝        │
+│ ╚██████╗██║           │
+│  ╚═════╝╚═╝           │
+│                       │
+│  > memories: 4        │
+│  > status: learning   │
+└───────────────────────┘`}</pre>
+
+                  <pre className="hidden sm:block text-xs md:text-sm leading-relaxed" style={{color: 'var(--dynamic-text-color)'}}>{`┌──────────────────────────────────────────────────┐
+███╗   ███  ╗██  ╗███╗   ███  ╗██  ╗ ██████╗
+████╗ ████  ║██  ║████╗ ████  ║██  ║██╔════╝
+██╔████╔██  ║██  ║██╔████╔██  ║██  ║██║     
+██║╚██╔╝██  ║██  ║██║╚██╔╝██  ║██  ║██║            |
+██║ ╚═╝ ██  ║██  ║██║ ╚═╝ ██  ║██  ║╚██████╗       | 
+╚═╝     ╚═╝ ╚═╝  ╚═╝     ╚═╝╚ ═╝ ╚═════════╝       |
 │                                                  │
-│    Mimic — Privacy‑First AI Avatars               │
 │                                                  │
-│     > memories_stored: 8                          │
-│     > retrieval: vector-similarity                │
-│     > trust_mode: enabled                         │
-│     > convo_persistence: ephemeral                │
-│     > explainability: shown in responses          │
+│     > memories_created: 4                        │
+│     > status: continuously_learning              │
+│     > last_update: today                         │
 │                                                  │
-└──────────────────────────────────────────────────┘`}</code>
-              </pre>
+└──────────────────────────────────────────────────┘`}</pre>
+                </div>
+
+                <img src="/mimic.png" alt="Mimic" className="hidden sm:block w-50 h-auto  bg-card/40 p-1" />
+              </div>
             </div>
 
             <div className="absolute -right-2 sm:-right-6 -top-2 sm:-top-6 rounded-lg border border-primary/40 bg-primary/15 px-3 sm:px-4 py-1.5 font-mono text-[11px] sm:text-xs text-primary animate-float">
@@ -114,7 +121,7 @@ export function Hero() {
               className="absolute -bottom-3 sm:-bottom-6 -left-2 sm:-left-6 rounded-lg border border-border bg-card px-3 sm:px-4 py-1.5 font-mono text-[11px] sm:text-xs text-muted-foreground animate-float"
               style={{ animationDelay: "1s" }}
             >
-              Privacy‑first
+              2025 Edition
             </div>
 
             <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] rounded-full bg-primary/5 blur-3xl" />
