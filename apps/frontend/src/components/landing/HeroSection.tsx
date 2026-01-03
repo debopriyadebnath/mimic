@@ -34,22 +34,24 @@ export function HeroSection() {
     return () => clearTimeout(timeout)
   }, [displayText, isDeleting, currentRole])
 
-   return (
+  return (
     <section className="relative px-4 sm:px-6 pt-28 sm:pt-36 pb-16 sm:pb-24">
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-20 lg:items-center lg:min-h-[70vh]">
           {/* Left column - Text */}
           <div className="space-y-8 sm:space-y-10">
             <div className="space-y-3 animate-fade-in-up">
-              <p className="font-mono text-xs uppercase tracking-[0.25em] sm:tracking-[0.35em] text-primary" style={{'--dynamic-text-color': 'hsl(var(--primary))'} as React.CSSProperties}>
+              <p className="font-mono text-xs uppercase tracking-[0.25em] sm:tracking-[0.35em] text-primary" style={{ '--dynamic-text-color': 'hsl(var(--primary))' } as React.CSSProperties}>
                 EvoAvatar — Your Digital Self
               </p>
               <h1 className="text-4xl font-bold tracking-tight sm:text-4xl lg:text-5xl xl:text-6xl text-balance">
-                Forging digital
+                <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+                  Forging digital
+                </span>
                 <br />
                 <span
                   className="bg-gradient-to-l from-primary/50 to-accent text-transparent bg-clip-text"
-                  style={{'--dynamic-text-color': 'hsl(var(--accent))'} as React.CSSProperties}
+                  style={{ '--dynamic-text-color': 'hsl(var(--accent))' } as React.CSSProperties}
                 >
                   {displayText}
                 </span>
@@ -65,7 +67,7 @@ export function HeroSection() {
               <Link
                 href="/signup"
                 className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-lg border border-primary bg-primary/10 px-7 py-4 sm:py-3.5 font-mono text-sm text-primary transition-all duration-500 hover:bg-primary hover:text-primary-foreground active:scale-[0.98]"
-                style={{'--dynamic-text-color': 'hsl(var(--primary))'} as React.CSSProperties}
+                style={{ '--dynamic-text-color': 'hsl(var(--primary))' } as React.CSSProperties}
               >
                 <span className="relative z-10">Create Your Avatar</span>
                 <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">→</span>
