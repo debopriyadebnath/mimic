@@ -8,6 +8,7 @@ interface AvatarDraft {
   ownerName: string;
   ownerEmail: string;
   avatarName: string;
+  avatarImageUrl?: string;  // Selected avatar image URL
   ownerResponses: Array<{ question: string; answer: string }>;
   draftPrompt: string;
   createdAt: number;
@@ -224,7 +225,7 @@ export const avatarFlowRoute = (app: Express) => {
   // Create draft avatar with owner's questions
   app.post("/api/avatar-flow/create-draft", async (req: Request, res: Response) => {
     try {
-      const { ownerId, ownerName, ownerEmail, avatarName, ownerResponses } = req.body;
+      const { ownerId, ownerName, ownerEmail, avatarName, avatarImageUrl, ownerResponses } = req.body;
 
       if (!ownerId || !avatarName || !ownerResponses) {
         return res.status(400).json({
@@ -243,6 +244,7 @@ export const avatarFlowRoute = (app: Express) => {
         ownerName: ownerName || 'Avatar Owner',
         ownerEmail: ownerEmail || '',
         avatarName,
+        avatarImageUrl: avatarImageUrl || '',
         ownerResponses,
         draftPrompt,
         createdAt: Date.now(),
@@ -486,6 +488,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
         const convexResult = await globalThis.convex.mutation("trainers:storeAvatarMasterPrompt", {
           avatarId: avatar.id,
           avatarName: avatar.avatarName,
+          avatarImageUrl: avatar.avatarImageUrl || '',
           ownerId: avatar.ownerId,
           ownerName: avatar.ownerName || 'Avatar Owner',
           ownerEmail: avatar.ownerEmail || '',
@@ -785,6 +788,170 @@ Write the master prompt as a single, well-structured paragraph or short set of p
     } catch (error: any) {
       console.error("Get cloud prompts error:", error);
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Chat with avatar using its master prompt + RAG from training memories
+  app.post("/api/avatar-flow/chat/:avatarId", async (req: Request, res: Response) => {
+    try {
+      const { avatarId } = req.params;
+      const { message, history = [] } = req.body;
+
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      // Get master prompt for this avatar
+      let masterPrompt = '';
+      let avatarName = 'Avatar';
+
+      // Try to get from Convex first
+      try {
+        const convexPrompt = await globalThis.convex.query("trainers:getAvatarMasterPrompt", {
+          avatarId,
+        });
+        
+        if (convexPrompt) {
+          masterPrompt = convexPrompt.masterPrompt;
+          avatarName = convexPrompt.avatarName;
+        }
+      } catch (convexError) {
+        console.log("Convex lookup failed, falling back to local storage");
+      }
+
+      // Fall back to local storage
+      if (!masterPrompt) {
+        const avatar = avatars.get(avatarId);
+        if (avatar?.finalMasterPrompt) {
+          masterPrompt = avatar.finalMasterPrompt;
+          avatarName = avatar.avatarName;
+        }
+      }
+
+      if (!masterPrompt) {
+        return res.status(400).json({ 
+          error: "Avatar is not trained yet. Please complete the training first.",
+        });
+      }
+
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("GEMINI_API_KEY environment variable is not set");
+      }
+
+      const googleGenAI = new GoogleGenerativeAI(apiKey);
+
+      // === RAG: Fetch relevant training memories ===
+      let relevantMemories: Array<{ text: string; trustWeight: string; score: number }> = [];
+      
+      try {
+        // Generate embedding for the user's message
+        const embeddingModel = googleGenAI.getGenerativeModel({ model: "text-embedding-004" });
+        const embeddingResult = await embeddingModel.embedContent(message);
+        
+        if (embeddingResult?.embedding?.values) {
+          // Query relevant memories from Convex
+          const memories = await globalThis.convex.query("trainers:getRelevantTrainingMemories", {
+            avatarId,
+            queryEmbedding: embeddingResult.embedding.values,
+            topK: 5,
+          });
+          
+          if (memories && memories.length > 0) {
+            relevantMemories = memories.map((m: any) => ({
+              text: m.text,
+              trustWeight: m.trustWeight,
+              score: m.score,
+            }));
+            console.log(`Found ${relevantMemories.length} relevant memories for avatar ${avatarId}`);
+          }
+        }
+      } catch (ragError) {
+        console.log("RAG lookup failed (non-critical):", ragError);
+        // Continue without memories - not a critical failure
+      }
+
+      // Build augmented prompt with master prompt + memories
+      let augmentedPrompt = masterPrompt;
+      
+      if (relevantMemories.length > 0) {
+        augmentedPrompt += "\n\n## Additional Context (from training):\n";
+        relevantMemories.forEach((memory) => {
+          const trustLabel = memory.trustWeight === "owner" ? "⭐" : memory.trustWeight === "trainer" ? "🎓" : "📝";
+          augmentedPrompt += `- ${trustLabel} ${memory.text}\n`;
+        });
+      }
+
+      const model = googleGenAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+      // Build conversation history for context
+      const conversationHistory = history.map((msg: { role: string; content: string }) => 
+        `${msg.role === 'user' ? 'User' : avatarName}: ${msg.content}`
+      ).join('\n');
+
+      const prompt = `${augmentedPrompt}
+
+---
+## STRICT RULES - YOU MUST FOLLOW THESE:
+1. You are ${avatarName}. ONLY respond based on your personality and training above.
+2. DO NOT make up information, facts, or details that weren't provided in your training.
+3. If asked about something outside your trained knowledge, honestly say "I don't have information about that" or "That's not something I was trained on."
+4. Stay 100% in character. Your personality, tone, and style should match your training.
+5. DO NOT pretend to have capabilities, knowledge, or experiences that weren't specified in your training.
+6. Keep responses relevant to the conversation. Don't add random or unrelated information.
+7. If the user asks personal questions not covered in training, politely redirect or admit you don't know.
+
+${conversationHistory ? `\nConversation so far:\n${conversationHistory}\n` : ''}
+User: ${message}
+
+${avatarName} (respond ONLY based on your training, stay in character):`;
+
+      const result = await model.generateContent(prompt);
+      const response = result.response.text();
+
+      res.json({
+        success: true,
+        response: response.trim(),
+        avatarName,
+        memoriesUsed: relevantMemories.length,
+      });
+    } catch (error: any) {
+      console.error("Chat error:", error);
+      res.status(500).json({ error: error.message || "Failed to generate response" });
+    }
+  });
+
+  // Generate embedding for text (used by training interface)
+  app.post("/api/avatar-flow/generate-embedding", async (req: Request, res: Response) => {
+    try {
+      const { text } = req.body;
+
+      if (!text) {
+        return res.status(400).json({ error: "Text is required" });
+      }
+
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("GEMINI_API_KEY environment variable is not set");
+      }
+
+      const googleGenAI = new GoogleGenerativeAI(apiKey);
+      const embeddingModel = googleGenAI.getGenerativeModel({ model: "text-embedding-004" });
+
+      const result = await embeddingModel.embedContent(text);
+      
+      if (!result?.embedding?.values) {
+        throw new Error("Failed to generate embedding");
+      }
+
+      res.json({
+        success: true,
+        embedding: result.embedding.values,
+        dimensions: result.embedding.values.length,
+      });
+    } catch (error: any) {
+      console.error("Embedding generation error:", error);
+      res.status(500).json({ error: error.message || "Failed to generate embedding" });
     }
   });
 };

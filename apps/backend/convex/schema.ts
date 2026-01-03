@@ -162,6 +162,7 @@ export default defineSchema({
   avatarMasterPrompts: defineTable({
     avatarId: v.string(),             // Custom string ID from avatar flow
     avatarName: v.string(),
+    avatarImageUrl: v.optional(v.string()),  // Selected avatar image URL
     ownerId: v.string(),
     ownerName: v.optional(v.string()),
     ownerEmail: v.optional(v.string()),
@@ -181,4 +182,33 @@ export default defineSchema({
   })
     .index("by_avatarId", ["avatarId"])
     .index("by_ownerId", ["ownerId"]),
+
+  /* =========================
+     AVATAR TRAINING MEMORIES (Text/Voice inputs from trainers)
+     Uses string avatarId for avatar flow compatibility
+     ========================= */
+  avatarTrainingMemories: defineTable({
+    avatarId: v.string(),                     // String avatarId from avatar flow
+    text: v.string(),                          // Memory content
+    embedding: v.array(v.number()),            // Vector embedding for RAG
+    category: v.optional(v.string()),          // e.g., "personality", "preference", "fact"
+    trustWeight: v.union(
+      v.literal("owner"),
+      v.literal("trainer"),
+      v.literal("derived")
+    ),
+    source: v.union(
+      v.literal("user_saved"),
+      v.literal("trainer_added"),
+      v.literal("voice_input"),
+      v.literal("conversation_extract")
+    ),
+    trainerId: v.optional(v.string()),        // Who added this memory
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_avatarId", ["avatarId"])
+    .index("by_trust", ["trustWeight"])
+    .index("by_created", ["createdAt"]),
 });

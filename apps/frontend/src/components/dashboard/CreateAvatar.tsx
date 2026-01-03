@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Card,
     CardContent,
@@ -21,7 +21,7 @@ import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import { UploadCloud, Copy, Clock, Check } from 'lucide-react';
+import { UploadCloud, Copy, Clock, Check, Mail } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -43,6 +43,7 @@ export function CreateAvatarPage() {
     const [avatarName, setAvatarName] = useState('');
     const [ownerName, setOwnerName] = useState('');
     const [ownerEmail, setOwnerEmail] = useState('');
+    const [ownerId, setOwnerId] = useState('');
     const [selectedAvatar, setSelectedAvatar] = useState('');
     const [uploadedAvatar, setUploadedAvatar] = useState<string | null>(null);
     const [answers, setAnswers] = useState({ q1: '', q2: '', q3: '' });
@@ -50,6 +51,21 @@ export function CreateAvatarPage() {
     const [expirationHours, setExpirationHours] = useState("2");
     const [isGenerating, setIsGenerating] = useState(false);
     const { toast } = useToast();
+
+    // Auto-fetch user info from localStorage on mount
+    useEffect(() => {
+        try {
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                const user = JSON.parse(storedUser);
+                setOwnerEmail(user.email || '');
+                setOwnerName(user.userName || user.name || '');
+                setOwnerId(user._id || user.id || user.email || '');
+            }
+        } catch (error) {
+            console.error('Error loading user data:', error);
+        }
+    }, []);
 
     const handleNext = () => setStep(prev => prev + 1);
     const handleBack = () => setStep(prev => prev - 1);
@@ -86,11 +102,8 @@ export function CreateAvatarPage() {
         try {
             const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
             
-            // Use a consistent owner ID (in production, get from auth)
-            const ownerId = localStorage.getItem('ownerId') || 'owner-' + Date.now();
-            localStorage.setItem('ownerId', ownerId);
-            localStorage.setItem('ownerName', ownerName);
-            if (ownerEmail) localStorage.setItem('ownerEmail', ownerEmail);
+            // Use the ownerId from user data (fetched from localStorage)
+            const finalOwnerId = ownerId || ownerEmail || 'owner-' + Date.now();
 
             // Step 1: Create draft avatar with owner's responses
             const ownerResponses = [
@@ -103,10 +116,11 @@ export function CreateAvatarPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    ownerId,
+                    ownerId: finalOwnerId,
                     ownerName,
                     ownerEmail,
                     avatarName,
+                    avatarImageUrl: selectedAvatar,
                     ownerResponses,
                 }),
             });
@@ -124,7 +138,7 @@ export function CreateAvatarPage() {
                 body: JSON.stringify({
                     avatarId: draftData.avatarId,
                     avatarName: draftData.avatarName,
-                    ownerId,
+                    ownerId: finalOwnerId,
                     expiresInHours: parseFloat(expirationHours),
                 }),
             });
@@ -164,8 +178,7 @@ export function CreateAvatarPage() {
     const handleRestart = () => {
         setStep(1);
         setAvatarName('');
-        setOwnerName('');
-        setOwnerEmail('');
+        // Don't reset ownerName, ownerEmail, ownerId - they're from the logged-in user
         setSelectedAvatar('');
         setUploadedAvatar(null);
         setAnswers({ q1: '', q2: '', q3: '' });
@@ -180,9 +193,23 @@ export function CreateAvatarPage() {
                     <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }}>
                         <CardHeader>
                             <CardTitle style={{ color: 'var(--dynamic-text-color)' }}>Step 1: Your Information</CardTitle>
-                            <CardDescription>Enter your details and name the avatar you're creating.</CardDescription>
+                            <CardDescription>Your details are automatically fetched from your account.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                            <div>
+                                <Label htmlFor="ownerEmail" className="flex items-center gap-2">
+                                    <Mail className="h-4 w-4" /> Your Email
+                                </Label>
+                                <Input 
+                                    id="ownerEmail" 
+                                    type="email"
+                                    value={ownerEmail} 
+                                    readOnly
+                                    disabled
+                                    className="bg-secondary/30 mt-2 cursor-not-allowed" 
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">Auto-fetched from your account</p>
+                            </div>
                             <div>
                                 <Label htmlFor="ownerName">Your Name *</Label>
                                 <Input 
@@ -190,17 +217,6 @@ export function CreateAvatarPage() {
                                     value={ownerName} 
                                     onChange={(e) => setOwnerName(e.target.value)} 
                                     placeholder="e.g., John Smith" 
-                                    className="bg-transparent mt-2" 
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="ownerEmail">Your Email (optional)</Label>
-                                <Input 
-                                    id="ownerEmail" 
-                                    type="email"
-                                    value={ownerEmail} 
-                                    onChange={(e) => setOwnerEmail(e.target.value)} 
-                                    placeholder="e.g., john@example.com" 
                                     className="bg-transparent mt-2" 
                                 />
                             </div>
@@ -216,7 +232,7 @@ export function CreateAvatarPage() {
                             </div>
                         </CardContent>
                         <CardFooter className="justify-end">
-                            <GlowingButton text="Next" onClick={handleNext} disabled={!avatarName || !ownerName} />
+                            <GlowingButton text="Next" onClick={handleNext} disabled={!avatarName || !ownerName || !ownerEmail} />
                         </CardFooter>
                     </motion.div>
                 );

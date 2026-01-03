@@ -1,13 +1,14 @@
 
 'use client';
 
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InvitationCard } from "./InvitationCard";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { PsychologicalQuestionnaire } from "./PsychologicalQuestionnaire";
 import { useRouter } from "next/navigation";
+import { Users, Bot, CheckCircle, Clock } from "lucide-react";
 
 const initialInvitations = [
   {
@@ -27,6 +28,7 @@ const initialInvitations = [
 interface UserAvatar {
   id: string;
   avatarName: string;
+  avatarImageUrl?: string;  // Selected avatar image URL
   status: 'draft' | 'awaiting_trainer' | 'completed';
   finalMasterPrompt?: string;
   createdAt: number;
@@ -38,6 +40,7 @@ interface CloudPrompt {
   _id: string;
   avatarId: string;
   avatarName: string;
+  avatarImageUrl?: string;
   ownerId: string;
   masterPrompt: string;
   trainerName?: string;
@@ -52,6 +55,8 @@ export function WelcomeDashboard() {
     const [loading, setLoading] = useState(true);
     const [showQuestionnaire, setShowQuestionnaire] = useState(false);
     const [selectedAvatar, setSelectedAvatar] = useState<{name: string, imageUrl: string} | null>(null);
+    const [userEmail, setUserEmail] = useState<string>('');
+    const [userName, setUserName] = useState<string>('');
 
     // Fetch user's avatars on mount
     useEffect(() => {
@@ -65,6 +70,8 @@ export function WelcomeDashboard() {
                 
                 const user = JSON.parse(storedUser);
                 const userId = user._id || user.id || user.email;
+                setUserEmail(user.email || '');
+                setUserName(user.userName || user.name || 'User');
                 
                 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
                 
@@ -128,8 +135,9 @@ export function WelcomeDashboard() {
         }
     };
 
-    // Get random avatar image based on avatar name
-    const getAvatarImage = (avatarName: string) => {
+    // Get avatar image - use stored URL if available, otherwise fallback to generated
+    const getAvatarImage = (avatarName: string, avatarImageUrl?: string) => {
+        if (avatarImageUrl) return avatarImageUrl;
         const index = avatarName.charCodeAt(0) % PlaceHolderImages.length;
         return PlaceHolderImages[index]?.imageUrl || PlaceHolderImages[0]?.imageUrl || '';
     };
@@ -138,9 +146,142 @@ export function WelcomeDashboard() {
         return <PsychologicalQuestionnaire avatarName={selectedAvatar.name} onSubmit={handleQuestionnaireSubmit} />;
     }
 
+    // Calculate avatar stats
+    const totalAvatars = userAvatars.length + cloudAvatars.filter(cloud => !userAvatars.some(local => local.id === cloud.avatarId)).length;
+    const completedAvatars = userAvatars.filter(a => a.status === 'completed').length + cloudAvatars.filter(cloud => !userAvatars.some(local => local.id === cloud.avatarId)).length;
+    const pendingAvatars = userAvatars.filter(a => a.status === 'awaiting_trainer' || a.status === 'draft').length;
+
     return (
         <>
             <div className="space-y-8 w-full max-w-6xl">
+                {/* User Stats Section */}
+                <div>
+                    <h2 className="text-2xl font-headline mb-4" style={{color: 'var(--dynamic-text-color)'}}>
+                        Welcome back{userName ? `, ${userName}` : ''}!
+                    </h2>
+                    {userEmail && (
+                        <p className="text-sm text-muted-foreground mb-4">{userEmail}</p>
+                    )}
+                    
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        {/* Total Avatars */}
+                        <Card className="card-glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total Avatars</CardTitle>
+                                <Bot className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold" style={{color: 'var(--dynamic-text-color)'}}>{loading ? '...' : totalAvatars}</div>
+                                <p className="text-xs text-muted-foreground mb-2">
+                                    Created by you
+                                </p>
+                                {/* Avatar thumbnails */}
+                                {!loading && totalAvatars > 0 && (
+                                    <div className="flex -space-x-2 mt-2">
+                                        {userAvatars.slice(0, 4).map((avatar, idx) => (
+                                            <div key={avatar.id} className="relative w-8 h-8 rounded-full border-2 border-background overflow-hidden" style={{zIndex: 4-idx}}>
+                                                <Image src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} alt={avatar.avatarName} fill className="object-cover" />
+                                            </div>
+                                        ))}
+                                        {totalAvatars > 4 && (
+                                            <div className="w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs font-medium">
+                                                +{totalAvatars - 4}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Trained Avatars */}
+                        <Card className="card-glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Trained</CardTitle>
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-green-500">{loading ? '...' : completedAvatars}</div>
+                                <p className="text-xs text-muted-foreground mb-2">
+                                    Fully trained avatars
+                                </p>
+                                {/* Trained avatar thumbnails */}
+                                {!loading && completedAvatars > 0 && (
+                                    <div className="flex -space-x-2 mt-2">
+                                        {userAvatars.filter(a => a.status === 'completed').slice(0, 4).map((avatar, idx) => (
+                                            <div key={avatar.id} className="relative w-8 h-8 rounded-full border-2 border-green-500/50 overflow-hidden" style={{zIndex: 4-idx}}>
+                                                <Image src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} alt={avatar.avatarName} fill className="object-cover" />
+                                            </div>
+                                        ))}
+                                        {completedAvatars > 4 && (
+                                            <div className="w-8 h-8 rounded-full bg-green-500/20 border-2 border-green-500/50 flex items-center justify-center text-xs font-medium text-green-500">
+                                                +{completedAvatars - 4}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Pending Avatars */}
+                        <Card className="card-glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+                                <Clock className="h-4 w-4 text-yellow-500" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-yellow-500">{loading ? '...' : pendingAvatars}</div>
+                                <p className="text-xs text-muted-foreground mb-2">
+                                    Awaiting training
+                                </p>
+                                {/* Pending avatar thumbnails */}
+                                {!loading && pendingAvatars > 0 && (
+                                    <div className="flex -space-x-2 mt-2">
+                                        {userAvatars.filter(a => a.status === 'awaiting_trainer' || a.status === 'draft').slice(0, 4).map((avatar, idx) => (
+                                            <div key={avatar.id} className="relative w-8 h-8 rounded-full border-2 border-yellow-500/50 overflow-hidden" style={{zIndex: 4-idx}}>
+                                                <Image src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} alt={avatar.avatarName} fill className="object-cover" />
+                                            </div>
+                                        ))}
+                                        {pendingAvatars > 4 && (
+                                            <div className="w-8 h-8 rounded-full bg-yellow-500/20 border-2 border-yellow-500/50 flex items-center justify-center text-xs font-medium text-yellow-500">
+                                                +{pendingAvatars - 4}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Cloud Synced */}
+                        <Card className="card-glass">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Cloud Synced</CardTitle>
+                                <span className="text-sm">☁️</span>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-purple-500">{loading ? '...' : cloudAvatars.length}</div>
+                                <p className="text-xs text-muted-foreground mb-2">
+                                    Saved to cloud
+                                </p>
+                                {/* Cloud avatar thumbnails */}
+                                {!loading && cloudAvatars.length > 0 && (
+                                    <div className="flex -space-x-2 mt-2">
+                                        {cloudAvatars.slice(0, 4).map((avatar, idx) => (
+                                            <div key={avatar._id} className="relative w-8 h-8 rounded-full border-2 border-purple-500/50 overflow-hidden" style={{zIndex: 4-idx}}>
+                                                <Image src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} alt={avatar.avatarName} fill className="object-cover" />
+                                            </div>
+                                        ))}
+                                        {cloudAvatars.length > 4 && (
+                                            <div className="w-8 h-8 rounded-full bg-purple-500/20 border-2 border-purple-500/50 flex items-center justify-center text-xs font-medium text-purple-500">
+                                                +{cloudAvatars.length - 4}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+
                 {/* My Avatars Section */}
                 <div>
                     <div className="flex items-center justify-between mb-4">
@@ -163,11 +304,11 @@ export function WelcomeDashboard() {
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {/* Show avatars from local storage */}
                             {userAvatars.map((avatar) => (
-                                <div key={avatar.id} className="group block text-left cursor-pointer" onClick={() => router.push(`/dashboard?view=training-results&avatarId=${avatar.id}`)}>
+                                <div key={avatar.id} className="group block text-left cursor-pointer" onClick={() => router.push(`/chat/${avatar.id}`)}>
                                     <Card className="card-glass overflow-hidden h-full transition-all duration-300 group-hover:border-primary/80 group-hover:shadow-xl group-hover:shadow-primary/10">
                                         <div className="relative aspect-[4/3]">
                                             <Image 
-                                                src={getAvatarImage(avatar.avatarName)} 
+                                                src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} 
                                                 alt={avatar.avatarName} 
                                                 fill 
                                                 className="object-cover transition-transform duration-300 group-hover:scale-105" 
@@ -198,11 +339,11 @@ export function WelcomeDashboard() {
                             {cloudAvatars
                                 .filter(cloud => !userAvatars.some(local => local.id === cloud.avatarId))
                                 .map((avatar) => (
-                                    <div key={avatar._id} className="group block text-left cursor-pointer">
+                                    <div key={avatar._id} className="group block text-left cursor-pointer" onClick={() => router.push(`/chat/${avatar.avatarId}`)}>
                                         <Card className="card-glass overflow-hidden h-full transition-all duration-300 group-hover:border-primary/80 group-hover:shadow-xl group-hover:shadow-primary/10">
                                             <div className="relative aspect-[4/3]">
                                                 <Image 
-                                                    src={getAvatarImage(avatar.avatarName)} 
+                                                    src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} 
                                                     alt={avatar.avatarName} 
                                                     fill 
                                                     className="object-cover transition-transform duration-300 group-hover:scale-105" 

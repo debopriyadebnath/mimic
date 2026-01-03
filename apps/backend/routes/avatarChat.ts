@@ -291,37 +291,27 @@ export const avatarChatRoute = (app: Express) => {
 
         const trustWeight = trustWeightMap[source] || "derived";
 
-        const saveRes = await fetch(
-          `${process.env.CONVEX_URL}/api/mutation`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              path: "memories:saveMemory",
-              args: {
-                avatarId,
-                text,
-                embedding,
-                category,
-                trustWeight,
-                source: source || "user_saved",
-              },
-            }),
-          }
-        );
+        // Use the new training memories table with string avatarId
+        const saveRes = await globalThis.convex.mutation("trainers:saveTrainingMemory", {
+          avatarId,
+          text,
+          embedding,
+          category,
+          trustWeight,
+          source: source || "user_saved",
+          trainerId: userId,
+        });
 
-        const data:any = await saveRes.json();
-
-        if (!saveRes.ok) {
-          return res.status(saveRes.status).json({
-            error: data.error || "Failed to save memory",
+        if (!saveRes.success) {
+          return res.status(500).json({
+            error: "Failed to save memory",
           });
         }
 
         return res.status(200).json({
           success: true,
           message: "Memory saved successfully",
-          memoryId: data.data,
+          memoryId: saveRes.memoryId,
         });
       } catch (error) {
         console.error("Error saving memory:", error);
