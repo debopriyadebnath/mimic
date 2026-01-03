@@ -47,7 +47,7 @@ const links: SidebarLink[] = [
     href: '/dashboard?view=create-avatar',
     icon: <Sparkles className="h-5 w-5 shrink-0" />,
   },
-   {
+  {
     label: 'Invite Participant',
     href: '/dashboard?view=invite',
     icon: <UserPlus className="h-5 w-5 shrink-0" />,
@@ -72,7 +72,7 @@ export function SidebarDemo({ isMobileNavOpen, setIsMobileNavOpen }: SidebarDemo
   const setEffectiveOpen = isMobile ? setIsMobileNavOpen : setOpen;
 
   return (
-    <Sidebar open={effectiveOpen || false} setOpen={setEffectiveOpen || (() => {})} isMobile={isMobile}>
+    <Sidebar open={effectiveOpen || false} setOpen={setEffectiveOpen || (() => { })} isMobile={isMobile}>
       <SidebarBody className="justify-between gap-10">
         <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
           {effectiveOpen ? <Logo /> : <LogoIcon />}
@@ -91,7 +91,7 @@ export function SidebarDemo({ isMobileNavOpen, setIsMobileNavOpen }: SidebarDemo
             }}
             open={effectiveOpen || false}
           />
-           <SidebarLink
+          <SidebarLink
             link={{
               label: 'Sign Out',
               href: '/signin',
@@ -115,7 +115,7 @@ export const LogoIcon = () => {
       href="/"
       className="relative z-20 flex items-center justify-center py-1"
     >
-      <Image src="/mimic.png" alt="Mimic Logo" width={32} height={32} className="h-8 w-8" />
+      <Image src="/mimic.png" alt="Mimic Logo" width={48} height={48} className="h-12 w-12" />
     </Link>
   );
 };
@@ -130,31 +130,31 @@ type SidebarProps = {
 export const Sidebar = ({ children, open, setOpen, isMobile }: SidebarProps) => {
   if (isMobile) {
     return (
-       <AnimatePresence>
+      <AnimatePresence>
         {open && (
-            <>
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    onClick={() => setOpen(false)}
-                    className="fixed inset-0 bg-black/50 z-40"
-                />
-                <motion.div
-                    initial={{ x: '-100%' }}
-                    animate={{ x: 0 }}
-                    exit={{ x: '-100%' }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    className={cn(
-                        'fixed top-0 left-0 h-full z-50 flex flex-col justify-between bg-neutral-900 p-5 w-[240px]'
-                    )}
-                >
-                    {children}
-                </motion.div>
-            </>
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={() => setOpen(false)}
+              className="fixed inset-0 bg-black/50 z-40"
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className={cn(
+                'fixed top-0 left-0 h-full z-50 flex flex-col justify-between bg-neutral-900 p-5 w-[240px]'
+              )}
+            >
+              {children}
+            </motion.div>
+          </>
         )}
-       </AnimatePresence>
+      </AnimatePresence>
     );
   }
 
@@ -195,16 +195,16 @@ export const SidebarLink = ({ link, open }: { link: SidebarLink, open: boolean }
   useEffect(() => {
     const currentView = searchParams.get('view');
     if (link.href === '/dashboard' && !currentView && pathname === '/dashboard') {
-        setIsActive(true);
-        return;
+      setIsActive(true);
+      return;
     }
     if (link.href.includes('?view=')) {
-        const linkView = new URLSearchParams(link.href.split('?')[1]).get('view');
-        setIsActive(currentView === linkView);
+      const linkView = new URLSearchParams(link.href.split('?')[1]).get('view');
+      setIsActive(currentView === linkView);
     } else {
-        setIsActive(pathname === link.href && !link.href.includes('?'));
+      setIsActive(pathname === link.href && !link.href.includes('?'));
     }
-}, [pathname, searchParams, link.href]);
+  }, [pathname, searchParams, link.href]);
 
 
   return (
@@ -213,7 +213,7 @@ export const SidebarLink = ({ link, open }: { link: SidebarLink, open: boolean }
       className={cn(
         'group/link flex items-center justify-start gap-2 rounded-md px-2 py-2 text-sm text-neutral-200 hover:bg-neutral-700',
         isActive &&
-          'bg-neutral-700 font-medium text-white'
+        'bg-neutral-700 font-medium text-white'
       )}
     >
       {React.cloneElement(link.icon as React.ReactElement, {
@@ -226,7 +226,7 @@ export const SidebarLink = ({ link, open }: { link: SidebarLink, open: boolean }
 
       <AnimatePresence>
         {open && (
-            <motion.span
+          <motion.span
             initial={{ opacity: 0, width: 0 }}
             animate={{ opacity: 1, width: 'auto' }}
             exit={{ opacity: 0, width: 0 }}

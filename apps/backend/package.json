@@ -2,6 +2,8 @@
   "name": "backend",
   "scripts": {
     "dev": "bun --watch run index.ts",
+    "dev:node": "nodemon --exec ts-node index.ts",
+    "start": "ts-node index.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
@@ -23,9 +25,12 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/cors": "^2.8.12",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.7",
     "convex": "^1.31.2",
     "nodemon": "^3.1.11",
     "prisma": "^7.2.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }
