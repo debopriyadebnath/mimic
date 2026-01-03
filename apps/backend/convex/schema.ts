@@ -155,4 +155,30 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_trainerId", ["trainerId"]),
+
+  /* =========================
+     AVATAR MASTER PROMPTS (Generated from Avatar Flow)
+     ========================= */
+  avatarMasterPrompts: defineTable({
+    avatarId: v.string(),             // Custom string ID from avatar flow
+    avatarName: v.string(),
+    ownerId: v.string(),
+    ownerName: v.optional(v.string()),
+    ownerEmail: v.optional(v.string()),
+    masterPrompt: v.string(),
+    trainerName: v.optional(v.string()),
+    ownerResponses: v.optional(v.array(v.object({
+      question: v.string(),
+      answer: v.string(),
+    }))),
+    trainerResponses: v.optional(v.array(v.object({
+      question: v.string(),
+      answer: v.string(),
+      note: v.optional(v.string()),
+    }))),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_avatarId", ["avatarId"])
+    .index("by_ownerId", ["ownerId"]),
 });

@@ -263,3 +263,96 @@ export const updateTrainerSystemPrompt = mutation({
     return { success: true, message: "Trainer system prompt updated" };
   },
 });
+
+/* =========================
+   STORE AVATAR MASTER PROMPT (for avatar flow with string IDs)
+   ========================= */
+export const storeAvatarMasterPrompt = mutation({
+  args: {
+    avatarId: v.string(),           // Custom string ID from avatar flow
+    avatarName: v.string(),
+    ownerId: v.string(),
+    ownerName: v.optional(v.string()),
+    ownerEmail: v.optional(v.string()),
+    masterPrompt: v.string(),
+    trainerName: v.optional(v.string()),
+    ownerResponses: v.optional(v.array(v.object({
+      question: v.string(),
+      answer: v.string(),
+    }))),
+    trainerResponses: v.optional(v.array(v.object({
+      question: v.string(),
+      answer: v.string(),
+      note: v.optional(v.string()),
+    }))),
+  },
+  async handler(ctx, args) {
+    // Check if master prompt already exists for this avatar
+    const existing = await ctx.db
+      .query("avatarMasterPrompts")
+      .withIndex("by_avatarId", (q) => q.eq("avatarId", args.avatarId))
+      .first();
+
+    if (existing) {
+      // Update existing record
+      await ctx.db.patch(existing._id, {
+        masterPrompt: args.masterPrompt,
+        trainerName: args.trainerName,
+        trainerResponses: args.trainerResponses,
+        updatedAt: Date.now(),
+      });
+      return { success: true, promptId: existing._id, updated: true };
+    }
+
+    // Create new record
+    const promptId = await ctx.db.insert("avatarMasterPrompts", {
+      avatarId: args.avatarId,
+      avatarName: args.avatarName,
+      ownerId: args.ownerId,
+      ownerName: args.ownerName,
+      ownerEmail: args.ownerEmail,
+      masterPrompt: args.masterPrompt,
+      trainerName: args.trainerName,
+      ownerResponses: args.ownerResponses,
+      trainerResponses: args.trainerResponses,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    return { success: true, promptId, updated: false };
+  },
+});
+
+/* =========================
+   GET AVATAR MASTER PROMPT
+   ========================= */
+export const getAvatarMasterPrompt = query({
+  args: {
+    avatarId: v.string(),
+  },
+  async handler(ctx, args) {
+    const prompt = await ctx.db
+      .query("avatarMasterPrompts")
+      .withIndex("by_avatarId", (q) => q.eq("avatarId", args.avatarId))
+      .first();
+
+    return prompt;
+  },
+});
+
+/* =========================
+   GET ALL MASTER PROMPTS FOR OWNER
+   ========================= */
+export const getOwnerMasterPrompts = query({
+  args: {
+    ownerId: v.string(),
+  },
+  async handler(ctx, args) {
+    const prompts = await ctx.db
+      .query("avatarMasterPrompts")
+      .withIndex("by_ownerId", (q) => q.eq("ownerId", args.ownerId))
+      .collect();
+
+    return prompts;
+  },
+});

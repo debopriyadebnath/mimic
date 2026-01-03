@@ -41,6 +41,8 @@ const questions = [
 export function CreateAvatarPage() {
     const [step, setStep] = useState(1);
     const [avatarName, setAvatarName] = useState('');
+    const [ownerName, setOwnerName] = useState('');
+    const [ownerEmail, setOwnerEmail] = useState('');
     const [selectedAvatar, setSelectedAvatar] = useState('');
     const [uploadedAvatar, setUploadedAvatar] = useState<string | null>(null);
     const [answers, setAnswers] = useState({ q1: '', q2: '', q3: '' });
@@ -66,10 +68,10 @@ export function CreateAvatarPage() {
     };
 
     const handleGenerateLink = async () => {
-        if (!avatarName || !selectedAvatar || Object.values(answers).some(a => !a)) {
+        if (!avatarName || !selectedAvatar || !ownerName || Object.values(answers).some(a => !a)) {
             toast({
                 title: "Incomplete Form",
-                description: "Please fill out all fields before generating.",
+                description: "Please fill out all fields including your name before generating.",
                 variant: "destructive",
             });
             return;
@@ -78,42 +80,72 @@ export function CreateAvatarPage() {
         setIsGenerating(true);
         toast({
             title: "Generating Invitation Link...",
-            description: "Creating the avatar configuration...",
+            description: "Creating the avatar draft...",
         });
 
         try {
-            const masterPrompt = `Function: ${answers.q1}\nPersonality: ${answers.q2}\nValues: ${answers.q3}`;
+            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+            
+            // Use a consistent owner ID (in production, get from auth)
+            const ownerId = localStorage.getItem('ownerId') || 'owner-' + Date.now();
+            localStorage.setItem('ownerId', ownerId);
+            localStorage.setItem('ownerName', ownerName);
+            if (ownerEmail) localStorage.setItem('ownerEmail', ownerEmail);
 
-            const response = await fetch('/api/invitations', {
+            // Step 1: Create draft avatar with owner's responses
+            const ownerResponses = [
+                { question: questions[0].label, answer: answers.q1 },
+                { question: questions[1].label, answer: answers.q2 },
+                { question: questions[2].label, answer: answers.q3 },
+            ];
+
+            const draftRes = await fetch(`${backendUrl}/api/avatar-flow/create-draft`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    ownerId,
+                    ownerName,
+                    ownerEmail,
                     avatarName,
-                    avatarId: `generated-${Date.now()}`,
-                    expiresInHours: parseFloat(expirationHours),
-                    masterPrompt,
-                    // Note: sending appearance data if backend supports it would be good, 
-                    // but standard schema currently doesn't show it. Preserving client-side for now.
+                    ownerResponses,
                 }),
             });
 
-            const data = await response.json();
+            const draftData = await draftRes.json();
 
-            if (data.success && data.inviteUrl) {
-                setInvitationLink(data.inviteUrl);
-                setStep(4);
-                toast({
-                    title: "Invitation Ready!",
-                    description: "Link generated successfully.",
-                });
-            } else {
-                throw new Error(data.error || 'Failed to generate link');
+            if (!draftRes.ok) {
+                throw new Error(draftData.error || 'Failed to create draft');
             }
+
+            // Step 2: Generate trainer invitation link
+            const inviteRes = await fetch(`${backendUrl}/api/avatar-flow/generate-invite`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    avatarId: draftData.avatarId,
+                    avatarName: draftData.avatarName,
+                    ownerId,
+                    expiresInHours: parseFloat(expirationHours),
+                }),
+            });
+
+            const inviteData = await inviteRes.json();
+
+            if (!inviteRes.ok) {
+                throw new Error(inviteData.error || 'Failed to generate invite');
+            }
+
+            setInvitationLink(inviteData.invitation.inviteUrl);
+            setStep(4);
+            toast({
+                title: "Invitation Ready!",
+                description: "Link generated successfully. Copy and share it!",
+            });
         } catch (error) {
             console.error('Generation error:', error);
             toast({
                 title: "Error",
-                description: "Failed to generate invitation link. Please try again.",
+                description: error instanceof Error ? error.message : "Failed to generate invitation link.",
                 variant: "destructive",
             });
         } finally {
@@ -132,6 +164,8 @@ export function CreateAvatarPage() {
     const handleRestart = () => {
         setStep(1);
         setAvatarName('');
+        setOwnerName('');
+        setOwnerEmail('');
         setSelectedAvatar('');
         setUploadedAvatar(null);
         setAnswers({ q1: '', q2: '', q3: '' });
@@ -145,15 +179,44 @@ export function CreateAvatarPage() {
                 return (
                     <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }}>
                         <CardHeader>
-                            <CardTitle style={{ color: 'var(--dynamic-text-color)' }}>Step 1: Name the Avatar</CardTitle>
-                            <CardDescription>Give a name to the avatar you are creating for your participant.</CardDescription>
+                            <CardTitle style={{ color: 'var(--dynamic-text-color)' }}>Step 1: Your Information</CardTitle>
+                            <CardDescription>Enter your details and name the avatar you're creating.</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <Label htmlFor="avatarName">Avatar Name</Label>
-                            <Input id="avatarName" value={avatarName} onChange={(e) => setAvatarName(e.target.value)} placeholder="e.g., Neo, Aura, K.A.I." className="bg-transparent mt-2" />
+                        <CardContent className="space-y-4">
+                            <div>
+                                <Label htmlFor="ownerName">Your Name *</Label>
+                                <Input 
+                                    id="ownerName" 
+                                    value={ownerName} 
+                                    onChange={(e) => setOwnerName(e.target.value)} 
+                                    placeholder="e.g., John Smith" 
+                                    className="bg-transparent mt-2" 
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="ownerEmail">Your Email (optional)</Label>
+                                <Input 
+                                    id="ownerEmail" 
+                                    type="email"
+                                    value={ownerEmail} 
+                                    onChange={(e) => setOwnerEmail(e.target.value)} 
+                                    placeholder="e.g., john@example.com" 
+                                    className="bg-transparent mt-2" 
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="avatarName">Avatar Name *</Label>
+                                <Input 
+                                    id="avatarName" 
+                                    value={avatarName} 
+                                    onChange={(e) => setAvatarName(e.target.value)} 
+                                    placeholder="e.g., Neo, Aura, K.A.I." 
+                                    className="bg-transparent mt-2" 
+                                />
+                            </div>
                         </CardContent>
                         <CardFooter className="justify-end">
-                            <GlowingButton text="Next" onClick={handleNext} disabled={!avatarName} />
+                            <GlowingButton text="Next" onClick={handleNext} disabled={!avatarName || !ownerName} />
                         </CardFooter>
                     </motion.div>
                 );

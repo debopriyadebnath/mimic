@@ -88,7 +88,7 @@ export function SignUpForm() {
                                 <Label htmlFor="full-name">Full Name</Label>
                                 <Input
                                     id="full-name"
-                                    placeholder="Max Robinson"
+                                    placeholder="splitsbinson"
                                     required
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}

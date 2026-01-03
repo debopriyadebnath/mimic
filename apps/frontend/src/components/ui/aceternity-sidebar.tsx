@@ -14,6 +14,7 @@ import {
   Palette,
   Sparkles,
   Menu,
+  ClipboardList,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -51,6 +52,11 @@ const links: SidebarLink[] = [
     label: 'Invite Participant',
     href: '/dashboard?view=invite',
     icon: <UserPlus className="h-5 w-5 shrink-0" />,
+  },
+  {
+    label: 'Training Results',
+    href: '/dashboard?view=training-results',
+    icon: <ClipboardList className="h-5 w-5 shrink-0" />,
   },
   {
     label: 'Docs',
