@@ -13,6 +13,7 @@ import { trainerRoute } from "./routes/trainers";
 import { trainerMemoryRoute } from "./routes/trainerMemory";
 import { authRoute } from "./routes/auth";
 import { userRoute } from "./routes/user";
+import { qaRoute } from "./routes/qa";
 import { avatarFlowRoute } from "./routes/avatarFlow";
 // removed MongoDB connection; auth will use Convex
 
@@ -38,6 +39,7 @@ trainerRoute(app);
 trainerMemoryRoute(app);
 authRoute(app);
 userRoute(app);
+qaRoute(app);
 avatarFlowRoute(app);
 
 app.get("/", (req, res) => {
