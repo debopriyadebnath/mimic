@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { GlowingButton } from "../ui/glowing-button"
 
-const roles = ["building interfaces", "exploring systems", "breaking barriers", "forging ideas", "crafting code"]
+const roles = ["building connection", "exploring relations", "breaking communication barrier", "forging compassion", "crafting understanding"]
 
 export function Hero() {
   const [currentRole, setCurrentRole] = useState(0)
@@ -46,7 +46,7 @@ export function Hero() {
                 MIMIC — Your Digital Self
               </p>
               <h1 className="text-4xl font-bold tracking-tight sm:text-4xl lg:text-5xl xl:text-6xl text-balance">
-                Forging digital
+                Building for you
                 <br />
                 <span className="text-foreground">
                   {displayText || <>&nbsp;</>}
@@ -56,8 +56,7 @@ export function Hero() {
             </div>
 
             <p className="max-w-lg text-base sm:text-lg leading-relaxed text-muted-foreground animate-fade-in-up stagger-2">
-              Welcome to your digital workshop — a space for evolving your AI companion. Here, ideas are forged,
-              tested, and refined. This isn't just a portfolio. It's a laboratory for your digital identity.
+             
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up stagger-3">
