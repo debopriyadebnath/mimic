@@ -11,7 +11,7 @@ const docSections = [
   {
     id: 1,
     title: "Getting Started",
-    content: "Welcome to EvoAvatar. This guide will walk you through the basic features and functionalities of the application. Start by training your avatar with new memories or chat with it to see its current personality.",
+    content: "Welcome to MIMIC. This guide will walk you through the basic features and functionalities of the application. Start by training your avatar with new memories or chat with it to see its current personality.",
   },
   {
     id: 2,

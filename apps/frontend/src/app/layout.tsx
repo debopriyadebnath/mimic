@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { CursorGlow } from '@/components/shared/CursorGlow';
 
 export const metadata: Metadata = {
-  title: 'EvoAvatar',
+  title: 'MIMIC',
   description: 'Your private, evolving AI companion.',
 };
 
