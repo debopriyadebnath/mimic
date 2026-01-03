@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -45,10 +45,18 @@ interface ProfileData {
     bio: string;
 }
 
+interface UserData {
+    id: string;
+    email: string;
+    userName: string;
+    profilePhoto?: string;
+}
+
 
 export function ProfilePage() {
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
+    const [userData, setUserData] = useState<UserData | null>(null);
     const [profileData, setProfileData] = useState<ProfileData>({
         instagram: '',
         facebook: '',
@@ -61,6 +69,19 @@ export function ProfilePage() {
         bio: '',
     });
     const [formData, setFormData] = useState<ProfileData>(profileData);
+
+    // Load user data from localStorage on component mount
+    useEffect(() => {
+        try {
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                const user = JSON.parse(storedUser);
+                setUserData(user);
+            }
+        } catch (error) {
+            console.error('Error loading user data:', error);
+        }
+    }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
@@ -82,19 +103,28 @@ export function ProfilePage() {
         });
     }
 
+    // Get initials from username
+    const getInitials = (name: string) => {
+        return name
+            .split(' ')
+            .map(n => n[0])
+            .join('')
+            .toUpperCase();
+    };
+
   return (
     <div className="space-y-6">
       <Card className="card-glass">
         <CardHeader>
           <div className="flex items-center gap-4">
             <Avatar className="h-20 w-20">
-              <AvatarImage src="https://picsum.photos/seed/user1/200/200" />
-              <AvatarFallback>U</AvatarFallback>
+              <AvatarImage src={userData?.profilePhoto || "https://picsum.photos/seed/user1/200/200"} />
+              <AvatarFallback>{userData ? getInitials(userData.userName) : 'U'}</AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-2xl font-headline" style={{color: 'var(--dynamic-text-color)'}}>Max Robinson</CardTitle>
-              <CardDescription>max@example.com</CardDescription>
-              <p className="text-sm text-muted-foreground">@maxrobinson</p>
+              <CardTitle className="text-2xl font-headline" style={{color: 'var(--dynamic-text-color)'}}>{userData?.userName || 'User'}</CardTitle>
+              <CardDescription>{userData?.email || 'email@example.com'}</CardDescription>
+              <p className="text-sm text-muted-foreground">@{userData?.userName?.replace(/\s+/g, '').toLowerCase() || 'user'}</p>
             </div>
           </div>
         </CardHeader>
