@@ -14,9 +14,6 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_email", ["email"]),
 
-  /* =========================
-     AVATAR CONFIG (1:1 AI Avatar per User)
-     ========================= */
   avatars: defineTable({
     ownerId: v.id("users"),                    // Avatar owner
     avatarName: v.string(),                    // Avatar's name
