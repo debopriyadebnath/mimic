@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
     Card,
     CardContent,
@@ -51,6 +52,7 @@ export function CreateAvatarPage() {
     const [expirationHours, setExpirationHours] = useState("2");
     const [isGenerating, setIsGenerating] = useState(false);
     const { toast } = useToast();
+    const router = useRouter();
 
     // Auto-fetch user info from localStorage on mount
     useEffect(() => {
@@ -101,7 +103,7 @@ export function CreateAvatarPage() {
 
         try {
             const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-            
+
             // Use the ownerId from user data (fetched from localStorage)
             const finalOwnerId = ownerId || ownerEmail || 'owner-' + Date.now();
 
@@ -150,11 +152,15 @@ export function CreateAvatarPage() {
             }
 
             setInvitationLink(inviteData.invitation.inviteUrl);
-            setStep(4);
+            const encodedInviteLink = encodeURIComponent(inviteData.invitation.inviteUrl);
+
             toast({
                 title: "Invitation Ready!",
-                description: "Link generated successfully. Copy and share it!",
+                description: "Redirecting to training analysis...",
             });
+
+            // Redirect to training results page with styling and params
+            router.push(`/dashboard?view=training-results&avatarId=${draftData.avatarId}&inviteLink=${encodedInviteLink}`);
         } catch (error) {
             console.error('Generation error:', error);
             toast({
@@ -200,34 +206,34 @@ export function CreateAvatarPage() {
                                 <Label htmlFor="ownerEmail" className="flex items-center gap-2">
                                     <Mail className="h-4 w-4" /> Your Email
                                 </Label>
-                                <Input 
-                                    id="ownerEmail" 
+                                <Input
+                                    id="ownerEmail"
                                     type="email"
-                                    value={ownerEmail} 
+                                    value={ownerEmail}
                                     readOnly
                                     disabled
-                                    className="bg-secondary/30 mt-2 cursor-not-allowed" 
+                                    className="bg-secondary/30 mt-2 cursor-not-allowed"
                                 />
                                 <p className="text-xs text-muted-foreground mt-1">Auto-fetched from your account</p>
                             </div>
                             <div>
                                 <Label htmlFor="ownerName">Your Name *</Label>
-                                <Input 
-                                    id="ownerName" 
-                                    value={ownerName} 
-                                    onChange={(e) => setOwnerName(e.target.value)} 
-                                    placeholder="e.g., John Smith" 
-                                    className="bg-transparent mt-2" 
+                                <Input
+                                    id="ownerName"
+                                    value={ownerName}
+                                    onChange={(e) => setOwnerName(e.target.value)}
+                                    placeholder="e.g., John Smith"
+                                    className="bg-transparent mt-2"
                                 />
                             </div>
                             <div>
                                 <Label htmlFor="avatarName">Avatar Name *</Label>
-                                <Input 
-                                    id="avatarName" 
-                                    value={avatarName} 
-                                    onChange={(e) => setAvatarName(e.target.value)} 
-                                    placeholder="e.g., Neo, Aura, K.A.I." 
-                                    className="bg-transparent mt-2" 
+                                <Input
+                                    id="avatarName"
+                                    value={avatarName}
+                                    onChange={(e) => setAvatarName(e.target.value)}
+                                    placeholder="e.g., Neo, Aura, K.A.I."
+                                    className="bg-transparent mt-2"
                                 />
                             </div>
                         </CardContent>
