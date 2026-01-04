@@ -222,9 +222,9 @@ export const SidebarLink = ({ link, open }: { link: SidebarLink, open: boolean }
         'bg-neutral-700 font-medium text-white'
       )}
     >
-      {React.cloneElement(link.icon as React.ReactElement, {
+      {React.cloneElement(link.icon as React.ReactElement<{ className?: string }>, {
         className: cn(
-          (link.icon as React.ReactElement).props.className,
+          (link.icon as React.ReactElement<{ className?: string }>).props.className,
           'text-neutral-200',
           isActive && 'text-white'
         ),
