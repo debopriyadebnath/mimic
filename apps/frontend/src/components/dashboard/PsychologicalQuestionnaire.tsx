@@ -44,7 +44,7 @@ const questions = [
       'Gaming, watching content, or entertainment',
       'Physical activities or sports',
     ]
-  },
+  },  
   {
     id: 'q3',
     text: 'How do you usually make important decisions?',
