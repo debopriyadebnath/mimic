@@ -15,8 +15,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { GlowingButton } from '../ui/glowing-button';
 import { useToast } from '@/hooks/use-toast';
 import { AnimatePresence, motion } from 'framer-motion';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Input } from '@/components/ui/input';
+import { Check } from 'lucide-react';
 
 const questions = [
   {
@@ -270,42 +270,59 @@ export function PsychologicalQuestionnaire({ avatarName, onSubmit }: Psychologic
                 </p>
               </div>
 
-              <RadioGroup
-                value={answers[currentQuestion.id] || ''}
-                onValueChange={(val) => handleOptionSelect(currentQuestion.id, val)}
-                className="space-y-3"
-              >
+              <div className="space-y-3">
                 {currentQuestion.options.map((option, index) => (
-                  <div key={index} className="flex items-center space-x-2 border border-border/50 rounded-lg p-3 hover:bg-secondary/20 transition-colors">
-                    <RadioGroupItem value={option} id={`${currentQuestion.id}-opt-${index}`} />
-                    <Label htmlFor={`${currentQuestion.id}-opt-${index}`} className="flex-1 cursor-pointer font-normal">
-                      {option}
-                    </Label>
-                  </div>
+                  <button
+                    key={index}
+                    onClick={() => handleOptionSelect(currentQuestion.id, option)}
+                    className={`w-full p-4 text-left rounded-lg border transition-all flex items-center gap-3 ${answers[currentQuestion.id] === option
+                        ? 'border-cyan-500 bg-cyan-500/10 text-cyan-600 shadow-sm shadow-cyan-500/20'
+                        : 'border-border hover:border-primary/50 hover:bg-secondary/50'
+                      }`}
+                  >
+                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all flex-shrink-0 ${answers[currentQuestion.id] === option
+                        ? 'bg-cyan-500 border-cyan-500'
+                        : 'border-muted-foreground/50'
+                      }`}>
+                      {answers[currentQuestion.id] === option && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                    </div>
+                    <span className="text-sm">{option}</span>
+                  </button>
                 ))}
-                <div className="flex flex-col space-y-3 border border-border/50 rounded-lg p-3 hover:bg-secondary/20 transition-colors">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Other" id={`${currentQuestion.id}-opt-other`} />
-                    <Label htmlFor={`${currentQuestion.id}-opt-other`} className="flex-1 cursor-pointer font-normal">
-                      Other (describe your own thought)
-                    </Label>
+
+                {/* Custom 'Other' Option */}
+                <button
+                  onClick={() => handleOptionSelect(currentQuestion.id, 'Other')}
+                  className={`w-full p-4 text-left rounded-lg border transition-all flex items-center gap-3 ${answers[currentQuestion.id] === 'Other'
+                      ? 'border-cyan-500 bg-cyan-500/10 text-cyan-600 shadow-sm shadow-cyan-500/20'
+                      : 'border-border hover:border-primary/50 hover:bg-secondary/50'
+                    }`}
+                >
+                  <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all flex-shrink-0 ${answers[currentQuestion.id] === 'Other'
+                      ? 'bg-cyan-500 border-cyan-500'
+                      : 'border-muted-foreground/50'
+                    }`}>
+                    {answers[currentQuestion.id] === 'Other' && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
                   </div>
-                  {answers[currentQuestion.id] === 'Other' && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="pl-6 pt-2"
-                    >
-                      <Textarea
-                        placeholder="Type your answer here..."
-                        value={customInputs[currentQuestion.id] || ''}
-                        onChange={(e) => handleCustomInputChange(currentQuestion.id, e.target.value)}
-                        className="bg-transparent"
-                      />
-                    </motion.div>
-                  )}
-                </div>
-              </RadioGroup>
+                  <span className="text-sm">Other (describe your own thought)</span>
+                </button>
+
+                {answers[currentQuestion.id] === 'Other' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="pt-2"
+                  >
+                    <Textarea
+                      placeholder="Type your answer here..."
+                      value={customInputs[currentQuestion.id] || ''}
+                      onChange={(e) => handleCustomInputChange(currentQuestion.id, e.target.value)}
+                      className="bg-transparent border-cyan-500/50 focus-visible:ring-cyan-500"
+                      autoFocus
+                    />
+                  </motion.div>
+                )}
+              </div>
             </div>
           </motion.div>
         </AnimatePresence>

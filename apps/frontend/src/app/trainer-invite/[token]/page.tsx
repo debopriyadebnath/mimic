@@ -8,10 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, Clock, Loader2, User, Mail, FileText, ArrowRight } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Loader2, User, Mail, FileText, ArrowRight, Check } from 'lucide-react';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
+// Psychological MCQ Questions
 // Psychological MCQ Questions
 const TRAINER_QUESTIONS = [
   {
@@ -19,12 +20,10 @@ const TRAINER_QUESTIONS = [
     question: "When you're stressed or overwhelmed, what do you usually do first?",
     description: 'Reveals coping style and emotional regulation',
     options: [
-      'Take a short break to calm down',
-      'Distract myself with entertainment or social media',
-      'Talk to someone I trust',
-      'Try to organize tasks or make a plan',
-      'Push through and deal with it later',
-      'Withdraw or rest until it passes',
+      'I need time alone to process',
+      'I talk to someone I trust',
+      'I take immediate action to fix it',
+      'I distract myself with activities',
     ]
   },
   {
@@ -195,12 +194,12 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
       }
 
       setInvitationData(data.invitation);
-      
+
       // If already accepted, go directly to questionnaire
       if (data.invitation.status === 'accepted') {
         setFlowStep('questionnaire');
       }
-      
+
       setStatus('valid');
     } catch (error) {
       console.error('Validation error:', error);
@@ -455,7 +454,7 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
                   <h3 className="font-semibold text-lg">
                     Avatar: <span className="text-primary">{invitationData.avatarName}</span>
                   </h3>
-                  
+
                   {/* Owner's initial responses */}
                   {invitationData.ownerResponses && invitationData.ownerResponses.length > 0 && (
                     <div className="space-y-3">
@@ -479,7 +478,7 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
                 <div className="border rounded-lg p-4">
                   <h3 className="font-semibold mb-2">What you'll do</h3>
                   <p className="text-sm text-muted-foreground">
-                    You'll answer {TRAINER_QUESTIONS.length} personality questions to help shape the avatar's behavior and communication style. 
+                    You'll answer {TRAINER_QUESTIONS.length} personality questions to help shape the avatar's behavior and communication style.
                     Your responses will be used to create a personalized AI personality.
                   </p>
                 </div>
@@ -499,8 +498,8 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
                 </div>
               </CardContent>
               <CardFooter>
-                <Button 
-                  className="w-full" 
+                <Button
+                  className="w-full"
                   size="lg"
                   onClick={handleAcceptInvitation}
                   disabled={isAccepting}
@@ -566,7 +565,7 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
             transition={{ duration: 0.2 }}
             style={{ pointerEvents: 'auto' }}
           >
-            <Card>
+            <Card className="card-glass">
               <CardHeader>
                 <CardTitle className="text-xl">{question.question}</CardTitle>
                 <CardDescription>{question.description}</CardDescription>
@@ -579,12 +578,17 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
                       key={index}
                       type="button"
                       onClick={() => handleAnswerSelect(question.id, option)}
-                      className={`w-full p-4 text-left rounded-lg border transition-all cursor-pointer relative z-10 ${
-                        responses[question.id]?.answer === option
-                          ? 'border-primary bg-primary/10 text-primary font-medium'
+                      className={`w-full p-4 text-left rounded-lg border transition-all cursor-pointer relative z-10 flex items-center gap-3 ${responses[question.id]?.answer === option
+                          ? 'border-cyan-500 bg-cyan-500/10 text-cyan-600 shadow-sm shadow-cyan-500/20'
                           : 'border-border hover:border-primary/50 hover:bg-secondary/50'
-                      }`}
+                        }`}
                     >
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all flex-shrink-0 ${responses[question.id]?.answer === option
+                          ? 'bg-cyan-500 border-cyan-500'
+                          : 'border-muted-foreground/50'
+                        }`}>
+                        {responses[question.id]?.answer === option && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                      </div>
                       <span className="block">{option}</span>
                     </button>
                   ))}

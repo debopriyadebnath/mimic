@@ -216,7 +216,7 @@ Apply these personality traits consistently while maintaining the core configura
 }
 
 export const avatarFlowRoute = (app: Express) => {
-  
+
   // Get trainer questions
   app.get("/api/avatar-flow/questions", (req: Request, res: Response) => {
     res.json({ questions: TRAINER_QUESTIONS });
@@ -324,9 +324,9 @@ export const avatarFlowRoute = (app: Express) => {
       const invitation = invitations.get(token);
 
       if (!invitation) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           valid: false,
-          error: "Invitation not found" 
+          error: "Invitation not found"
         });
       }
 
@@ -418,7 +418,7 @@ export const avatarFlowRoute = (app: Express) => {
 
       // Get the avatar draft
       const avatar = avatars.get(invitation.avatarId);
-      
+
       if (!avatar) {
         return res.status(404).json({ error: "Avatar not found" });
       }
@@ -466,7 +466,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
         const result = await model.generateContent(prompt);
         finalMasterPrompt = result.response.text();
         console.log("Gemini generated master prompt successfully");
-        
+
       } catch (geminiError: any) {
         console.error("Gemini API error:", geminiError.message || geminiError);
         // Fallback to simple concatenation if Gemini fails
@@ -497,7 +497,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
           ownerResponses: avatar.ownerResponses,
           trainerResponses: responses,
         });
-        
+
         if (convexResult.success) {
           convexPromptId = convexResult.promptId;
           console.log("Master prompt saved to Convex:", convexPromptId);
@@ -539,7 +539,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.get("/api/avatar-flow/invitations/:avatarId", async (req: Request, res: Response) => {
     try {
       const { avatarId } = req.params;
-      
+
       const avatarInvitations = Array.from(invitations.values())
         .filter(inv => inv.avatarId === avatarId);
 
@@ -554,7 +554,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.get("/api/avatar-flow/dashboard/:ownerId", async (req: Request, res: Response) => {
     try {
       const { ownerId } = req.params;
-      
+
       // Get all avatars for this owner
       const ownerAvatars = Array.from(avatars.values())
         .filter(av => av.ownerId === ownerId);
@@ -563,16 +563,16 @@ Write the master prompt as a single, well-structured paragraph or short set of p
       const avatarsWithInvitations = ownerAvatars.map(avatar => {
         const avatarInvitations = Array.from(invitations.values())
           .filter(inv => inv.avatarId === avatar.id);
-        
+
         return {
           ...avatar,
           invitations: avatarInvitations,
         };
       });
 
-      res.json({ 
+      res.json({
         success: true,
-        avatars: avatarsWithInvitations 
+        avatars: avatarsWithInvitations
       });
     } catch (error: any) {
       console.error("Get dashboard error:", error);
@@ -584,7 +584,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.get("/api/avatar-flow/trainer-info/:ownerId", async (req: Request, res: Response) => {
     try {
       const { ownerId } = req.params;
-      
+
       // Get all invitations for this owner's avatars
       const ownerInvitations = Array.from(invitations.values())
         .filter(inv => inv.ownerId === ownerId);
@@ -620,7 +620,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
           token: inv.token,
         }));
 
-      res.json({ 
+      res.json({
         success: true,
         completedTrainings,
         pendingInvitations,
@@ -635,9 +635,9 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.get("/api/avatar-flow/avatar/:avatarId", async (req: Request, res: Response) => {
     try {
       const { avatarId } = req.params;
-      
+
       const avatar = avatars.get(avatarId);
-      
+
       if (!avatar) {
         return res.status(404).json({ error: "Avatar not found" });
       }
@@ -645,7 +645,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
       const avatarInvitations = Array.from(invitations.values())
         .filter(inv => inv.avatarId === avatarId);
 
-      res.json({ 
+      res.json({
         success: true,
         avatar: {
           ...avatar,
@@ -664,20 +664,20 @@ Write the master prompt as a single, well-structured paragraph or short set of p
       const { avatarId, convexUserId } = req.body;
 
       if (!avatarId || !convexUserId) {
-        return res.status(400).json({ 
-          error: "avatarId and convexUserId are required" 
+        return res.status(400).json({
+          error: "avatarId and convexUserId are required"
         });
       }
 
       const avatar = avatars.get(avatarId);
-      
+
       if (!avatar) {
         return res.status(404).json({ error: "Avatar not found" });
       }
 
       if (!avatar.finalMasterPrompt) {
-        return res.status(400).json({ 
-          error: "Avatar does not have a finalized master prompt yet" 
+        return res.status(400).json({
+          error: "Avatar does not have a finalized master prompt yet"
         });
       }
 
@@ -698,11 +698,11 @@ Write the master prompt as a single, well-structured paragraph or short set of p
       );
 
       const mpResult = await masterPromptResponse.json();
-      
+
       if (!masterPromptResponse.ok) {
-        return res.status(500).json({ 
-          error: "Failed to save to Convex", 
-          details: mpResult.error 
+        return res.status(500).json({
+          error: "Failed to save to Convex",
+          details: mpResult.error
         });
       }
 
@@ -721,13 +721,13 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.get("/api/avatar-flow/master-prompt/:avatarId", async (req: Request, res: Response) => {
     try {
       const { avatarId } = req.params;
-      
+
       // First try to get from Convex cloud
       try {
         const convexPrompt = await globalThis.convex.query("trainers:getAvatarMasterPrompt", {
           avatarId,
         });
-        
+
         if (convexPrompt) {
           return res.json({
             success: true,
@@ -745,13 +745,13 @@ Write the master prompt as a single, well-structured paragraph or short set of p
 
       // Fall back to local storage
       const avatar = avatars.get(avatarId);
-      
+
       if (!avatar) {
         return res.status(404).json({ error: "Avatar not found" });
       }
 
       if (!avatar.finalMasterPrompt) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: "Avatar does not have a finalized master prompt yet",
           status: avatar.status,
         });
@@ -775,7 +775,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.get("/api/avatar-flow/cloud-prompts/:ownerId", async (req: Request, res: Response) => {
     try {
       const { ownerId } = req.params;
-      
+
       const cloudPrompts = await globalThis.convex.query("trainers:getOwnerMasterPrompts", {
         ownerId,
       });
@@ -810,7 +810,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
         const convexPrompt = await globalThis.convex.query("trainers:getAvatarMasterPrompt", {
           avatarId,
         });
-        
+
         if (convexPrompt) {
           masterPrompt = convexPrompt.masterPrompt;
           avatarName = convexPrompt.avatarName;
@@ -829,7 +829,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
       }
 
       if (!masterPrompt) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: "Avatar is not trained yet. Please complete the training first.",
         });
       }
@@ -843,12 +843,12 @@ Write the master prompt as a single, well-structured paragraph or short set of p
 
       // === RAG: Fetch relevant training memories ===
       let relevantMemories: Array<{ text: string; trustWeight: string; score: number }> = [];
-      
+
       try {
         // Generate embedding for the user's message
         const embeddingModel = googleGenAI.getGenerativeModel({ model: "text-embedding-004" });
         const embeddingResult = await embeddingModel.embedContent(message);
-        
+
         if (embeddingResult?.embedding?.values) {
           // Query relevant memories from Convex
           const memories = await globalThis.convex.query("trainers:getRelevantTrainingMemories", {
@@ -856,7 +856,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
             queryEmbedding: embeddingResult.embedding.values,
             topK: 5,
           });
-          
+
           if (memories && memories.length > 0) {
             relevantMemories = memories.map((m: any) => ({
               text: m.text,
@@ -873,7 +873,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
 
       // Build augmented prompt with master prompt + memories
       let augmentedPrompt = masterPrompt;
-      
+
       if (relevantMemories.length > 0) {
         augmentedPrompt += "\n\n## Additional Context (from training):\n";
         relevantMemories.forEach((memory) => {
@@ -885,7 +885,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
       const model = googleGenAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
       // Build conversation history for context
-      const conversationHistory = history.map((msg: { role: string; content: string }) => 
+      const conversationHistory = history.map((msg: { role: string; content: string }) =>
         `${msg.role === 'user' ? 'User' : avatarName}: ${msg.content}`
       ).join('\n');
 
@@ -939,7 +939,7 @@ ${avatarName} (respond ONLY based on your training, stay in character):`;
       const embeddingModel = googleGenAI.getGenerativeModel({ model: "text-embedding-004" });
 
       const result = await embeddingModel.embedContent(text);
-      
+
       if (!result?.embedding?.values) {
         throw new Error("Failed to generate embedding");
       }

@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Clock, AlertTriangle, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const questions = [
@@ -126,6 +126,7 @@ export default function InvitePage() {
   const [expiresAt, setExpiresAt] = useState<string>('');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({});
   const [additionalNotes, setAdditionalNotes] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -159,6 +160,10 @@ export default function InvitePage() {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
 
+  const handleCustomAnswerChange = (questionId: string, value: string) => {
+    setCustomAnswers(prev => ({ ...prev, [questionId]: value }));
+  };
+
   const handleNotesChange = (questionId: string, value: string) => {
     setAdditionalNotes(prev => ({ ...prev, [questionId]: value }));
   };
@@ -172,6 +177,16 @@ export default function InvitePage() {
       });
       return;
     }
+
+    // validtion for custom answer
+    if (answers[currentQuestion.id] === 'custom' && !customAnswers[currentQuestion.id]?.trim()) {
+      toast({
+        title: 'Please type your answer',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     }
@@ -200,10 +215,19 @@ export default function InvitePage() {
     questions.forEach(q => {
       const answer = answers[q.id];
       const note = additionalNotes[q.id];
-      const selectedOption = q.options.find(opt => opt.value === answer);
-      combinedResponses[q.id] = selectedOption 
-        ? `${selectedOption.label}${note ? `. Additional context: ${note}` : ''}`
-        : '';
+
+      let responseText = '';
+
+      if (answer === 'custom') {
+        responseText = customAnswers[q.id] || '';
+      } else {
+        const selectedOption = q.options.find(opt => opt.value === answer);
+        if (selectedOption) responseText = selectedOption.label;
+      }
+
+      if (responseText) {
+        combinedResponses[q.id] = `${responseText}${note ? `. Additional context: ${note}` : ''}`;
+      }
     });
 
     try {
@@ -371,15 +395,58 @@ export default function InvitePage() {
                     <button
                       key={option.value}
                       onClick={() => handleAnswerSelect(currentQuestion.id, option.value)}
-                      className={`w-full p-4 text-left rounded-lg border transition-all ${
-                        answers[currentQuestion.id] === option.value
-                          ? 'border-primary bg-primary/10 text-primary'
+                      className={`w-full p-4 text-left rounded-lg border transition-all flex items-center gap-3 ${answers[currentQuestion.id] === option.value
+                          ? 'border-cyan-500 bg-cyan-500/10 text-cyan-600 shadow-sm shadow-cyan-500/20'
                           : 'border-border hover:border-primary/50 hover:bg-secondary/50'
-                      }`}
+                        }`}
                     >
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all flex-shrink-0 ${answers[currentQuestion.id] === option.value
+                          ? 'bg-cyan-500 border-cyan-500'
+                          : 'border-muted-foreground/50'
+                        }`}>
+                        {answers[currentQuestion.id] === option.value && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                      </div>
                       <span className="text-sm">{option.label}</span>
                     </button>
                   ))}
+
+                  {/* Custom 'Other' Option */}
+                  <button
+                    onClick={() => handleAnswerSelect(currentQuestion.id, 'custom')}
+                    className={`w-full p-4 text-left rounded-lg border transition-all flex items-center gap-3 ${answers[currentQuestion.id] === 'custom'
+                        ? 'border-cyan-500 bg-cyan-500/10 text-cyan-600 shadow-sm shadow-cyan-500/20'
+                        : 'border-border hover:border-primary/50 hover:bg-secondary/50'
+                      }`}
+                  >
+                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all flex-shrink-0 ${answers[currentQuestion.id] === 'custom'
+                        ? 'bg-cyan-500 border-cyan-500'
+                        : 'border-muted-foreground/50'
+                      }`}>
+                      {answers[currentQuestion.id] === 'custom' && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                    </div>
+                    <span className="text-sm">Other (Type your own answer)</span>
+                  </button>
+
+                  {answers[currentQuestion.id] === 'custom' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="pt-2"
+                    >
+                      <Label htmlFor={`custom-${currentQuestion.id}`} className="text-sm text-cyan-600 font-medium mb-1.5 block">
+                        Your Answer
+                      </Label>
+                      <Textarea
+                        id={`custom-${currentQuestion.id}`}
+                        placeholder="Type your answer here..."
+                        value={customAnswers[currentQuestion.id] || ''}
+                        onChange={(e) => handleCustomAnswerChange(currentQuestion.id, e.target.value)}
+                        className="bg-background border-cyan-500/50 focus-visible:ring-cyan-500"
+                        rows={3}
+                        autoFocus
+                      />
+                    </motion.div>
+                  )}
                 </div>
 
                 {/* Optional additional notes */}
