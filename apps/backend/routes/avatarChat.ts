@@ -308,10 +308,22 @@ export const avatarChatRoute = (app: Express) => {
           });
         }
 
+        // Generate access token for trainer (if they don't already have one)
+        let accessToken: string | null = null;
+        try {
+          accessToken = await globalThis.convex.mutation("trainerAccess:generateAccessToken", {
+            avatarId,
+          });
+        } catch (error) {
+          console.error("Error generating access token:", error);
+          // Don't fail the request if token generation fails
+        }
+
         return res.status(200).json({
           success: true,
           message: "Memory saved successfully",
           memoryId: saveRes.memoryId,
+          accessToken, // Return the token so frontend can display it
         });
       } catch (error) {
         console.error("Error saving memory:", error);

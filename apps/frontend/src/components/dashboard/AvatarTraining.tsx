@@ -44,6 +44,7 @@ export function AvatarTraining() {
   const [loading, setLoading] = useState(true);
   const [trainingLink, setTrainingLink] = useState('');
   const [memoriesAdded, setMemoriesAdded] = useState(0);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const { toast } = useToast();
 
   const {
@@ -224,6 +225,11 @@ export function AvatarTraining() {
 
       const data = await res.json();
       console.log('Memory saved:', data);
+
+      // Store access token if returned (for trainers)
+      if (data.accessToken && !accessToken) {
+        setAccessToken(data.accessToken);
+      }
 
       setMemoriesAdded(prev => prev + 1);
       toast({
@@ -480,6 +486,47 @@ export function AvatarTraining() {
           />
         </CardFooter>
       </Card>
+
+      {/* Access Token Display (for trainers) */}
+      {accessToken && (
+        <Card className="card-glass border-green-500/50 bg-green-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Bot className="h-4 w-4 text-green-500" />
+              Your Trainer Access Link
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Save this link to view the avatar you contributed to (read-only access)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Input
+                value={`${typeof window !== 'undefined' ? window.location.origin : ''}/trainer/view?token=${accessToken}`}
+                readOnly
+                className="font-mono text-xs bg-background/50"
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const link = `${typeof window !== 'undefined' ? window.location.origin : ''}/trainer/view?token=${accessToken}`;
+                  navigator.clipboard.writeText(link);
+                  toast({
+                    title: 'Link Copied!',
+                    description: 'Your access link has been copied to clipboard.',
+                  });
+                }}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              💡 This link lets you view the avatar's summary and the memories you contributed, but you won't be able to chat with it or make changes.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tips */}
       <Card className="card-glass">

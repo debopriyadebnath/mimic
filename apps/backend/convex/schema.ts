@@ -211,4 +211,16 @@ export default defineSchema({
     .index("by_avatarId", ["avatarId"])
     .index("by_trust", ["trustWeight"])
     .index("by_created", ["createdAt"]),
+
+  /* =========================
+     TRAINER ACCESS (Read-only tokens for trainers)
+     No authentication - just token-based view access
+     ========================= */
+  trainerAccess: defineTable({
+    avatarId: v.string(),                     // String avatarId from avatar flow
+    accessToken: v.string(),                  // Long-lived, unguessable token
+    createdAt: v.number(),
+  })
+    .index("by_token", ["accessToken"])
+    .index("by_avatarId", ["avatarId"]),
 });
