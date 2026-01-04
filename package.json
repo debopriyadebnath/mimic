@@ -12,5 +12,8 @@
   "packageManager": "pnpm@10.8.1",
   "dependencies": {
     "bcryptjs": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3"
   }
 }
