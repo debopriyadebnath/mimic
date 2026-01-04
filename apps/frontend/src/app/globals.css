@@ -239,11 +239,12 @@ pre {
   position: fixed;
   top: 0;
   left: 0;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, transparent 70%);
-  /* Cyan-500 equivalent with opacity */
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.4) 0%, rgba(6, 182, 212, 0.2) 30%, transparent 70%);
+  /* Enhanced cyan glow with better opacity and stops */
   border-radius: 50%;
   pointer-events: none;
   z-index: 9999;
-  transform: translate(-50%, -50%);
-  /* Center the glow on the cursor coordinates */
+  filter: blur(40px);
+  box-shadow: 0 0 60px 20px rgba(6, 182, 212, 0.3);
+  /* Added glow shadow effect */
 }
