@@ -24,10 +24,21 @@ if (!globalThis.convex && process.env.CONVEX_URL) {
 
 const app = express();
 import cors from "cors";
+
+// Configure CORS for production and development
+const allowedOrigins = [
+  "https://mimic-eta.vercel.app",
+  "http://localhost:3000",
+  "http://localhost:3001",
+  process.env.FRONTEND_ORIGIN,
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN || "http://localhost:3000",
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  credentials: true,
+  optionsSuccessStatus: 200,
 }));
 app.use(express.json());
 
