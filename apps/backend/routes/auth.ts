@@ -13,17 +13,6 @@ function getConvexClient() {
 }
 
 export const authRoute = (app: Express) => {
-  app.options("/api/auth/signup", (req: Request, res: Response) => {
-    res
-      .status(204)
-      .set({
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      })
-      .send();
-  });
-
   app.post("/api/auth/signup", async (req: Request, res: Response) => {
     try {
       const { email, password, name } = req.body;
@@ -59,17 +48,6 @@ export const authRoute = (app: Express) => {
       console.error("Signup error:", error);
       return res.status(400).json({ error: error instanceof Error ? error.message : "Signup failed" });
     }
-  });
-
-  app.options("/api/auth/signin", (req: Request, res: Response) => {
-    res
-      .status(204)
-      .set({
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      })
-      .send();
   });
 
   app.post("/api/auth/signin", async (req: Request, res: Response) => {
