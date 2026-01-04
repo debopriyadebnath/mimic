@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { GlowingButton } from '@/components/ui/glowing-button';
 import { useToast } from '@/hooks/use-toast';
 import { useSpeechToText } from '@/hooks/use-speech-to-text';
-import { Mic, MicOff, Loader2, Trash2, Wand2, Bot, Copy, Link2, AlertCircle } from 'lucide-react';
+import { Mic, MicOff, Loader2, Trash2, Wand2, Bot, Copy, Link2, AlertCircle, Activity } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,7 @@ interface UserAvatar {
 export function AvatarTraining() {
   const searchParams = useSearchParams();
   const avatarIdFromUrl = searchParams.get('avatarId');
-  
+
   const [text, setText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [avatarInfo, setAvatarInfo] = useState<AvatarInfo | null>(null);
@@ -89,7 +89,7 @@ export function AvatarTraining() {
               // Only show completed avatars for training
               const completedAvatars = data.avatars.filter((a: UserAvatar) => a.status === 'completed');
               setUserAvatars(completedAvatars);
-              
+
               // If avatarId from URL, set it
               if (avatarIdFromUrl) {
                 setSelectedAvatarId(avatarIdFromUrl);
@@ -247,11 +247,11 @@ export function AvatarTraining() {
   // Generate shareable training link
   const generateTrainingLink = () => {
     if (!selectedAvatarId) return;
-    
+
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
     const link = `${baseUrl}/dashboard?view=train-avatar&avatarId=${selectedAvatarId}`;
     setTrainingLink(link);
-    
+
     navigator.clipboard.writeText(link);
     toast({
       title: 'Training Link Copied!',
@@ -304,10 +304,16 @@ export function AvatarTraining() {
               {avatarIdFromUrl ? 'Training Avatar' : 'Select Avatar to Train'}
             </CardTitle>
             {selectedAvatarId && (
-              <Button variant="outline" size="sm" onClick={generateTrainingLink}>
-                <Link2 className="h-4 w-4 mr-2" />
-                Copy Training Link
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => window.location.href = `/dashboard?view=training-results&avatarId=${selectedAvatarId}`}>
+                  <Activity className="h-4 w-4 mr-2" />
+                  View Analysis
+                </Button>
+                <Button variant="outline" size="sm" onClick={generateTrainingLink}>
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Copy Training Link
+                </Button>
+              </div>
             )}
           </div>
         </CardHeader>
@@ -316,11 +322,11 @@ export function AvatarTraining() {
             // Trainer view - show fixed avatar
             <div className="flex items-center gap-4 p-3 bg-primary/10 rounded-lg">
               <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-primary/50">
-                <Image 
-                  src={getAvatarImage(avatarInfo.avatarName, avatarInfo.avatarImageUrl)} 
-                  alt={avatarInfo.avatarName} 
-                  fill 
-                  className="object-cover" 
+                <Image
+                  src={getAvatarImage(avatarInfo.avatarName, avatarInfo.avatarImageUrl)}
+                  alt={avatarInfo.avatarName}
+                  fill
+                  className="object-cover"
                 />
               </div>
               <div>
@@ -359,11 +365,11 @@ export function AvatarTraining() {
               {avatarInfo && (
                 <div className="flex items-center gap-4 p-3 bg-secondary/30 rounded-lg">
                   <div className="relative w-12 h-12 rounded-full overflow-hidden border border-primary/30">
-                    <Image 
-                      src={getAvatarImage(avatarInfo.avatarName, avatarInfo.avatarImageUrl)} 
-                      alt={avatarInfo.avatarName} 
-                      fill 
-                      className="object-cover" 
+                    <Image
+                      src={getAvatarImage(avatarInfo.avatarName, avatarInfo.avatarImageUrl)}
+                      alt={avatarInfo.avatarName}
+                      fill
+                      className="object-cover"
                     />
                   </div>
                   <div className="flex-1">
@@ -384,9 +390,9 @@ export function AvatarTraining() {
           {trainingLink && (
             <div className="mt-3 flex items-center gap-2">
               <Input value={trainingLink} readOnly className="text-xs bg-secondary/50" />
-              <Button 
-                size="icon" 
-                variant="outline" 
+              <Button
+                size="icon"
+                variant="outline"
                 onClick={() => {
                   navigator.clipboard.writeText(trainingLink);
                   toast({ title: 'Copied!' });
@@ -404,7 +410,7 @@ export function AvatarTraining() {
         <CardHeader>
           <CardTitle style={{ color: 'var(--dynamic-text-color)' }}>Add Memory</CardTitle>
           <CardDescription>
-            Add new memories, thoughts, personality traits, or information for the avatar to learn. 
+            Add new memories, thoughts, personality traits, or information for the avatar to learn.
             You can type or use voice input with real-time transcription.
           </CardDescription>
         </CardHeader>
@@ -473,9 +479,9 @@ export function AvatarTraining() {
             <Trash2 className="mr-2 h-4 w-4" />
             Clear
           </Button>
-          <GlowingButton 
-            onClick={handleSubmit} 
-            disabled={!hasInput || isProcessing || isRecordingActive || !selectedAvatarId} 
+          <GlowingButton
+            onClick={handleSubmit}
+            disabled={!hasInput || isProcessing || isRecordingActive || !selectedAvatarId}
             text={isProcessing ? "Processing..." : "Submit Memory"}
           />
         </CardFooter>
