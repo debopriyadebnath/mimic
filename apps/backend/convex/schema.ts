@@ -79,6 +79,26 @@ export default defineSchema({
     .index("by_session", ["sessionId"]),
 
   /* =========================
+     AVATAR FLOW CONVERSATIONS (string avatarId)
+     Stores both user and assistant messages for avatar-flow chats
+     ========================= */
+  avatarFlowConversations: defineTable({
+    avatarId: v.string(),
+    sessionId: v.string(),
+    messages: v.array(
+      v.object({
+        role: v.union(v.literal("user"), v.literal("assistant")),
+        content: v.string(),
+        timestamp: v.number(),
+      })
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_avatarId", ["avatarId"])
+    .index("by_sessionId", ["sessionId"]),
+
+  /* =========================
      AVATAR RESPONSES (History & Analytics)
      ========================= */
   responses: defineTable({

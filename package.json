@@ -11,6 +11,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.8.1",
   "dependencies": {
-    "bcryptjs": "^3.0.3"
+    "bcryptjs": "^3.0.3",
+    "crypto": "^1.0.1"
   }
 }

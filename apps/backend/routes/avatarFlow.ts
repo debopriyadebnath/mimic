@@ -795,11 +795,14 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.post("/api/avatar-flow/chat/:avatarId", async (req: Request, res: Response) => {
     try {
       const { avatarId } = req.params;
-      const { message, history = [] } = req.body;
+      const { message, history = [], sessionId: incomingSessionId } = req.body;
 
       if (!message) {
         return res.status(400).json({ error: "Message is required" });
       }
+
+      // Stable session id for grouping messages (use provided or generate)
+      const sessionId = incomingSessionId || `sess_${avatarId}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
       // Get master prompt for this avatar
       let masterPrompt = '';
@@ -909,15 +912,62 @@ ${avatarName} (respond ONLY based on your training, stay in character):`;
       const result = await model.generateContent(prompt);
       const response = result.response.text();
 
+      // Persist both user and assistant messages to Convex (avatar-flow conversations)
+      try {
+        await fetch(`${process.env.CONVEX_URL}/api/mutation`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            path: "conversations:appendFlowMessages",
+            args: {
+              avatarId,
+              sessionId,
+              newMessages: [
+                { role: "user", content: message, timestamp: Date.now() },
+                { role: "assistant", content: response, timestamp: Date.now() },
+              ],
+            },
+          }),
+        });
+      } catch (persistErr) {
+        console.error("Failed to persist flow conversation", persistErr);
+      }
+
       res.json({
         success: true,
         response: response.trim(),
         avatarName,
         memoriesUsed: relevantMemories.length,
+        sessionId,
       });
     } catch (error: any) {
       console.error("Chat error:", error);
       res.status(500).json({ error: error.message || "Failed to generate response" });
+    }
+  });
+
+  // Fetch persisted conversation messages for a given session (avatar-flow)
+  app.get("/api/avatar-flow/conversation/:avatarId", async (req: Request, res: Response) => {
+    try {
+      const { avatarId } = req.params;
+      const { sessionId } = req.query as { sessionId?: string };
+
+      if (!sessionId) {
+        return res.status(400).json({ error: "sessionId is required" });
+      }
+
+      const convo = await globalThis.convex.query("conversations:getFlowConversation", {
+        sessionId,
+      });
+
+      if (!convo || convo.avatarId !== avatarId) {
+        return res.status(200).json({ success: true, messages: [] });
+      }
+
+      return res.status(200).json({ success: true, messages: convo.messages || [] });
+    } catch (error: any) {
+      console.error("Get conversation error:", error);
+      res.status(500).json({ error: error.message || "Failed to load conversation" });
     }
   });
 

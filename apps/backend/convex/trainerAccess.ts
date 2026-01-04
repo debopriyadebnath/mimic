@@ -1,41 +1,6 @@
 // convex/trainerAccess.ts
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { randomBytes } from "crypto";
-
-/**
- * Generate a secure, unguessable access token for a trainer-avatar relationship
- * This token allows read-only access to view the avatar they contributed to
- */
-export const generateAccessToken = mutation({
-  args: {
-    avatarId: v.string(),
-  },
-  handler: async (ctx, args) => {
-    // Generate a cryptographically secure random token (32 bytes = 64 hex chars)
-    const accessToken = randomBytes(32).toString("hex");
-    
-    // Check if a token already exists for this avatar
-    const existing = await ctx.db
-      .query("trainerAccess")
-      .withIndex("by_avatarId", (q) => q.eq("avatarId", args.avatarId))
-      .first();
-    
-    if (existing) {
-      // Return existing token instead of creating duplicate
-      return existing.accessToken;
-    }
-    
-    // Store the token in database
-    await ctx.db.insert("trainerAccess", {
-      avatarId: args.avatarId,
-      accessToken,
-      createdAt: Date.now(),
-    });
-    
-    return accessToken;
-  },
-});
 
 /**
  * Validate a trainer access token and return avatar information if valid
@@ -136,5 +101,34 @@ export const getMemoryCount = query({
       .collect();
     
     return memories.length;
+  },
+});
+
+export const storeTrainerAccess = mutation({
+  args: {
+    avatarId: v.string(),
+    accessToken: v.string(), // pass token in from backend
+  },
+  handler: async (ctx, args) => {
+    // Upsert by avatarId
+    const existing = await ctx.db
+      .query("trainerAccess")
+      .withIndex("by_avatarId", (q) => q.eq("avatarId", args.avatarId))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        accessToken: args.accessToken,
+        createdAt: Date.now(),
+      });
+      return args.accessToken;
+    }
+
+    const _id = await ctx.db.insert("trainerAccess", {
+      avatarId: args.avatarId,
+      accessToken: args.accessToken,
+      createdAt: Date.now(),
+    });
+    return args.accessToken;
   },
 });

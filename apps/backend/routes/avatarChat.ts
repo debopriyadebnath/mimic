@@ -199,6 +199,48 @@ export const avatarChatRoute = (app: Express) => {
 
         let responseId = null;
         if (conversationId) {
+          // Store user message
+          try {
+            await fetch(
+              `${process.env.CONVEX_URL}/api/mutation`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  path: "conversations:addMessage",
+                  args: {
+                    conversationId,
+                    role: "user",
+                    content: message,
+                  },
+                }),
+              }
+            );
+          } catch (e) {
+            console.error("Failed to store user message", e);
+          }
+
+          // Store assistant reply
+          try {
+            await fetch(
+              `${process.env.CONVEX_URL}/api/mutation`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  path: "conversations:addMessage",
+                  args: {
+                    conversationId,
+                    role: "assistant",
+                    content: assistantResponse,
+                  },
+                }),
+              }
+            );
+          } catch (e) {
+            console.error("Failed to store assistant message", e);
+          }
+
           // Store in responses table
           const storeRes = await fetch(
             `${process.env.CONVEX_URL}/api/mutation`,

@@ -46,6 +46,37 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
   const [sending, setSending] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
   const [generatingLink, setGeneratingLink] = useState(false);
+  const [sessionId, setSessionId] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    const existing = localStorage.getItem(`chatSession:${avatarId}`);
+    return existing || '';
+  });
+
+  // Load persisted messages when sessionId exists
+  useEffect(() => {
+    const loadConversation = async () => {
+      if (!sessionId) return;
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/avatar-flow/conversation/${avatarId}?sessionId=${encodeURIComponent(sessionId)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.messages)) {
+            const restored = (data.messages as any[]).map((m, idx) => ({
+              id: `${m.role}-${m.timestamp || idx}-${idx}`,
+              role: m.role,
+              content: m.content,
+              timestamp: m.timestamp || Date.now(),
+            })) as Message[];
+            setMessages(restored);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load conversation', err);
+      }
+    };
+
+    loadConversation();
+  }, [sessionId, avatarId]);
 
   // Fetch avatar data
   useEffect(() => {
@@ -126,11 +157,18 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
         body: JSON.stringify({
           message: userMessage.content,
           history: messages.map(m => ({ role: m.role, content: m.content })),
+          sessionId: sessionId || undefined,
         }),
       });
 
       if (res.ok) {
         const data = await res.json();
+        if (data.sessionId && data.sessionId !== sessionId) {
+          setSessionId(data.sessionId);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(`chatSession:${avatarId}`, data.sessionId);
+          }
+        }
         const assistantMessage: Message = {
           id: `assistant-${Date.now()}`,
           role: 'assistant',

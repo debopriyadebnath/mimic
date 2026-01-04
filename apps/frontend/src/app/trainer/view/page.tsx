@@ -33,6 +33,7 @@ function TrainerViewContent() {
   const [memories, setMemories] = useState<TrainerMemory[]>([]);
   const [memoryCount, setMemoryCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [trainerAccessToken, setTrainerAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -43,6 +44,14 @@ function TrainerViewContent() {
 
     validateAndFetchData();
   }, [token]);
+
+  // Load any saved token for this avatar on mount
+  useEffect(() => {
+    if (avatarSummary?.avatarId) {
+      const saved = localStorage.getItem(`trainerAccessToken:${avatarSummary.avatarId}`);
+      if (saved) setTrainerAccessToken(saved);
+    }
+  }, [avatarSummary?.avatarId]);
 
   const validateAndFetchData = async () => {
     try {
@@ -289,6 +298,36 @@ function TrainerViewContent() {
           </CardContent>
         </Card>
 
+        {/* Trainer Access Token Link */}
+        {trainerAccessToken && (
+          <Card className="card-glass border-muted/30 bg-muted/5">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+                Trainer View Link
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-muted-foreground mb-2">
+                This is your personal link to access the trainer view for this avatar:
+              </div>
+              <code className="block break-all text-xs font-mono mb-2">
+                {`${window.location.origin}/trainer/view?token=${trainerAccessToken}`}
+              </code>
+              <Button
+                size="sm"
+                onClick={() =>
+                  navigator.clipboard.writeText(
+                    `${window.location.origin}/trainer/view?token=${trainerAccessToken}`
+                  )
+                }
+              >
+                Copy Link
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Footer */}
         <div className="text-center text-xs text-muted-foreground pt-4">
           This is a secure, token-based view. Your access token is tied to this specific avatar only.
@@ -297,3 +336,22 @@ function TrainerViewContent() {
     </div>
   );
 }
+
+  export default function TrainerViewPage() {
+    return (
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 flex items-center justify-center p-4">
+            <Card className="card-glass w-full max-w-2xl">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                <p className="text-muted-foreground">Loading trainer view...</p>
+              </CardContent>
+            </Card>
+          </div>
+        }
+      >
+        <TrainerViewContent />
+      </Suspense>
+    );
+  }
