@@ -52,7 +52,7 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
     return existing || '';
   });
 
-  // Load persisted messages when sessionId exists
+ 
   useEffect(() => {
     const loadConversation = async () => {
       if (!sessionId) return;

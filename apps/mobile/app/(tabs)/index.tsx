@@ -1,85 +1,66 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
+import { Platform, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import './../global.css'
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import {Amarna_400Regular, useFonts } from '@expo-google-fonts/amarna';
 import { Link } from 'expo-router';
 
 export default function HomeScreen() {
+  let [fontsLoaded] = useFonts({
+    Amarna_400Regular})
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
+   <View className='bg-[#1a1d2e] flex-1 px-6 justify-between py-12'>
+      {/* Logo at top */}
+      <View className='items-start pt-8'>
         <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+          source={require('../../assets/images/mimic.png')}
+          style={{ width: 320, height: 240 }}
+          contentFit="contain"
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+      </View>
+      <View className='justify-between items-start pt-8 text-center flex'>
+        <Text className='text-white text-3xl font-mono text-center '>
+          Welcome to MIMIC AI
+        </Text>
+       
+      </View>
+      {/* Main content */}
+      <View className='flex-1 justify-center'>
+        <Text className='text-white text-5xl  mb-2' style={{fontFamily: fontsLoaded ? 'Amarna_400Regular' : undefined}}>
+          Identity.
+        </Text>
+        <Text className='text-blue-500 text-5xl font-bold mb-6'>
+          Evolved.
+        </Text>
+        <Text className='text-white text-base leading-6 text-3xl'>
+          AI clones built from real memories
+        </Text>
+      </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      {/* Bottom buttons */}
+      <View className='pb-8'>
+        <TouchableOpacity className='bg-blue-600 py-4 rounded-lg mb-4 flex-row justify-center items-center'>
+          <Text className='text-white font-semibold text-base mr-2'>CREATE IDENTITY</Text>
+          <Text className='text-white text-lg'>→</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity className='bg-[#252839] py-4 rounded-lg flex-row justify-center items-center'>
+          <Text className='text-white font-semibold text-base mr-2'>VERIFY ACCESS</Text>
+          <Text className='text-gray-400 text-lg'>🔒</Text>
+        </TouchableOpacity>
+
+        <Text className='text-gray-600 text-xs text-center mt-6'>
+          KNOWLEDGE TIER: PREMIUM
+        </Text>
+      </View>
+   </View>
   );
 }
 
 const styles = StyleSheet.create({
   titleContainer: {
+    backgroundColor:'white',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
