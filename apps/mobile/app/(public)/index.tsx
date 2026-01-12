@@ -1,79 +1,87 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Text, View, TouchableOpacity } from 'react-native';
 import './../global.css'
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import {Amarna_400Regular, useFonts } from '@expo-google-fonts/amarna';
-import { Link } from 'expo-router';
+import {UseOAuthFlowParams} from '@clerk/clerk-expo';
 
+import { Ionicons } from '@expo/vector-icons';
+import { useFonts, Amarna_400Regular } from '@expo-google-fonts/amarna';
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+const handeGooglLogin=async()=>{
+  try{
+   const {createdSessionId,setActive }=await startGoogleOauthFloW();console.log('~handleGooglLogin ~ createSessionId:', createSessionId);
+   if(createdSessionId){
+    setActive!({session:createdSessionId})
+
+   }
+  
+  }
+  catch{
+    console.log("Login failed")
+  }
+}
 export default function HomeScreen() {
-  let [fontsLoaded] = useFonts({
-    Amarna_400Regular})
+  const router = useRouter();
+  const [fontsLoaded] = useFonts({
+    Amarna_400Regular,
+  });
+
+  const handleLogin = () => {
+    // Navigate to auth flow or handle login
+    console.log("Login with Google pressed");
+  };
+
+  if (!fontsLoaded) {
+    return null; 
+  }
+
   return (
-   <View className='bg-[#1a1d2e] flex-1 px-6 justify-between py-12'>
-      {/* Logo at top */}
-      <View className='items-start pt-8'>
-        <Image
-          source={require('../../assets/images/mimic.png')}
-          style={{ width: 320, height: 240 }}
-          contentFit="contain"
-        />
-      </View>
-      <View className='justify-between items-start pt-8 text-center flex'>
-        <Text className='text-white text-3xl font-mono text-center '>
-          Welcome to MIMIC AI
-        </Text>
-       
-      </View>
-      {/* Main content */}
-      <View className='flex-1 justify-center'>
-        <Text className='text-white text-5xl  mb-2' style={{fontFamily: fontsLoaded ? 'Amarna_400Regular' : undefined}}>
-          Identity.
-        </Text>
-        <Text className='text-blue-500 text-5xl font-bold mb-6'>
-          Evolved.
-        </Text>
-        <Text className='text-white text-base leading-6 text-3xl'>
-          AI clones built from real memories
-        </Text>
-      </View>
+    <View className="flex-1 bg-[#121212]">
+      <SafeAreaView className="flex-1 px-6 justify-between py-10">
+        
+        {/* Header / Logo Section */}
+        <View className="items-center mt-10">
+            <Image
+            source={require('../../assets/images/mimic.png')}
+            style={{ width: 280, height: 200 }}
+            contentFit="contain"
+            transition={300}
+            />
+            <Text className="text-white text-4xl font-bold mt-4" style={{ fontFamily: 'Amarna_400Regular' }}>
+                Mimic
+            </Text>
+            <Text className="text-gray-400 text-lg mt-2 text-center">
+                Your personalized AI companion
+            </Text>
+        </View>
 
-      {/* Bottom buttons */}
-      <View className='pb-8'>
-        <TouchableOpacity className='bg-blue-600 py-4 rounded-lg mb-4 flex-row justify-center items-center'>
-          <Text className='text-white font-semibold text-base mr-2'>CREATE IDENTITY</Text>
-          <Text className='text-white text-lg'>→</Text>
-        </TouchableOpacity>
+        {/* Content Section */}
+        <View className="flex-1 justify-center items-center">
+             <Text className="text-gray-300 text-center text-base px-4">
+                Experience the next generation of AI interaction. Sign in to sync your memories and preferences.
+             </Text>
+        </View>
 
-        <TouchableOpacity className='bg-[#252839] py-4 rounded-lg flex-row justify-center items-center'>
-          <Text className='text-white font-semibold text-base mr-2'>VERIFY ACCESS</Text>
-          <Text className='text-gray-400 text-lg'>🔒</Text>
-        </TouchableOpacity>
+        {/* Action Section */}
+        <View className="w-full space-y-4 mb-8">
+            <TouchableOpacity 
+                activeOpacity={0.8}
+                onPress={handleLogin}
+                className="flex-row items-center justify-center bg-white rounded-full py-4 px-6 w-full shadow-lg"
+            >
+                <Ionicons name="logo-google" size={24} color="black" className="mr-3" />
+                <Text className="text-black text-lg font-semibold ml-2">
+                    Continue with Google
+                </Text>
+            </TouchableOpacity>
 
-        <Text className='text-gray-600 text-xs text-center mt-6'>
-          KNOWLEDGE TIER: PREMIUM
-        </Text>
-      </View>
-   </View>
+            <Text className="text-gray-500 text-center text-xs mt-4">
+                By continuing, you agree to our Terms of Service & Privacy Policy.
+            </Text>
+        </View>
+
+      </SafeAreaView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    backgroundColor:'white',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
