@@ -1,36 +1,49 @@
 import { Image } from 'expo-image';
-import { Text, View, TouchableOpacity } from 'react-native';
-import './../global.css'
-import {UseOAuthFlowParams} from '@clerk/clerk-expo';
+import { Text, View, TouchableOpacity, Platform } from 'react-native';
+import './../global.css';
+import { useSSO } from '@clerk/clerk-expo';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Amarna_400Regular } from '@expo-google-fonts/amarna';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useEffect, useCallback } from 'react';
 
-const handeGooglLogin=async()=>{
-  try{
-   const {createdSessionId,setActive }=await startGoogleOauthFloW();console.log('~handleGooglLogin ~ createSessionId:', createSessionId);
-   if(createdSessionId){
-    setActive!({session:createdSessionId})
+// Warm up browser for Android
+export const useWarmUpBrowser = () => {
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      void WebBrowser.warmUpAsync();
+      return () => {
+        void WebBrowser.coolDownAsync();
+      };
+    }
+  }, []);
+};
 
-   }
-  
-  }
-  catch{
-    console.log("Login failed")
-  }
-}
 export default function HomeScreen() {
-  const router = useRouter();
+  useWarmUpBrowser();
+  
+  const { startSSOFlow } = useSSO();
   const [fontsLoaded] = useFonts({
     Amarna_400Regular,
   });
 
-  const handleLogin = () => {
-    // Navigate to auth flow or handle login
-    console.log("Login with Google pressed");
-  };
+  const handleLogin = useCallback(async () => {
+    try {
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy: 'oauth_google',
+        redirectUrl: Linking.createURL('/(auth)/home', { scheme: 'mobile' }),
+      });
+      
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+      }
+    } catch (err) {
+      console.error('OAuth error:', err);
+    }
+  }, [startSSOFlow]);
 
   if (!fontsLoaded) {
     return null; 
