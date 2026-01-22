@@ -1,49 +1,83 @@
 import { Image } from 'expo-image';
-import { Text, View, TouchableOpacity, Platform } from 'react-native';
+import { Text, View, TouchableOpacity, Platform, ActivityIndicator, Alert } from 'react-native';
 import './../global.css';
-import { useSSO } from '@clerk/clerk-expo';
+import { useOAuth, useAuth } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Amarna_400Regular } from '@expo-google-fonts/amarna';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
+import { useRouter } from 'expo-router';
+
+// Handle OAuth redirect - MUST be called at module level
+WebBrowser.maybeCompleteAuthSession();
 
 // Warm up browser for Android
 export const useWarmUpBrowser = () => {
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      void WebBrowser.warmUpAsync();
-      return () => {
-        void WebBrowser.coolDownAsync();
-      };
-    }
+    void WebBrowser.warmUpAsync();
+    return () => {
+      void WebBrowser.coolDownAsync();
+    };
   }, []);
 };
 
-export default function HomeScreen() {
+export default function LoginScreen() {
   useWarmUpBrowser();
+  const router = useRouter();
+  const { isSignedIn } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
   
-  const { startSSOFlow } = useSSO();
+  // Use useOAuth instead of useSSO for Google OAuth
+  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
+  
   const [fontsLoaded] = useFonts({
     Amarna_400Regular,
   });
 
-  const handleLogin = useCallback(async () => {
+  // Redirect if already signed in
+  useEffect(() => {
+    if (isSignedIn) {
+      router.replace('/(auth)/home');
+    }
+  }, [isSignedIn]);
+
+  const handleGoogleAuth = useCallback(async () => {
     try {
-      const { createdSessionId, setActive } = await startSSOFlow({
-        strategy: 'oauth_google',
-        redirectUrl: Linking.createURL('/(auth)/home', { scheme: 'mobile' }),
+      setIsLoading(true);
+      
+      // Use the scheme from app.json
+      const redirectUrl = Linking.createURL('/');
+      console.log('Redirect URL:', redirectUrl);
+      
+      const { createdSessionId, setActive, signIn, signUp } = await startOAuthFlow({
+        redirectUrl,
       });
       
-      if (createdSessionId && setActive) {
-        await setActive({ session: createdSessionId });
+      // If we have a session, activate it
+      if (createdSessionId) {
+        await setActive?.({ session: createdSessionId });
+        // Navigation handled by _layout.tsx
+      } else {
+        // User might need to complete sign-up
+        if (signUp?.status === 'missing_requirements') {
+          console.log('Sign up requires additional info');
+        } else if (signIn?.status === 'needs_identifier') {
+          console.log('Sign in needs identifier');
+        }
       }
-    } catch (err) {
-      console.error('OAuth error:', err);
+    } catch (err: any) {
+      console.error('OAuth error:', JSON.stringify(err, null, 2));
+      Alert.alert(
+        'Sign In Failed',
+        err?.errors?.[0]?.longMessage || err?.message || 'Something went wrong. Please try again.'
+      );
+    } finally {
+      setIsLoading(false);
     }
-  }, [startSSOFlow]);
+  }, [startOAuthFlow]);
 
   if (!fontsLoaded) {
     return null; 
@@ -80,16 +114,27 @@ export default function HomeScreen() {
         <View className="w-full space-y-4 mb-8">
             <TouchableOpacity 
                 activeOpacity={0.8}
-                onPress={handleLogin}
+                onPress={handleGoogleAuth}
+                disabled={isLoading}
                 className="flex-row items-center justify-center bg-white rounded-full py-4 px-6 w-full shadow-lg"
             >
-                <Ionicons name="logo-google" size={24} color="black" className="mr-3" />
-                <Text className="text-black text-lg font-semibold ml-2">
-                    Continue with Google
-                </Text>
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="black" />
+                ) : (
+                  <>
+                    <Ionicons name="logo-google" size={24} color="black" />
+                    <Text className="text-black text-lg font-semibold ml-3">
+                        Continue with Google
+                    </Text>
+                  </>
+                )}
             </TouchableOpacity>
 
-            <Text className="text-gray-500 text-center text-xs mt-4">
+            <Text className="text-gray-500 text-center text-xs mt-6">
+                Works for both new and existing users
+            </Text>
+            
+            <Text className="text-gray-600 text-center text-xs mt-2">
                 By continuing, you agree to our Terms of Service & Privacy Policy.
             </Text>
         </View>

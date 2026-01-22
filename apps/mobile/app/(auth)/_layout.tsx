@@ -12,6 +12,9 @@ export default function AuthLayout() {
         tabBarStyle: {
           backgroundColor: '#121212',
           borderTopColor: '#333',
+          height: 85,
+          paddingBottom: 20,
+          paddingTop: 10,
         },
         headerStyle: {
           backgroundColor: '#121212',
@@ -24,6 +27,7 @@ export default function AuthLayout() {
         name="home"
         options={{
           title: 'Home',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -33,6 +37,7 @@ export default function AuthLayout() {
         name="profile"
         options={{
           title: 'Profile',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),
