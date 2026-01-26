@@ -24,6 +24,7 @@ import {
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { useUser } from '@clerk/nextjs';
 
 // Using a custom SVG for the X logo as lucide-react's X is a close icon.
 const XLogo = (props: React.SVGProps<SVGSVGElement>) => (
@@ -55,6 +56,7 @@ interface UserData {
 
 export function ProfilePage() {
     const { toast } = useToast();
+    const { user, isLoaded } = useUser();
     const [isEditing, setIsEditing] = useState(false);
     const [userData, setUserData] = useState<UserData | null>(null);
     const [profileData, setProfileData] = useState<ProfileData>({
@@ -70,18 +72,15 @@ export function ProfilePage() {
     });
     const [formData, setFormData] = useState<ProfileData>(profileData);
 
-    // Load user data from localStorage on component mount
     useEffect(() => {
-        try {
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                const user = JSON.parse(storedUser);
-                setUserData(user);
-            }
-        } catch (error) {
-            console.error('Error loading user data:', error);
-        }
-    }, []);
+        if (!isLoaded || !user) return;
+        setUserData({
+            id: user.id,
+            email: user.primaryEmailAddress?.emailAddress || '',
+            userName: user.username || user.fullName || user.firstName || 'User',
+            profilePhoto: user.imageUrl,
+        });
+    }, [isLoaded, user]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;

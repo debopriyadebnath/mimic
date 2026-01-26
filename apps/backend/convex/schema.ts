@@ -7,14 +7,16 @@ export default defineSchema({
      USERS (Avatar Owners)
      ========================= */
   users: defineTable({
+    clerkId: v.optional(v.string()),          // Clerk user ID (optional for migration)
     userName: v.string(),
     email: v.optional(v.string()),
-    passwordHash: v.optional(v.string()),
+    passwordHash: v.optional(v.string()),     // Legacy field for migration
     profilePhoto: v.optional(v.string()),
-    token: v.optional(v.string()),  // JWT token for authentication
     createdAt: v.number(),
     updatedAt: v.optional(v.number()),
-  }).index("by_email", ["email"]),
+  })
+    .index("by_email", ["email"])
+    .index("by_clerkId", ["clerkId"]),
 
   avatars: defineTable({
     ownerId: v.id("users"),                    // Avatar owner
