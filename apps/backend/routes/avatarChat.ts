@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
-import { requireAuth, AuthenticatedRequest } from "../lib/middleware";
+import { requireAuth } from "../lib/middleware";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-
+import { clerkMiddleware } from "@clerk/express";
 const googleGenAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 interface RelevantMemory {
@@ -30,7 +30,7 @@ export const avatarChatRoute = (app: Express) => {
   app.post(
     "/api/avatar/:avatarId/chat",
     requireAuth,
-    async (req: AuthenticatedRequest, res: Response) => {
+    async (req:any, res: Response) => {
       try {
         const { avatarId } = req.params;
         let { userId, message, sessionId, embedding } = req.body;
