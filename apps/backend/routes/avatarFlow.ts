@@ -321,7 +321,8 @@ export const avatarFlowRoute = (app: Express) => {
   app.get("/api/avatar-flow/validate/:token", async (req: Request, res: Response) => {
     try {
       const { token } = req.params;
-      const invitation = invitations.get(token);
+      const tokenValue = Array.isArray(token) ? token[0] : token;
+      const invitation = invitations.get(tokenValue);
 
       if (!invitation) {
         return res.status(404).json({
@@ -337,7 +338,7 @@ export const avatarFlowRoute = (app: Express) => {
       // Update expired status
       if (isExpired && invitation.status === 'pending') {
         invitation.status = 'expired';
-        invitations.set(token, invitation);
+        invitations.set(tokenValue, invitation);
       }
 
       // Get avatar for owner responses
@@ -365,7 +366,8 @@ export const avatarFlowRoute = (app: Express) => {
     try {
       const { token } = req.params;
       const { trainerName } = req.body;
-      const invitation = invitations.get(token);
+      const tokenValue = Array.isArray(token) ? token[0] : token;
+      const invitation = invitations.get(tokenValue);
 
       if (!invitation) {
         return res.status(404).json({ error: "Invitation not found" });
@@ -384,7 +386,7 @@ export const avatarFlowRoute = (app: Express) => {
       invitation.trainerId = nanoid();
       invitation.trainerName = trainerName || 'Anonymous Trainer';
       invitation.acceptedAt = now;
-      invitations.set(token, invitation);
+      invitations.set(tokenValue, invitation);
 
       res.json({
         success: true,
@@ -401,8 +403,9 @@ export const avatarFlowRoute = (app: Express) => {
     try {
       const { token } = req.params;
       const { responses } = req.body;
+      const tokenValue = Array.isArray(token) ? token[0] : token;
 
-      const invitation = invitations.get(token);
+      const invitation = invitations.get(tokenValue);
 
       if (!invitation) {
         return res.status(404).json({ error: "Invitation not found" });
@@ -513,7 +516,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
       invitation.responses = responses;
       invitation.submittedAt = Date.now();
       invitation.status = 'completed';
-      invitations.set(token, invitation);
+      invitations.set(tokenValue, invitation);
 
       // Update avatar with convex ID
       avatar.convexPromptId = convexPromptId || undefined;
@@ -539,9 +542,10 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.get("/api/avatar-flow/invitations/:avatarId", async (req: Request, res: Response) => {
     try {
       const { avatarId } = req.params;
+      const avatarIdValue = Array.isArray(avatarId) ? avatarId[0] : avatarId;
 
       const avatarInvitations = Array.from(invitations.values())
-        .filter(inv => inv.avatarId === avatarId);
+        .filter(inv => inv.avatarId === avatarIdValue);
 
       res.json({ invitations: avatarInvitations });
     } catch (error: any) {
@@ -554,10 +558,11 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.get("/api/avatar-flow/dashboard/:ownerId", async (req: Request, res: Response) => {
     try {
       const { ownerId } = req.params;
+      const ownerIdValue = Array.isArray(ownerId) ? ownerId[0] : ownerId;
 
       // Get all avatars for this owner
       const ownerAvatars = Array.from(avatars.values())
-        .filter(av => av.ownerId === ownerId);
+        .filter(av => av.ownerId === ownerIdValue);
 
       // Get invitations for each avatar
       const avatarsWithInvitations = ownerAvatars.map(avatar => {
@@ -584,10 +589,11 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.get("/api/avatar-flow/trainer-info/:ownerId", async (req: Request, res: Response) => {
     try {
       const { ownerId } = req.params;
+      const ownerIdValue = Array.isArray(ownerId) ? ownerId[0] : ownerId;
 
       // Get all invitations for this owner's avatars
       const ownerInvitations = Array.from(invitations.values())
-        .filter(inv => inv.ownerId === ownerId);
+        .filter(inv => inv.ownerId === ownerIdValue);
 
       // Get completed invitations with trainer responses
       const completedTrainings = ownerInvitations
@@ -635,15 +641,16 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.get("/api/avatar-flow/avatar/:avatarId", async (req: Request, res: Response) => {
     try {
       const { avatarId } = req.params;
+      const avatarIdValue = Array.isArray(avatarId) ? avatarId[0] : avatarId;
 
-      const avatar = avatars.get(avatarId);
+      const avatar = avatars.get(avatarIdValue);
 
       if (!avatar) {
         return res.status(404).json({ error: "Avatar not found" });
       }
 
       const avatarInvitations = Array.from(invitations.values())
-        .filter(inv => inv.avatarId === avatarId);
+        .filter(inv => inv.avatarId === avatarIdValue);
 
       res.json({
         success: true,
@@ -721,11 +728,12 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.get("/api/avatar-flow/master-prompt/:avatarId", async (req: Request, res: Response) => {
     try {
       const { avatarId } = req.params;
+      const avatarIdValue = Array.isArray(avatarId) ? avatarId[0] : avatarId;
 
       // First try to get from Convex cloud
       try {
         const convexPrompt = await globalThis.convex.query("trainers:getAvatarMasterPrompt", {
-          avatarId,
+          avatarId: avatarIdValue,
         });
 
         if (convexPrompt) {
@@ -744,7 +752,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
       }
 
       // Fall back to local storage
-      const avatar = avatars.get(avatarId);
+      const avatar = avatars.get(avatarIdValue);
 
       if (!avatar) {
         return res.status(404).json({ error: "Avatar not found" });
@@ -775,9 +783,10 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.get("/api/avatar-flow/cloud-prompts/:ownerId", async (req: Request, res: Response) => {
     try {
       const { ownerId } = req.params;
+      const ownerIdValue = Array.isArray(ownerId) ? ownerId[0] : ownerId;
 
       const cloudPrompts = await globalThis.convex.query("trainers:getOwnerMasterPrompts", {
-        ownerId,
+        ownerId: ownerIdValue,
       });
 
       res.json({
@@ -795,6 +804,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
   app.post("/api/avatar-flow/chat/:avatarId", async (req: Request, res: Response) => {
     try {
       const { avatarId } = req.params;
+      const avatarIdValue = Array.isArray(avatarId) ? avatarId[0] : avatarId;
       const { message, history = [], sessionId: incomingSessionId } = req.body;
 
       if (!message) {
@@ -802,7 +812,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
       }
 
       // Stable session id for grouping messages (use provided or generate)
-      const sessionId = incomingSessionId || `sess_${avatarId}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const sessionId = incomingSessionId || `sess_${avatarIdValue}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
       // Get master prompt for this avatar
       let masterPrompt = '';
@@ -811,7 +821,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
       // Try to get from Convex first
       try {
         const convexPrompt = await globalThis.convex.query("trainers:getAvatarMasterPrompt", {
-          avatarId,
+          avatarId: avatarIdValue,
         });
 
         if (convexPrompt) {
@@ -824,7 +834,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
 
       // Fall back to local storage
       if (!masterPrompt) {
-        const avatar = avatars.get(avatarId);
+        const avatar = avatars.get(avatarIdValue);
         if (avatar?.finalMasterPrompt) {
           masterPrompt = avatar.finalMasterPrompt;
           avatarName = avatar.avatarName;
@@ -855,7 +865,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
         if (embeddingResult?.embedding?.values) {
           // Query relevant memories from Convex
           const memories = await globalThis.convex.query("trainers:getRelevantTrainingMemories", {
-            avatarId,
+            avatarId: avatarIdValue,
             queryEmbedding: embeddingResult.embedding.values,
             topK: 5,
           });
@@ -866,7 +876,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
               trustWeight: m.trustWeight,
               score: m.score,
             }));
-            console.log(`Found ${relevantMemories.length} relevant memories for avatar ${avatarId}`);
+            console.log(`Found ${relevantMemories.length} relevant memories for avatar ${avatarIdValue}`);
           }
         }
       } catch (ragError) {
@@ -920,7 +930,7 @@ ${avatarName} (respond ONLY based on your training, stay in character):`;
           body: JSON.stringify({
             path: "conversations:appendFlowMessages",
             args: {
-              avatarId,
+              avatarId: avatarIdValue,
               sessionId,
               newMessages: [
                 { role: "user", content: message, timestamp: Date.now() },
