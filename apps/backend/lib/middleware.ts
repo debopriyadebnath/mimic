@@ -12,3 +12,4 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   (req as any).user = payload;
   next();
 }
+

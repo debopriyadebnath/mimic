@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useUser } from '@clerk/nextjs';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
@@ -46,6 +47,7 @@ export function AvatarTraining() {
   const [memoriesAdded, setMemoriesAdded] = useState(0);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user, isLoaded } = useUser();
 
   const {
     isConnecting,
@@ -72,31 +74,30 @@ export function AvatarTraining() {
   // Fetch user's avatars if no avatarId in URL (owner view)
   useEffect(() => {
     const fetchUserAvatars = async () => {
+      if (avatarIdFromUrl) {
+        setLoading(false);
+        return;
+      }
+
+      if (!isLoaded) {
+        return;
+      }
+
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const storedUser = localStorage.getItem('user');
-        if (!storedUser && !avatarIdFromUrl) {
-          setLoading(false);
-          return;
-        }
+        const res = await fetch(`${BACKEND_URL}/api/avatar-flow/dashboard/${user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.avatars) {
+            const completedAvatars = data.avatars.filter((a: UserAvatar) => a.status === 'completed');
+            setUserAvatars(completedAvatars);
 
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          const userId = user._id || user.id || user.email;
-
-          const res = await fetch(`${BACKEND_URL}/api/avatar-flow/dashboard/${userId}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.success && data.avatars) {
-              // Only show completed avatars for training
-              const completedAvatars = data.avatars.filter((a: UserAvatar) => a.status === 'completed');
-              setUserAvatars(completedAvatars);
-
-              // If avatarId from URL, set it
-              if (avatarIdFromUrl) {
-                setSelectedAvatarId(avatarIdFromUrl);
-              } else if (completedAvatars.length > 0 && !selectedAvatarId) {
-                setSelectedAvatarId(completedAvatars[0].id);
-              }
+            if (completedAvatars.length > 0 && !selectedAvatarId) {
+              setSelectedAvatarId(completedAvatars[0].id);
             }
           }
         }
@@ -108,7 +109,7 @@ export function AvatarTraining() {
     };
 
     fetchUserAvatars();
-  }, [avatarIdFromUrl]);
+  }, [avatarIdFromUrl, isLoaded, selectedAvatarId, user]);
 
   // Fetch avatar info when avatarId changes
   useEffect(() => {
@@ -201,8 +202,7 @@ export function AvatarTraining() {
       const embedding = await generateEmbedding(text);
 
       // Step 2: Determine source based on context
-      const storedUser = localStorage.getItem('user');
-      const isOwner = storedUser && avatarInfo?.ownerName;
+      const isOwner = !avatarIdFromUrl;
       const source = isRecording ? 'voice_input' : (isOwner ? 'user_saved' : 'trainer_added');
 
       // Step 3: Save memory to backend
@@ -210,7 +210,7 @@ export function AvatarTraining() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: storedUser ? JSON.parse(storedUser)._id : 'trainer',
+          userId: user?.id || 'trainer',
           text,
           embedding,
           category: 'personality',

@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { PsychologicalQuestionnaire } from "./PsychologicalQuestionnaire";
 import { useRouter } from "next/navigation";
 import { Users, Bot, CheckCircle, Clock } from "lucide-react";
+import { useUser } from '@clerk/nextjs';
 
 const initialInvitations = [
   {
@@ -57,35 +58,33 @@ export function WelcomeDashboard() {
     const [selectedAvatar, setSelectedAvatar] = useState<{name: string, imageUrl: string} | null>(null);
     const [userEmail, setUserEmail] = useState<string>('');
     const [userName, setUserName] = useState<string>('');
-
-    // Fetch user's avatars on mount
+    const { user, isLoaded } = useUser();
     useEffect(() => {
         const fetchUserAvatars = async () => {
+            if (!isLoaded) {
+                return;
+            }
+
+            if (!user) {
+                setLoading(false);
+                return;
+            }
+
             try {
-                const storedUser = localStorage.getItem('user');
-                if (!storedUser) {
-                    setLoading(false);
-                    return;
-                }
-                
-                const user = JSON.parse(storedUser);
-                const userId = user._id || user.id || user.email;
-                setUserEmail(user.email || '');
-                setUserName(user.userName || user.name || 'User');
-                
                 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-                
-                // Fetch from local storage (avatarFlow dashboard endpoint)
-                const dashboardRes = await fetch(`${backendUrl}/api/avatar-flow/dashboard/${userId}`);
+
+                setUserEmail(user.primaryEmailAddress?.emailAddress || '');
+                setUserName(user.username || user.fullName || 'User');
+
+                const dashboardRes = await fetch(`${backendUrl}/api/avatar-flow/dashboard/${user.id}`);
                 if (dashboardRes.ok) {
                     const dashboardData = await dashboardRes.json();
                     if (dashboardData.success && dashboardData.avatars) {
                         setUserAvatars(dashboardData.avatars);
                     }
                 }
-                
-                // Also fetch from Convex cloud storage
-                const cloudRes = await fetch(`${backendUrl}/api/avatar-flow/cloud-prompts/${userId}`);
+
+                const cloudRes = await fetch(`${backendUrl}/api/avatar-flow/cloud-prompts/${user.id}`);
                 if (cloudRes.ok) {
                     const cloudData = await cloudRes.json();
                     if (cloudData.success && cloudData.prompts) {
@@ -100,7 +99,7 @@ export function WelcomeDashboard() {
         };
         
         fetchUserAvatars();
-    }, []);
+    }, [isLoaded, user]);
 
     const handleAcceptInvitation = (inviteId: string, avatarName: string, avatarImageUrl: string) => {
         setSelectedAvatar({ name: avatarName, imageUrl: avatarImageUrl });

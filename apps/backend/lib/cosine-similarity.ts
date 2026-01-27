@@ -55,9 +55,9 @@ export function findTopKSimilar<T extends { embedding: number[] }>(
     similarity: cosineSimilarity(queryEmbedding, item.embedding),
   }));
 
-  // Filter by threshold
+ 
   const filtered = similarities.filter((item) => item.similarity >= threshold);
 
-  // Sort by similarity (descending) and return top-K
+  
   return filtered.sort((a, b) => b.similarity - a.similarity).slice(0, k);
 }
