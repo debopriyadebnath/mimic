@@ -14,7 +14,7 @@ export async function signupUser (email:string,username:string, password:string)
         throw error;
     }
 }
-export async function signinUser(email:string, password:string){
+export default  async function signinUser(email:string, password:string){
 try{
     const res=await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/auth/signin`,{
         email,

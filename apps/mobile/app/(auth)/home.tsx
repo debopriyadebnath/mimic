@@ -1,12 +1,37 @@
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useUser } from '@clerk/clerk-expo';
+import { useAuth, useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import '../global.css';
+import { useEffect } from 'react';
+import { syncClerkUserToBackend } from '../api/clerkBackend';
 
 export default function HomeScreen() {
+  const { isSignedIn, getToken } = useAuth();
   const { user } = useUser();
+
+  // On first load when signed in, sync Clerk user to Convex via backend
+  useEffect(() => {
+    if (!isSignedIn) return;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const token = await getToken();
+        if (!token || cancelled) return;
+
+        await syncClerkUserToBackend(token);
+      } catch (error) {
+        console.log('Failed to sync user with backend:', error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSignedIn, getToken]);
 
   return (
     <View className="flex-1 bg-[#121212]">
