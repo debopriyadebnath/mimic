@@ -16,7 +16,7 @@ interface AvatarDraft {
   trainerResponses?: Array<{ question: string; answer: string; note?: string }>;
   finalMasterPrompt?: string;
   completedAt?: number;
-  convexPromptId?: string;  // Convex ID for cloud-stored master prompt
+  convexPromptId?: string;  
 }
 
 interface TrainerInvitation {

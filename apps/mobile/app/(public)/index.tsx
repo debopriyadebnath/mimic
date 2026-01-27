@@ -1,15 +1,16 @@
 import { Image } from 'expo-image';
-import { Text, View, TouchableOpacity, Platform, ActivityIndicator, Alert } from 'react-native';
+import { Text, View, TouchableOpacity, Platform, ActivityIndicator, Alert, Touchable, StyleSheet, TextInput } from 'react-native';
 import './../global.css';
-import { useOAuth, useAuth } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Amarna_400Regular } from '@expo-google-fonts/amarna';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect, useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
+import { Video, ResizeMode } from 'expo-av';
+import { useAuth, useSignUp } from '@clerk/clerk-expo';
+
 
 // Handle OAuth redirect - MUST be called at module level
 WebBrowser.maybeCompleteAuthSession();
@@ -29,62 +30,49 @@ export default function LoginScreen() {
   const router = useRouter();
   const { isSignedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  
-
-
-
-
-
-
-
-  // Use useOAuth instead of useSSO for Google OAuth
-  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
- 
+  const { isLoaded, signUp, setActive } = useSignUp();
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [fontsLoaded] = useFonts({
     Amarna_400Regular,
   });
-
-  // Redirect if already signed in
+  
+  // If user is already signed in, send them to home directly
   useEffect(() => {
     if (isSignedIn) {
-      router.replace('/(auth)/home');
+      router.replace('/home');
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, router]);
 
-  const handleGoogleAuth = useCallback(async () => {
+  const handleEmailSignup = useCallback(async () => {
     try {
+      if (!isLoaded) return;
+      if (!email || !username || !password) {
+        Alert.alert('Missing fields', 'Please fill email, username and password.');
+        return;
+      }
       setIsLoading(true);
-      
-      // Use the scheme from app.json
-      const redirectUrl = Linking.createURL('/');
-      console.log('Redirect URL:', redirectUrl);
-      
-      const { createdSessionId, setActive, signIn, signUp } = await startOAuthFlow({
-        redirectUrl,
+      const result = await signUp.create({
+        emailAddress: email.trim(),
+        password: password,
+        username: username.trim(),
       });
-      
-      // If we have a session, activate it
-      if (createdSessionId) {
-        await setActive?.({ session: createdSessionId });
-        // Navigation handled by _layout.tsx
+
+      if (result.status === 'complete' && result.createdSessionId) {
+        await setActive({ session: result.createdSessionId });
+        // InitialLayout will redirect to /home
       } else {
-        // User might need to complete sign-up
-        if (signUp?.status === 'missing_requirements') {
-          console.log('Sign up requires additional info');
-        } else if (signIn?.status === 'needs_identifier') {
-          console.log('Sign in needs identifier');
-        }
+        console.log('Signup not complete:', result.status);
       }
     } catch (err: any) {
-      console.error('OAuth error:', JSON.stringify(err, null, 2));
-      Alert.alert(
-        'Sign In Failed',
-        err?.errors?.[0]?.longMessage || err?.message || 'Something went wrong. Please try again.'
-      );
+      console.error('Email signup error:', err);
+      const message = err?.errors?.[0]?.longMessage || err?.message || 'Something went wrong. Please try again.';
+      Alert.alert('Sign Up Failed', message);
     } finally {
       setIsLoading(false);
     }
-  }, [startOAuthFlow]);
+  }, [router, isLoaded, email, username, password, signUp, setActive]);
 
   if (!fontsLoaded) {
     return null; 
@@ -92,58 +80,87 @@ export default function LoginScreen() {
 
   return (
     <View className="flex-1 bg-[#121212]">
+      <Video
+        source={require('./landing-vid.mp4')}
+        style={StyleSheet.absoluteFill}
+        className='brightness-100'
+        resizeMode={ResizeMode.COVER}
+        isLooping
+        shouldPlay
+        isMuted
+      />
+      <View pointerEvents="none" style={StyleSheet.absoluteFill} className="bg-black/60" />
       <SafeAreaView className="flex-1 px-6 justify-between py-10">
         
         {/* Header / Logo Section */}
         <View className="items-center mt-10">
-            <Image
-            source={require('../../assets/images/mimic.png')}
-            style={{ width: 280, height: 200 }}
-            contentFit="contain"
-            transition={300}
-            />
-            <Text className="text-white text-4xl font-bold mt-4" style={{ fontFamily: 'Amarna_400Regular' }}>
-                Mimic
-            </Text>
-            <Text className="text-gray-400 text-lg mt-2 text-center">
-                Your personalized AI companion
-            </Text>
+            
+           <View >
+    
+    </View>
+            
         </View>
 
         {/* Content Section */}
-        <View className="flex-1 justify-center items-center">
-             <Text className="text-gray-300 text-center text-base px-4">
-                Experience the next generation of AI interaction. Sign in to sync your memories and preferences.
-             </Text>
+        <View className="flex-1 justify-center items-center w-full">
+          <View className="w-full space-y-4">
+            <TextInput
+              placeholder="Email"
+              placeholderTextColor="#9ca3af"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              className="w-full bg-[#1f2933] text-white rounded-xl px-4 py-3 mb-3"
+            />
+            <TextInput
+              placeholder="Username"
+              placeholderTextColor="#9ca3af"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+              className="w-full bg-[#1f2933] text-white rounded-xl px-4 py-3 mb-3"
+            />
+            <TextInput
+              placeholder="Password"
+              placeholderTextColor="#9ca3af"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              className="w-full bg-[#1f2933] text-white rounded-xl px-4 py-3 mb-3"
+            />
+          </View>
         </View>
 
         {/* Action Section */}
-        <View className="w-full space-y-4 mb-8">
-            <TouchableOpacity 
-                activeOpacity={0.8}
-                onPress={handleGoogleAuth}
-                disabled={isLoading}
-                className="flex-row items-center justify-center bg-white rounded-full py-4 px-6 w-full shadow-lg"
-            >
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="black" />
-                ) : (
-                  <>
-                    <Ionicons name="logo-google" size={24} color="black" />
-                    <Text className="text-black text-lg font-semibold ml-3">
-                        Continue with Google
-                    </Text>
-                  </>
-                )}
-            </TouchableOpacity>
 
-            <Text className="text-gray-500 text-center text-xs mt-6">
-                Works for both new and existing users
-            </Text>
-            
-            <Text className="text-gray-600 text-center text-xs mt-2">
-                By continuing, you agree to our Terms of Service & Privacy Policy.
-            </Text>
+
+         <View className='p-4 m-5'>
+          <TouchableOpacity 
+              activeOpacity={0.8}
+            onPress={handleEmailSignup}
+              className="flex-row items-center justify-center border border-white rounded-full py-4 px-6 w-full shadow-lg p-8"
+          >
+            <Text className="text-white text-lg font-semibold">
+                  Create Account
+              </Text>
+          </TouchableOpacity>
+         </View>
+           <View className='justify-center items-center'>
+            <TouchableOpacity onPress={() => router.push('/sign-in')}>
+            <Text className='text-white underline font-mono'>Existing User ? Click here</Text>
+           </TouchableOpacity>
+           </View>
+        <View className="w-full space-y-4 mb-8">
+          {isLoading && (
+            <ActivityIndicator size="small" color="#ffffff" />
+          )}
+          <Text className="text-gray-500 text-center text-xs mt-6">
+            Sign up with your email, username and password.
+          </Text>
+          <Text className="text-gray-600 text-center text-xs mt-2">
+            By continuing, you agree to our Terms of Service & Privacy Policy.
+          </Text>
         </View>
 
       </SafeAreaView>
