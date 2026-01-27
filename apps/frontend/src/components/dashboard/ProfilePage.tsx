@@ -24,7 +24,7 @@ import {
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { useUser } from '@clerk/nextjs';
+import { UserAvatar, useUser } from '@clerk/nextjs';
 
 // Using a custom SVG for the X logo as lucide-react's X is a close icon.
 const XLogo = (props: React.SVGProps<SVGSVGElement>) => (
@@ -116,10 +116,7 @@ export function ProfilePage() {
       <Card className="card-glass">
         <CardHeader>
           <div className="flex items-center gap-4">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={userData?.profilePhoto || "https://picsum.photos/seed/user1/200/200"} />
-              <AvatarFallback>{userData ? getInitials(userData.userName) : 'U'}</AvatarFallback>
-            </Avatar>
+            <UserAvatar/>
             <div>
               <CardTitle className="text-2xl font-headline" style={{color: 'var(--dynamic-text-color)'}}>{userData?.userName || 'User'}</CardTitle>
               <CardDescription>{userData?.email || 'email@example.com'}</CardDescription>

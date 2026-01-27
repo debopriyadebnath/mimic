@@ -59,8 +59,6 @@ export function WelcomeDashboard() {
     const [userEmail, setUserEmail] = useState<string>('');
     const [userName, setUserName] = useState<string>('');
     const { user, isLoaded } = useUser();
-
-    // Fetch user's avatars on mount
     useEffect(() => {
         const fetchUserAvatars = async () => {
             if (!isLoaded) {

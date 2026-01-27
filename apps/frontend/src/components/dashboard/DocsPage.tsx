@@ -52,10 +52,10 @@ export function DocsPage() {
             <BookOpen className="h-6 w-6 text-primary" />
           </div>
           <CardTitle className="text-3xl font-headline mb-2" style={{ color: 'var(--dynamic-text-color)' }}>
-            EvoAvatar — User Guide
+            Mimic — User Guide
           </CardTitle>
           <CardDescription className="text-lg max-w-2xl mx-auto">
-            Welcome to EvoAvatar, a platform where you can create a personal AI avatar that represents you and evolves over time using explicit, trusted memory.
+            Welcome to Mimic, a platform where you can create a personal AI avatar that represents you and evolves over time using explicit, trusted memory.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -66,16 +66,16 @@ export function DocsPage() {
         animate="show"
         className="space-y-6"
       >
-        {/* What is EvoAvatar */}
+        {/* What is Mimic */}
         <motion.div variants={item}>
           <Card className="card-glass">
             <CardHeader>
               <div className="flex items-center gap-3 mb-2">
                 <Brain className="h-6 w-6 text-purple-500" />
-                <CardTitle>What Is EvoAvatar?</CardTitle>
+                <CardTitle>What Is Mimic?</CardTitle>
               </div>
               <CardDescription>
-                EvoAvatar lets you create an AI version of yourself that is grounded in reality.
+                Mimic lets you create an AI version of yourself that is grounded in reality.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -348,7 +348,7 @@ export function DocsPage() {
 
         {/* Summary Footer */}
         <motion.div variants={item} className="text-center py-8 text-muted-foreground">
-          <p className="text-sm">EvoAvatar is a memory‑based AI • You control what it learns • Trust and accuracy come first</p>
+          <p className="text-sm">Mimic is a memory‑based AI • You control what it learns • Trust and accuracy come first</p>
         </motion.div>
 
       </motion.div>

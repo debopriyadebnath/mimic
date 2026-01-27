@@ -9,6 +9,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { GoogleIcon } from "./GoogleIcon";
 import { GlowingButton } from "../ui/glowing-button";
+import { SignUpButton } from "@clerk/nextjs"
 
 
 const navItems = [
@@ -126,7 +127,7 @@ export function Header() {
                   </span>
                 </a>
               ))}
-                <GlowingButton text="Sign Up" href="/signup" />
+              <SignUpButton/>
             </div>
              <div className="hidden h-5 w-px bg-border sm:block" />
             <div className="hidden items-center gap-2.5 font-mono text-xs text-muted-foreground sm:flex px-3 py-1.5 rounded-full bg-secondary/50 border border-border/50">

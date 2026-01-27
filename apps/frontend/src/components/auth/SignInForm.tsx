@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from "next/link";
-import { useSignIn } from '@clerk/nextjs';
+import { SignInButton, useSignIn } from '@clerk/nextjs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -145,9 +145,7 @@ export function SignInForm() {
                     </form>
                     <div className="mt-4 text-center text-sm">
                         Don&apos;t have an account?{" "}
-                        <Link href="/signup" className="underline text-primary">
-                            Sign up
-                        </Link>
+                       <SignInButton/>
                     </div>
                 </CardContent>
             </Card>
