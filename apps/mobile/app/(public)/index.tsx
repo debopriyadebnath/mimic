@@ -4,7 +4,7 @@ import './../global.css';
 import { useOAuth, useAuth } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-
+import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Amarna_400Regular } from '@expo-google-fonts/amarna';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,9 +30,16 @@ export default function LoginScreen() {
   const { isSignedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   
+
+
+
+
+
+
+
   // Use useOAuth instead of useSSO for Google OAuth
   const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
-  
+ 
   const [fontsLoaded] = useFonts({
     Amarna_400Regular,
   });
