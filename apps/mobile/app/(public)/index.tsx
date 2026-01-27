@@ -1,48 +1,35 @@
 import { Image } from 'expo-image';
-import { Text, View, TouchableOpacity, Platform, ActivityIndicator, Alert, Touchable, StyleSheet, TextInput } from 'react-native';
+import { Text, View, TouchableOpacity, Platform, ActivityIndicator, Alert, StyleSheet, TextInput, KeyboardAvoidingView, ScrollView, Dimensions } from 'react-native';
 import './../global.css';
 import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
-import { Ionicons } from '@expo/vector-icons';
-import { useFonts, Amarna_400Regular } from '@expo-google-fonts/amarna';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Video, ResizeMode } from 'expo-av';
 import { useAuth, useSignUp } from '@clerk/clerk-expo';
+import { useFonts, Amarna_400Regular } from '@expo-google-fonts/amarna';
+import { Ionicons } from '@expo/vector-icons';
 
-
-// Handle OAuth redirect - MUST be called at module level
+// Handle OAuth redirect
 WebBrowser.maybeCompleteAuthSession();
 
-// Warm up browser for Android
-export const useWarmUpBrowser = () => {
-  useEffect(() => {
-    void WebBrowser.warmUpAsync();
-    return () => {
-      void WebBrowser.coolDownAsync();
-    };
-  }, []);
-};
+const { height } = Dimensions.get('window');
 
 export default function LoginScreen() {
-  useWarmUpBrowser();
   const router = useRouter();
   const { isSignedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const { isLoaded, signUp, setActive } = useSignUp();
+  
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [fontsLoaded] = useFonts({
-    Amarna_400Regular,
-  });
   
-  // If user is already signed in, send them to home directly
+  const [fontsLoaded] = useFonts({ Amarna_400Regular });
+
+  // Redirect if signed in
   useEffect(() => {
-    if (isSignedIn) {
-      router.replace('/home');
-    }
+    if (isSignedIn) router.replace('/home');
   }, [isSignedIn, router]);
 
   const handleEmailSignup = useCallback(async () => {
@@ -61,109 +48,126 @@ export default function LoginScreen() {
 
       if (result.status === 'complete' && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
-        // InitialLayout will redirect to /home
       } else {
         console.log('Signup not complete:', result.status);
       }
     } catch (err: any) {
-      console.error('Email signup error:', err);
-      const message = err?.errors?.[0]?.longMessage || err?.message || 'Something went wrong. Please try again.';
+      const message = err?.errors?.[0]?.longMessage || err?.message || 'Something went wrong.';
       Alert.alert('Sign Up Failed', message);
     } finally {
       setIsLoading(false);
     }
-  }, [router, isLoaded, email, username, password, signUp, setActive]);
+  }, [isLoaded, email, username, password, signUp, setActive]);
 
-  if (!fontsLoaded) {
-    return null; 
-  }
+  if (!fontsLoaded) return null;
 
   return (
-    <View className="flex-1 bg-[#121212]">
+    <View className="flex-1 bg-black">
+      {/* 1. Background Video */}
       <Video
         source={require('./landing-vid.mp4')}
         style={StyleSheet.absoluteFill}
-        className='brightness-100'
         resizeMode={ResizeMode.COVER}
         isLooping
         shouldPlay
         isMuted
       />
-      <View pointerEvents="none" style={StyleSheet.absoluteFill} className="bg-black/60" />
-      <SafeAreaView className="flex-1 px-6 justify-between py-10">
-        
-        {/* Header / Logo Section */}
-        <View className="items-center mt-10">
+
+      {/* 2. Dark Overlay (dims video so the card pops) */}
+      <View className="absolute inset-0 bg-black/20" />
+
+      {/* 3. Main Content - Using KeyboardAvoidingView for inputs */}
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1 justify-end px-4"
+      >
+        <SafeAreaView className="flex-1 justify-end items-center mb-10">
+          
+          {/* THE "CREAM" CARD CONTAINER */}
+          <View className="w-full bg-transparent rounded-3xl p-3 shadow-2xl overflow-hidden flex-col" >
             
-           <View >
-    
-    </View>
-            
-        </View>
-
-        {/* Content Section */}
-        <View className="flex-1 justify-center items-center w-full">
-          <View className="w-full space-y-4">
-            <TextInput
-              placeholder="Email"
-              placeholderTextColor="#9ca3af"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              className="w-full bg-[#1f2933] text-white rounded-xl px-4 py-3 mb-3"
-            />
-            <TextInput
-              placeholder="Username"
-              placeholderTextColor="#9ca3af"
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              className="w-full bg-[#1f2933] text-white rounded-xl px-4 py-3 mb-3"
-            />
-            <TextInput
-              placeholder="Password"
-              placeholderTextColor="#9ca3af"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              className="w-full bg-[#1f2933] text-white rounded-xl px-4 py-3 mb-3"
-            />
-          </View>
-        </View>
-
-        {/* Action Section */}
-
-
-         <View className='p-4 m-5'>
-          <TouchableOpacity 
-              activeOpacity={0.8}
-            onPress={handleEmailSignup}
-              className="flex-row items-center justify-center border border-white rounded-full py-4 px-6 w-full shadow-lg p-8"
-          >
-            <Text className="text-white text-lg font-semibold">
-                  Create Account
+            {/* Header inside Card */}
+            <View className="mb-6">
+              <Text className="text-3xl text-white mb-2" style={{ fontFamily: 'Amarna_400Regular' }}>
+                Join Us
               </Text>
-          </TouchableOpacity>
-         </View>
-           <View className='justify-center items-center'>
-            <TouchableOpacity onPress={() => router.push('/sign-in')}>
-            <Text className='text-white underline font-mono'>Existing User ? Click here</Text>
-           </TouchableOpacity>
-           </View>
-        <View className="w-full space-y-4 mb-8">
-          {isLoading && (
-            <ActivityIndicator size="small" color="#ffffff" />
-          )}
-          <Text className="text-gray-500 text-center text-xs mt-6">
-            Sign up with your email, username and password.
-          </Text>
-          <Text className="text-gray-600 text-center text-xs mt-2">
-            By continuing, you agree to our Terms of Service & Privacy Policy.
-          </Text>
-        </View>
+            
+            </View>
 
-      </SafeAreaView>
+            {/* Form Fields */}
+            <View className="space-y-4">
+              
+              {/* Email */}
+              <View>
+                <Text className="text-[10px] font-bold text-white uppercase tracking-widest mb-1 ml-1">Email</Text>
+                <TextInput
+                  placeholder="name@example.com"
+                  placeholderTextColor="#a3a3a3"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  cursorColor="#1a1a1a"
+                  className="w-full bg-white border border-[#e5e5e0] text-[#1a1a1a] text-base rounded-lg px-4 py-3 focus:border-[#1a1a1a]"
+                />
+              </View>
+
+              {/* Username */}
+              <View>
+                <Text className="text-[10px] font-bold text-[#1a1a1a] uppercase tracking-widest mb-1 ml-1">Username</Text>
+                <TextInput
+                  placeholder="username"
+                  placeholderTextColor="#a3a3a3"
+                  value={username}
+                  onChangeText={setUsername}
+                  autoCapitalize="none"
+                  cursorColor="#1a1a1a"
+                  className="w-full bg-white border border-[#e5e5e0] text-[#1a1a1a] text-base rounded-lg px-4 py-3 focus:border-[#1a1a1a]"
+                />
+              </View>
+
+              {/* Password */}
+              <View>
+                <Text className="text-[10px] font-bold text-[#1a1a1a] uppercase tracking-widest mb-1 ml-1">Password</Text>
+                <TextInput
+                  placeholder="••••••••"
+                  placeholderTextColor="#a3a3a3"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  cursorColor="#1a1a1a"
+                  className="w-full bg-white border border-[#e5e5e0] text-[#1a1a1a] text-base rounded-lg px-4 py-3 focus:border-[#1a1a1a]"
+                />
+              </View>
+
+              {/* Sign Up Button */}
+              <TouchableOpacity 
+                onPress={handleEmailSignup}
+                activeOpacity={0.8}
+                className="w-full bg-[#1a1a1a] rounded-lg py-4 mt-2 items-center justify-center shadow-sm"
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#FDFBF7" />
+                ) : (
+                  <Text className="text-[#FDFBF7] font-semibold text-base tracking-wide">
+                    Create Account
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+            </View>
+
+            {/* Footer inside Card */}
+            <View className="mt-6 flex-row justify-center">
+              <Text className="text-neutral-200 text-xs">Already have an account? </Text>
+              <TouchableOpacity onPress={() => router.push('/sign-in')}>
+                <Text className="text-[#1a1a1a] text-xs font-bold underline">Log in</Text>
+              </TouchableOpacity>
+            </View>
+
+          </View>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
