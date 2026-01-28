@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { translateToEnglish } from "../lib/translation";
 
 declare global {
   var convex: any;
@@ -9,15 +10,24 @@ export const trainerMemoryRoute = (app: any) => {
   app.post("/api/trainer/:trainerId/memory/init", async (req: Request, res: Response) => {
     try {
       const { trainerId } = req.params;
-      const { systemPrompt } = req.body;
+      let { systemPrompt, trainerLanguage } = req.body;
 
       if (!systemPrompt) {
         return res.status(400).json({ error: "systemPrompt is required" });
       }
 
+      // Default to English if language not specified
+      trainerLanguage = trainerLanguage || "en";
+
+      // Translate system prompt to English if needed
+      let englishPrompt = systemPrompt;
+      if (trainerLanguage !== "en" && trainerLanguage !== "en-US" && trainerLanguage !== "en-GB") {
+        englishPrompt = await translateToEnglish(systemPrompt, trainerLanguage);
+      }
+
       const result = await globalThis.convex.mutation("trainerMemory:initializeMemory", {
         trainerId,
-        systemPrompt,
+        systemPrompt: englishPrompt,
       });
 
       res.json({ success: true, message: "Master prompt created", ...result });
@@ -31,21 +41,30 @@ export const trainerMemoryRoute = (app: any) => {
   app.post("/api/trainer/:trainerId/memory/add-context", async (req: Request, res: Response) => {
     try {
       const { trainerId } = req.params;
-      const { contextText } = req.body;
+      let { contextText, trainerLanguage } = req.body;
 
       if (!contextText) {
         return res.status(400).json({ error: "contextText is required" });
       }
 
-      // First, generate embedding using action
+      // Default to English if language not specified
+      trainerLanguage = trainerLanguage || "en";
+
+      // Translate context to English if needed
+      let englishContextText = contextText;
+      if (trainerLanguage !== "en" && trainerLanguage !== "en-US" && trainerLanguage !== "en-GB") {
+        englishContextText = await translateToEnglish(contextText, trainerLanguage);
+      }
+
+      // First, generate embedding using action (use English text)
       const embedding = await globalThis.convex.action("trainerMemory:generateEmbedding", {
-        text: contextText,
+        text: englishContextText,
       });
 
       // Then, add context with embedding to the database using mutation
       const result = await globalThis.convex.mutation("trainerMemory:addContext", {
         trainerId,
-        contextText,
+        contextText: englishContextText,
         embedding,
       });
 
