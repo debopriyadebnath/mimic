@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-export async function signupUser (email:string,username:string, password:string){
+export  async function signupUser (email:string,username:string, password:string){
     try{
-        const res=await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/auth/signup`,{
+        const res=await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/signup`,{
             email,
             username,
             password
@@ -10,11 +10,11 @@ export async function signupUser (email:string,username:string, password:string)
         });
         return res.data;
     } catch (error) {
-        console.log("Signup failed ", error)
+        console.log("Signup failed here ", error)
         throw error;
     }
 }
-export default  async function signinUser(email:string, password:string){
+export  async function signinUser(email:string, password:string){
 try{
     const res=await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/auth/signin`,{
         email,
@@ -28,3 +28,4 @@ catch(error){
     throw error;
 }
 }
+export default {signinUser}

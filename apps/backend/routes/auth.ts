@@ -116,14 +116,12 @@ export const authRoute = (app: Express) => {
         return res.status(400).json({ error: "password must be at least 8 characters" });
       }
 
-      // Create user in Clerk
       const clerkUser = await clerkClient.users.createUser({
         username: username.trim(),
         emailAddress: [email.toLowerCase().trim()],
         password: password,
       });
 
-      // Sync to Convex
       const convexClient = getConvexClient();
       const convexUser = await convexClient.mutation(api.auth.createOrUpdateFromClerk, {
         clerkId: clerkUser.id,
@@ -138,17 +136,21 @@ export const authRoute = (app: Express) => {
         convexUser,
       });
     } catch (error: any) {
-      console.error("Signup error:", error);
-      
-      // Handle Clerk-specific errors
-      if (error.errors) {
-        const messages = error.errors.map((e: any) => e.message).join(", ");
+      console.error("Signup error raw:", JSON.stringify(error, null, 2));
+
+      // Clerk-style errors
+      if (error?.errors && Array.isArray(error.errors)) {
+        const messages = error.errors.map((e: any) => e.message || e.longMessage).join(", ");
         return res.status(400).json({ error: messages });
       }
-      
-      return res.status(400).json({ 
-        error: error instanceof Error ? error.message : "Signup failed" 
-      });
+
+      // Generic Error instance
+      if (error instanceof Error) {
+        return res.status(400).json({ error: error.message });
+      }
+
+      // Fallback
+      return res.status(400).json({ error: "Signup failed" });
     }
   });
 };

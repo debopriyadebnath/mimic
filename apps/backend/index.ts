@@ -2,7 +2,7 @@
 import dotenv from "dotenv";
 import { resolve } from "path";
 dotenv.config({ path: resolve(process.cwd(), ".env") });
-
+import cors from "cors";
 console.log("Hello via Bun!");
 import express from "express";
 import { ConvexHttpClient } from "convex/browser";
@@ -24,7 +24,9 @@ if (!globalThis.convex && process.env.CONVEX_URL) {
 }
 
 const app = express();
-import cors from "cors";
+
+// must be before authRoute(...)
+app.use(express.json());
 
 // Configure CORS for production and development
 const allowedOrigins = [
