@@ -18,19 +18,23 @@ function InitialLayout() {
   useEffect(() => {
     if (!isLoaded) return
 
-    const inAuthGroup = segments[0] === '(auth)'
+    const firstSegment = segments[0]
 
-    if (isSignedIn && !inAuthGroup) {
-      // User is signed in but not in the authed stack
+    const inAuthFlow = ['home', 'profile'].includes(firstSegment)
+    const inSignIn = firstSegment === 'sign-in'
+
+    if (isSignedIn && firstSegment === 'sign-in') {
       router.replace('/home')
-    } else if (!isSignedIn && inAuthGroup) {
-      // User is signed out but inside authed stack
+    }
+
+    if (!isSignedIn && inAuthFlow) {
       router.replace('/')
     }
-  }, [isSignedIn, isLoaded, segments, router])
+  }, [isLoaded, isSignedIn, segments])
 
   return <Slot />
 }
+
 
 export default function RootLayout() {
   return (

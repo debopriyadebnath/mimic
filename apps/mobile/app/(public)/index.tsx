@@ -10,6 +10,7 @@ import { useAuth } from '@clerk/clerk-expo';
 import { useFonts, Amarna_400Regular } from '@expo-google-fonts/amarna';
 import { Ionicons } from '@expo/vector-icons';
 import { signupUser } from '../api/auth';
+import { Button } from 'react-native';
 
 // Handle OAuth redirect
 WebBrowser.maybeCompleteAuthSession();
@@ -20,31 +21,54 @@ export default function LoginScreen() {
   const router = useRouter();
   const { isSignedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [isVisible, setIsVisible] = useState(true);
   const textInputRef = React.useRef<TextInput>(null);
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
  
   const [fontsLoaded] = useFonts({ Amarna_400Regular });
-
+  const passwordVisible = isVisible ? 'eye' : 'eye-off';
   // Redirect if signed in
   useEffect(() => {
     if (isSignedIn) router.replace('/home');
   }, [isSignedIn, router]);
 
   const handleEmailSignup = useCallback(async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+
+    const trimmedEmail = email.trim();
+    const trimmedUsername = username.trim();
+
+    if (!trimmedEmail || !trimmedUsername || !password) {
+      Alert.alert('Missing fields', 'Please fill email, username and password.');
+      return;
+    }
+
+    if (!emailRegex.test(trimmedEmail)) {
+      Alert.alert('Invalid email', 'Please enter a valid email address (e.g. name@example.com).');
+      return;
+    }
+
+    if (!usernameRegex.test(trimmedUsername)) {
+      Alert.alert(
+        'Invalid username',
+        'Username can only contain letters, numbers, "-" and "_", with no spaces.'
+      );
+      return;
+    }
+
+    if (password.length < 8) {
+      Alert.alert('Weak password', 'Password must be at least 8 characters long.');
+      return;
+    }
+
     try {
-      if (!email || !username || !password) {
-        Alert.alert('Missing fields', 'Please fill email, username and password.');
-        return;
-      }
       setIsLoading(true);
-
-      await signupUser(username.trim(), password, email.trim());
-
-      // If signupUser already sets active session and redirects, you can remove this:
-      // router.replace('/home');
+      await signupUser(trimmedEmail, trimmedUsername, password);
+      Alert.alert('Account created', 'Please log in to continue.');
+      router.push('/sign-in');
     } catch (err: any) {
       const message = err?.errors?.[0]?.longMessage || err?.message || 'Something went wrong.';
       Alert.alert('Sign Up Failed for now', message);
@@ -118,14 +142,21 @@ export default function LoginScreen() {
                   <View>
                     <Text className="text-[10px] font-bold text-[#1a1a1a] uppercase tracking-widest mb-1 ml-1">Password</Text>
                     <TextInput
+
                       placeholder="••••••••"
                       placeholderTextColor="#a3a3a3"
                       value={password}
                       onChangeText={setPassword}
-                      secureTextEntry
+                      secureTextEntry={!isVisible}
                       cursorColor="#1a1a1a"
                       className="w-full bg-white border border-[#e5e5e0] text-[#1a1a1a] text-base rounded-lg px-4 py-3 focus:border-[#1a1a1a]"
                     />
+                    <TouchableOpacity
+                      className="absolute right-4 top-9"
+                      onPress={() => setIsVisible(!isVisible)}
+                    >
+                      <Ionicons name={passwordVisible} size={20} color="#a3a3a3" />
+                    </TouchableOpacity>
                   </View>
 
                   <TouchableOpacity
@@ -146,7 +177,7 @@ export default function LoginScreen() {
                 <View className="mt-6 flex-row justify-center">
                   <Text className="text-neutral-200 text-xs">Already have an account? </Text>
                   <TouchableOpacity onPress={() => router.push('/sign-in')}>
-                    <Text className="text-[#1a1a1a] text-xs font-bold underline">Log in</Text>
+                    <Text className="text-white text-xs font-bold underline">Log in</Text>
                   </TouchableOpacity>
                 </View>
               </View>

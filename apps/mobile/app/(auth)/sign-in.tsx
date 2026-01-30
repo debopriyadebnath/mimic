@@ -9,7 +9,7 @@ export default function SignIn() {
   const { isLoaded, signIn, setActive } = useSignIn();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading,  setIsLoading] = useState(false);
 
   const handleSignIn = async () => {
     try {
@@ -72,6 +72,11 @@ export default function SignIn() {
           </Text>
         </TouchableOpacity>
       </SafeAreaView>
+      <View className='bg-white'>
+        <TouchableOpacity  onPress={() => router.push('/')} className="p-4 items-center">
+          <Text className='text-black'>Sign up</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

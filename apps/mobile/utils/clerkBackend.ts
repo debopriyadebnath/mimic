@@ -9,8 +9,6 @@ if (!API_URL) {
 
 export async function syncClerkUserToBackend(token: string) {
   if (!API_URL) throw new Error('EXPO_PUBLIC_API_URL is not configured');
-  
-
   const res = await axios.post(
     `${API_URL}/api/auth/clerk/sync`,
     {},
