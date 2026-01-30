@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
 import { requireAuth } from "../lib/middleware";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { translateToEnglish, translateFromEnglish } from "../lib/translation";
+import { clerkMiddleware } from "@clerk/express";import { translateToEnglish, translateFromEnglish } from "../lib/translation";
 
 const googleGenAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
@@ -31,14 +31,14 @@ export const avatarChatRoute = (app: Express) => {
   app.post(
     "/api/avatar/:avatarId/chat",
     requireAuth,
-    async (req: Request, res: Response) => {
+    async (req:any, res: Response) => {
       try {
         const { avatarId } = req.params;
         let { userId, message, sessionId, embedding, userLanguage } = req.body;
 
         // Prefer authenticated user id when available
-        const authUser = (req as any).user;
-        if (!userId && authUser?.sub) userId = authUser.sub;
+        const authUser = req.auth;
+        if (!userId && authUser?.userId) userId = authUser.userId;
 
         // Validate inputs
         if (!avatarId || !userId || !message) {

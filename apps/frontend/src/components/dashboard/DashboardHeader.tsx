@@ -26,7 +26,7 @@ export function DashboardHeader({ onMobileMenuClick }: DashboardHeaderProps) {
   const searchParams = useSearchParams();
   const [currentView, setCurrentView] = useState<{ title: string; icon: React.ReactElement }>({
     title: "Dashboard",
-    icon: <Home className="h-5 w-5" />,
+    icon: <Home className="h-5 w-5 text-black" />,
   });
 
   useEffect(() => {

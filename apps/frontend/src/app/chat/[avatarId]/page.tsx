@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useUser } from '@clerk/nextjs';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
@@ -46,6 +47,7 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
   const router = useRouter();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useUser();
   
   const [avatar, setAvatar] = useState<AvatarData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,7 +63,7 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
     return existing || '';
   });
 
-  // Load persisted messages when sessionId exists
+ 
   useEffect(() => {
     const loadConversation = async () => {
       if (!sessionId) return;
@@ -212,9 +214,17 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
     
     setGeneratingLink(true);
     try {
-      const storedUser = localStorage.getItem('user');
-      const user = storedUser ? JSON.parse(storedUser) : {};
-      const ownerId = user._id || user.id || user.email || 'unknown';
+      if (!user) {
+        toast({
+          title: 'Sign in required',
+          description: 'Please sign in before generating a trainer link.',
+          variant: 'destructive',
+        });
+        setGeneratingLink(false);
+        return;
+      }
+
+      const ownerId = user.id;
 
       const res = await fetch(`${BACKEND_URL}/api/avatar-flow/generate-invite`, {
         method: 'POST',

@@ -57,8 +57,9 @@ export const userRoute = (app: Express) => {
   app.get("/api/user/:email", async (req: Request, res: Response) => {
     try {
       const { email } = req.params;
+      const emailValue = Array.isArray(email) ? email[0] : email;
 
-      if (!email) {
+      if (!emailValue) {
         return res.status(400).json({ error: "email is required" });
       }
 
@@ -71,7 +72,7 @@ export const userRoute = (app: Express) => {
       }
 
       const user = await convexClient.query("user:getUserByEmail", {
-        email: email.toLowerCase(),
+        email: emailValue.toLowerCase(),
       });
 
       if (!user) {

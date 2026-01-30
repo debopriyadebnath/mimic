@@ -11,10 +11,11 @@ import { masterPromptRoute } from "./routes/masterPrompt";
 import { avatarChatRoute } from "./routes/avatarChat";
 import { trainerRoute } from "./routes/trainers";
 import { trainerMemoryRoute } from "./routes/trainerMemory";
-import { authRoute } from "./routes/auth";
 import { userRoute } from "./routes/user";
 import { qaRoute } from "./routes/qa";
 import { avatarFlowRoute } from "./routes/avatarFlow";
+import { authRoute } from "./routes/auth";
+import { clerkMiddleware } from "@clerk/express";
 // removed MongoDB connection; auth will use Convex
 
 // Initialize Convex globally
@@ -40,6 +41,7 @@ app.use(cors({
   credentials: true,
   optionsSuccessStatus: 200,
 }));
+app.use(clerkMiddleware());
 app.use(express.json());
 
 // Register routes
@@ -48,10 +50,10 @@ masterPromptRoute(app);
 avatarChatRoute(app);
 trainerRoute(app);
 trainerMemoryRoute(app);
-authRoute(app);
 userRoute(app);
 qaRoute(app);
 avatarFlowRoute(app);
+authRoute(app);
 
 app.get("/", (req, res) => {
   console.log("localhost is running");

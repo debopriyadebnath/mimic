@@ -74,7 +74,7 @@ export function Hero() {
                 <div className="h-3 w-3 rounded-full bg-primary/60 transition-colors hover:bg-primary" />
               </div>
               <div className="absolute top-3.5 left-1/2 -translate-x-1/2 bg-background/50 rounded-md px-3 py-1 font-mono text-xs text-muted-foreground">
-                terminal://evoavatar
+                terminal://Mimic
               </div>
 
               <div className="mt-6 overflow-hidden font-mono text-primary/80 flex items-start gap-4">

@@ -31,6 +31,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useUser } from '@clerk/nextjs';
 
 const avatars = PlaceHolderImages.filter(p => p.id.startsWith('avatar-'));
 
@@ -50,6 +51,7 @@ export function CreateAvatarPage() {
     const [uploadedAvatar, setUploadedAvatar] = useState<string | null>(null);
     const [answers, setAnswers] = useState({ q1: '', q2: '', q3: '' });
     const [invitationLink, setInvitationLink] = useState('');
+
     const [expirationHours, setExpirationHours] = useState("2");
     const [isGenerating, setIsGenerating] = useState(false);
     const [avatarLanguage, setAvatarLanguage] = useState('en');
@@ -57,22 +59,22 @@ export function CreateAvatarPage() {
     const router = useRouter();
 
     // Auto-fetch user info from localStorage on mount
+    const { user, isLoaded } = useUser();
     useEffect(() => {
         try {
             const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                const user = JSON.parse(storedUser);
-                setOwnerEmail(user.email || '');
-                setOwnerName(user.userName || user.name || '');
-                setOwnerId(user._id || user.id || user.email || '');
-            }
-        } catch (error) {
-            console.error('Error loading user data:', error);
+        if (!isLoaded || !user) return;
+        setOwnerEmail((prev) => prev || user.primaryEmailAddress?.emailAddress || '');
+        setOwnerName((prev) => prev || user.username || user.fullName || '');
+        setOwnerId((prev) => prev || user.id);
+    }
+catch (error) {
+            console.error('Error fetching user from localStorage:', error);
         }
-    }, []);
-
-    const handleNext = () => setStep(prev => prev + 1);
+}, [isLoaded, user])
+;
     const handleBack = () => setStep(prev => prev - 1);
+
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -106,7 +108,7 @@ export function CreateAvatarPage() {
         try {
             const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
-            // Use the ownerId from user data (fetched from localStorage)
+            // Derive owner identity from the signed-in Clerk user
             const finalOwnerId = ownerId || ownerEmail || 'owner-' + Date.now();
 
             // Step 1: Create draft avatar with owner's responses
@@ -259,7 +261,7 @@ export function CreateAvatarPage() {
                             </div>
                         </CardContent>
                         <CardFooter className="justify-end">
-                            <GlowingButton text="Next" onClick={handleNext} disabled={!avatarName || !ownerName || !ownerEmail} />
+                            <GlowingButton text="Next" onClick={handleBack} disabled={!avatarName || !ownerName || !ownerEmail} />
                         </CardFooter>
                     </motion.div>
                 );
@@ -305,7 +307,7 @@ export function CreateAvatarPage() {
                         </CardContent>
                         <CardFooter className="justify-between">
                             <Button variant="ghost" onClick={handleBack}>Back</Button>
-                            <GlowingButton text="Next" onClick={handleNext} disabled={!selectedAvatar} />
+                            <GlowingButton text="Next" onClick={handleBack} disabled={!selectedAvatar} />
                         </CardFooter>
                     </motion.div>
                 );
