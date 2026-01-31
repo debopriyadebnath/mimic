@@ -1,19 +1,193 @@
-import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import '../global.css';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { syncClerkUserToBackend } from '@/utils/clerkBackend';
-import { useFonts, Amarna_400Regular } from '@expo-google-fonts/amarna';
+
+type AvatarStatus = 'invited' | 'active' | 'ready';
+
+interface Avatar {
+  id: string;
+  name: string;
+  photo?: string;
+  status: AvatarStatus;
+  memoryCount: number;
+  lastActivity: string;
+}
+
+// Sample data - in production this would come from your backend
+const SAMPLE_AVATARS: Avatar[] = [
+  {
+    id: '1',
+    name: 'Mom',
+    photo: undefined,
+    status: 'ready',
+    memoryCount: 47,
+    lastActivity: 'Added memory 2h ago',
+  },
+  {
+    id: '2',
+    name: 'Sarah',
+    photo: undefined,
+    status: 'active',
+    memoryCount: 12,
+    lastActivity: 'Added memory yesterday',
+  },
+  {
+    id: '3',
+    name: 'Dad',
+    photo: undefined,
+    status: 'invited',
+    memoryCount: 0,
+    lastActivity: "Hasn't responded yet",
+  },
+];
+
+const STATUS_CONFIG = {
+  invited: {
+    label: 'Invited',
+    color: '#999999',
+    bgColor: '#F5F5F5',
+  },
+  active: {
+    label: 'memories added',
+    color: '#059669',
+    bgColor: '#ECFDF5',
+  },
+  ready: {
+    label: 'Ready to chat',
+    color: '#2563EB',
+    bgColor: '#EFF6FF',
+  },
+};
+
+function getStatusText(avatar: Avatar): string {
+  if (avatar.status === 'invited') return 'Invited';
+  if (avatar.status === 'active') return `${avatar.memoryCount} memories added`;
+  return 'Ready to chat';
+}
+
+function AvatarCard({ avatar }: { avatar: Avatar }) {
+  const config = STATUS_CONFIG[avatar.status];
+  const isInvited = avatar.status === 'invited';
+  
+  return (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      className="bg-white border border-[#E5E5E5] rounded-lg p-4 mb-4"
+    >
+      <View className="flex-row items-center">
+        {/* Avatar Photo */}
+        <View className="mr-4">
+          {avatar.photo ? (
+            <Image
+              source={{ uri: avatar.photo }}
+              style={{ width: 64, height: 64, borderRadius: 32 }}
+            />
+          ) : (
+            <View 
+              className="w-16 h-16 rounded-full items-center justify-center"
+              style={{ backgroundColor: isInvited ? '#E5E5E5' : '#F5F5F5' }}
+            >
+              <Text 
+                className="text-2xl font-semibold"
+                style={{ color: isInvited ? '#999' : '#000' }}
+              >
+                {avatar.name.charAt(0)}
+              </Text>
+            </View>
+          )}
+        </View>
+        
+        {/* Info */}
+        <View className="flex-1">
+          <Text 
+            className="text-base font-semibold"
+            style={{ color: isInvited ? '#666' : '#000' }}
+          >
+            {avatar.name}
+          </Text>
+          
+          {/* Status Badge */}
+          <View className="flex-row items-center mt-1">
+            <View 
+              className="rounded-full px-2 py-0.5"
+              style={{ backgroundColor: config.bgColor }}
+            >
+              <Text 
+                className="text-xs font-medium"
+                style={{ color: config.color }}
+              >
+                {getStatusText(avatar)}
+              </Text>
+            </View>
+          </View>
+          
+          {/* Last Activity */}
+          <Text className="text-xs mt-1.5" style={{ color: '#666' }}>
+            {avatar.lastActivity}
+          </Text>
+        </View>
+        
+        {/* Action Button */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          className="px-4 py-2 rounded-lg"
+          style={{ 
+            backgroundColor: isInvited ? '#F5F5F5' : (avatar.status === 'ready' ? '#2563EB' : '#000'),
+          }}
+        >
+          <Text 
+            className="text-sm font-medium"
+            style={{ color: isInvited ? '#666' : '#fff' }}
+          >
+            {isInvited ? 'Remind' : 'Chat'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+function EmptyState({ onCreateAvatar }: { onCreateAvatar: () => void }) {
+  return (
+    <View className="flex-1 items-center justify-center px-8">
+      {/* Icon */}
+      <View className="w-16 h-16 bg-[#F5F5F5] rounded-full items-center justify-center mb-6">
+        <Ionicons name="people-outline" size={28} color="#999" />
+      </View>
+      
+      {/* Title */}
+      <Text className="text-lg font-semibold text-black text-center mb-2">
+        Create your first avatar
+      </Text>
+      
+      {/* Description */}
+      <Text className="text-sm text-center mb-8" style={{ color: '#666' }}>
+        Invite someone to build their AI together with you
+      </Text>
+      
+      {/* CTA Button */}
+      <TouchableOpacity
+        onPress={onCreateAvatar}
+        activeOpacity={0.8}
+        className="bg-black rounded-lg px-6 py-3"
+      >
+        <Text className="text-white text-sm font-medium">Create Avatar</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 export default function HomeScreen() {
   const { isSignedIn, getToken } = useAuth();
   const { user } = useUser();
-  const [fontsLoaded] = useFonts({ Amarna_400Regular });
+  const [avatars, setAvatars] = useState<Avatar[]>(SAMPLE_AVATARS);
+  const [showEmpty, setShowEmpty] = useState(false); // Toggle for demo
 
-  // Sync Logic
   useEffect(() => {
     if (!isSignedIn) return;
     let cancelled = false;
@@ -29,125 +203,68 @@ export default function HomeScreen() {
     return () => { cancelled = true; };
   }, [isSignedIn, getToken]);
 
-  if (!fontsLoaded) return null;
+  const handleCreateAvatar = () => {
+    // Navigate to avatar creation flow
+    console.log('Create new avatar');
+  };
 
   return (
-    <View className="flex-1 bg-[#FDFBF7]">
+    <View className="flex-1" style={{ backgroundColor: '#FAFAFA' }}>
       <SafeAreaView className="flex-1">
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          
-          {/* 1. Header: Minimal & Personal */}
-          <View className="px-6 pt-6 pb-8 border-b border-[#E5E5E0]">
-            <View className="flex-row justify-between items-center">
-              <View>
-                <Text className="text-[#737373] text-xs font-medium uppercase tracking-widest mb-1">
-                  Workspace
-                </Text>
-                <Text 
-                  className="text-[#1a1a1a] text-2xl" 
-                  style={{ fontFamily: 'Amarna_400Regular' }}
-                >
-                  {user?.firstName ? `Hello, ${user.firstName}` : 'Welcome'}
-                </Text>
-              </View>
-              
-              {/* Profile Avatar - subtle & circular */}
-              <TouchableOpacity className="border border-[#E5E5E0] rounded-full p-1">
-                 {user?.imageUrl ? (
-                  <Image
-                    source={{ uri: user.imageUrl }}
-                    style={{ width: 40, height: 40, borderRadius: 20 }}
-                  />
-                ) : (
-                  <View className="w-10 h-10 bg-[#E5E5E0] rounded-full items-center justify-center">
-                    <Ionicons name="person" size={20} color="#737373" />
-                  </View>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* 2. Main Action: The "New Thread" Button */}
-          {/* Instead of a robot image, we use a strong typographic action block */}
-          <View className="px-6 py-10">
-            <TouchableOpacity 
-              activeOpacity={0.9}
-              className="w-full bg-[#1a1a1a] rounded-xl p-6 shadow-sm flex-row justify-between items-center group"
-            >
-              <View>
-                <View className="flex-row items-center space-x-2 mb-2">
-                   <View className="w-2 h-2 rounded-full " />
-                   <Text className="text-[#a3a3a3] text-xs font-medium uppercase tracking-wider">System Online</Text>
-                </View>
-                <Text className="text-[#FDFBF7] text-xl font-medium tracking-tight">
-                  Start New Session
-                </Text>
-                <Text className="text-[#737373] text-sm mt-1">
-                  Initialize a new context window.
-                </Text>
-              </View>
-              
-              <View className="w-12 h-12 bg-[#333] rounded-full items-center justify-center">
-                <Ionicons name="arrow-forward" size={24} color="#fff" />
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* 3. The "Menu" List (Replacing the Grid) */}
-          <View className="px-6">
-            <Text className="text-[#1a1a1a] text-xs font-bold uppercase tracking-widest mb-4 ml-1">
-              Tools & Archives
+        {/* Header */}
+        <View className="flex-row items-center justify-between px-6 pt-4 pb-2">
+          <Text className="text-lg font-semibold tracking-tight text-black">
+            Mimic
+          </Text>
+          <TouchableOpacity
+            onPress={handleCreateAvatar}
+            activeOpacity={0.7}
+            className="flex-row items-center"
+          >
+            <Ionicons name="add" size={20} color="#000" />
+            <Text className="text-sm font-medium text-black ml-1">
+              New Avatar
             </Text>
-            
-            <View className="bg-white border border-[#E5E5E0] rounded-xl overflow-hidden">
-              
-              {/* History Item */}
-              <TouchableOpacity className="flex-row items-center justify-between p-5 border-b border-[#E5E5E0] active:bg-gray-50">
-                <View className="flex-row items-center space-x-4">
-                  <Ionicons name="layers-outline" size={20} color="#1a1a1a" />
-                  <View>
-                    <Text className="text-[#1a1a1a] text-base font-medium">Archives</Text>
-                    <Text className="text-[#737373] text-xs">View past conversation logs</Text>
-                  </View>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color="#d4d4d4" />
-              </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
 
-              {/* Training Item (Renamed to Knowledge Base) */}
-              <TouchableOpacity className="flex-row items-center justify-between p-5 border-b border-[#E5E5E0] active:bg-gray-50">
-                <View className="flex-row items-center space-x-4">
-                  <Ionicons name="library-outline" size={20} color="#1a1a1a" />
-                  <View>
-                    <Text className="text-[#1a1a1a] text-base font-medium">Knowledge Base</Text>
-                    <Text className="text-[#737373] text-xs">Fine-tune assistant parameters</Text>
-                  </View>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color="#d4d4d4" />
-              </TouchableOpacity>
-
-              {/* Settings Item */}
-              <TouchableOpacity className="flex-row items-center justify-between p-5 active:bg-gray-50">
-                <View className="flex-row items-center space-x-4">
-                  <Ionicons name="options-outline" size={20} color="#1a1a1a" />
-                  <View>
-                    <Text className="text-[#1a1a1a] text-base font-medium">Preferences</Text>
-                    <Text className="text-[#737373] text-xs">Account and display settings</Text>
-                  </View>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color="#d4d4d4" />
-              </TouchableOpacity>
-
+        {/* User Banner */}
+        <View className="flex-row items-center px-6 py-4 mb-2">
+          {user?.imageUrl ? (
+            <Image
+              source={{ uri: user.imageUrl }}
+              style={{ width: 40, height: 40, borderRadius: 20 }}
+            />
+          ) : (
+            <View className="w-10 h-10 bg-[#E5E5E5] rounded-full items-center justify-center">
+              <Text className="text-base font-semibold" style={{ color: '#666' }}>
+                {user?.firstName?.charAt(0) || 'U'}
+              </Text>
             </View>
-          </View>
-
-          {/* 4. Footer Status (Replacing the "0 Stats" block) */}
-          <View className="mt-10 mb-10 px-6 items-center">
-            <Text className="text-[#d4d4d4] text-[10px] uppercase tracking-widest">
-              Version 1.0.2 • Sync Active
+          )}
+          <View className="ml-3">
+            <Text className="text-base font-medium text-black">
+              Hey, {user?.username || 'there'}
+            </Text>
+            <Text className="text-xs" style={{ color: '#666' }}>
+              {avatars.length} avatar{avatars.length !== 1 ? 's' : ''}
             </Text>
           </View>
+        </View>
 
-        </ScrollView>
+        {showEmpty || avatars.length === 0 ? (
+          <EmptyState onCreateAvatar={handleCreateAvatar} />
+        ) : (
+          <ScrollView
+            className="flex-1 px-6"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 32 }}
+          >
+            {avatars.map((avatar) => (
+              <AvatarCard key={avatar.id} avatar={avatar} />
+            ))}
+          </ScrollView>
+        )}
       </SafeAreaView>
     </View>
   );
