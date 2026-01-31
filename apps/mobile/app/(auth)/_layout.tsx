@@ -1,55 +1,99 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { HapticTab } from '@/components/haptic-tab';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import '../global.css';
 
-export default function AuthLayout() {
-  // In production, this would come from a context/store
-  const pendingInvitesCount = 2;
+type TabConfig = {
+  name: string;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  iconFocused: keyof typeof Ionicons.glyphMap;
+  badge?: number;
+};
 
+const TABS: TabConfig[] = [
+  { name: 'home', label: 'Avatars', icon: 'people-outline', iconFocused: 'people' },
+  { name: 'memories', label: 'Memories', icon: 'albums-outline', iconFocused: 'albums' },
+  { name: 'feed', label: 'Feed', icon: 'newspaper-outline', iconFocused: 'newspaper' },
+  { name: 'invites', label: 'Invites', icon: 'mail-outline', iconFocused: 'mail', badge: 2 },
+  { name: 'settings', label: 'Settings', icon: 'settings-outline', iconFocused: 'settings' },
+];
+
+function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: '#000',
-        tabBarInactiveTintColor: '#999',
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopColor: '#E5E5E5',
-          borderTopWidth: 1,
-          height: 84,
-          paddingBottom: 28,
-          paddingTop: 12,
-        },
-        headerShown: false,
-        tabBarButton: HapticTab,
+    <View 
+      style={{
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        borderTopWidth: 1,
+        borderTopColor: '#E5E5E5',
+        paddingTop: 12,
+        paddingBottom: 32,
+        paddingHorizontal: 8,
       }}
     >
-      <Tabs.Screen
-        name="home"
-        options={{
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons 
-              name={focused ? 'people' : 'people-outline'} 
-              size={24} 
-              color={color} 
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="invites"
-        options={{
-          tabBarIcon: ({ color, focused }) => (
-            <View>
-              <Ionicons 
-                name={focused ? 'mail' : 'mail-outline'} 
-                size={24} 
-                color={color} 
+      {state.routes.map((route, index) => {
+        const tabConfig = TABS.find(t => t.name === route.name);
+        if (!tabConfig) return null;
+
+        const isFocused = state.index === index;
+        const { options } = descriptors[route.key];
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        const onLongPress = () => {
+          navigation.emit({
+            type: 'tabLongPress',
+            target: route.key,
+          });
+        };
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? { selected: true } : {}}
+            accessibilityLabel={options.tabBarAccessibilityLabel}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            style={{
+              flex: 1,
+              alignItems: 'center',
+            }}
+          >
+            {/* Label above icon */}
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: isFocused ? '600' : '400',
+                color: isFocused ? '#000' : '#999',
+                marginBottom: 4,
+              }}
+            >
+              {tabConfig.label}
+            </Text>
+
+            {/* Icon with optional badge */}
+            <View style={{ position: 'relative' }}>
+              <Ionicons
+                name={isFocused ? tabConfig.iconFocused : tabConfig.icon}
+                size={22}
+                color={isFocused ? '#000' : '#999'}
               />
-              {pendingInvitesCount > 0 && (
-                <View 
+              {tabConfig.badge && tabConfig.badge > 0 && (
+                <View
                   style={{
                     position: 'absolute',
                     top: -4,
@@ -64,33 +108,45 @@ export default function AuthLayout() {
                   }}
                 >
                   <Text style={{ color: '#fff', fontSize: 10, fontWeight: '600' }}>
-                    {pendingInvitesCount}
+                    {tabConfig.badge}
                   </Text>
                 </View>
               )}
             </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons 
-              name={focused ? 'settings' : 'settings-outline'} 
-              size={24} 
-              color={color} 
+
+            {/* Underline indicator */}
+            <View
+              style={{
+                marginTop: 6,
+                height: 2,
+                width: 24,
+                backgroundColor: isFocused ? '#000' : 'transparent',
+                borderRadius: 1,
+              }}
             />
-          ),
-        }}
-      />
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+export default function AuthLayout() {
+  return (
+    <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      {/* Visible tabs - order matters */}
+      <Tabs.Screen name="home" />
+      <Tabs.Screen name="memories" />
+      <Tabs.Screen name="feed" />
+      <Tabs.Screen name="invites" />
+      <Tabs.Screen name="settings" />
+      
       {/* Hidden screens */}
-      <Tabs.Screen
-        name="memories"
-        options={{
-          href: null,
-        }}
-      />
       <Tabs.Screen
         name="profile"
         options={{
@@ -103,6 +159,7 @@ export default function AuthLayout() {
           href: null,
         }}
       />
+     
     </Tabs>
   );
 }
