@@ -9,6 +9,7 @@ export const createConversation = mutation({
     avatarId: v.id("avatars"),
     userId: v.id("users"),
     sessionId: v.string(),
+    conversationLanguage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -17,6 +18,7 @@ export const createConversation = mutation({
       userId: args.userId,
       messages: [],
       sessionId: args.sessionId,
+      conversationLanguage: args.conversationLanguage || "en",
       isActive: true,
       createdAt: now,
       updatedAt: now,

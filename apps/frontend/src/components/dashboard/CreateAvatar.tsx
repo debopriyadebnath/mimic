@@ -22,7 +22,8 @@ import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import { UploadCloud, Copy, Clock, Check, Mail } from 'lucide-react';
+import { UploadCloud, Copy, Clock, Check, Mail, Globe } from 'lucide-react';
+import { SUPPORTED_LANGUAGES } from '@/lib/supportedLanguages';
 import {
     Select,
     SelectContent,
@@ -53,6 +54,7 @@ export function CreateAvatarPage() {
 
     const [expirationHours, setExpirationHours] = useState("2");
     const [isGenerating, setIsGenerating] = useState(false);
+    const [avatarLanguage, setAvatarLanguage] = useState('en');
     const { toast } = useToast();
     const router = useRouter();
 
@@ -126,6 +128,7 @@ catch (error) {
                     avatarName,
                     avatarImageUrl: selectedAvatar,
                     ownerResponses,
+                    preferredLanguage: avatarLanguage,
                 }),
             });
 
@@ -186,12 +189,12 @@ catch (error) {
     const handleRestart = () => {
         setStep(1);
         setAvatarName('');
-        // Don't reset ownerName, ownerEmail, ownerId - they're from the logged-in user
         setSelectedAvatar('');
         setUploadedAvatar(null);
         setAnswers({ q1: '', q2: '', q3: '' });
         setInvitationLink('');
         setIsGenerating(false);
+        setAvatarLanguage('en');
     }
 
     const renderStep = () => {
@@ -237,6 +240,24 @@ catch (error) {
                                     placeholder="e.g., Neo, Aura, K.A.I."
                                     className="bg-transparent mt-2"
                                 />
+                            </div>
+                            <div>
+                                <Label htmlFor="avatarLanguage" className="flex items-center gap-2">
+                                    <Globe className="h-4 w-4" /> Avatar Language *
+                                </Label>
+                                <Select value={avatarLanguage} onValueChange={setAvatarLanguage}>
+                                    <SelectTrigger className="bg-transparent mt-2">
+                                        <SelectValue placeholder="Select language" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Object.entries(SUPPORTED_LANGUAGES).map(([code, name]) => (
+                                            <SelectItem key={code} value={code}>
+                                                {name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground mt-1">The avatar will communicate in this language</p>
                             </div>
                         </CardContent>
                         <CardFooter className="justify-end">

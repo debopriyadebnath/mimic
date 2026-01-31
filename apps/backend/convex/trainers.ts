@@ -277,6 +277,7 @@ export const storeAvatarMasterPrompt = mutation({
     ownerEmail: v.optional(v.string()),
     masterPrompt: v.string(),
     trainerName: v.optional(v.string()),
+    preferredLanguage: v.optional(v.string()),  // Language preference
     ownerResponses: v.optional(v.array(v.object({
       question: v.string(),
       answer: v.string(),
@@ -299,6 +300,7 @@ export const storeAvatarMasterPrompt = mutation({
       await ctx.db.patch(existing._id, {
         masterPrompt: args.masterPrompt,
         trainerName: args.trainerName,
+        preferredLanguage: args.preferredLanguage,
         trainerResponses: args.trainerResponses,
         updatedAt: Date.now(),
       });
@@ -315,6 +317,7 @@ export const storeAvatarMasterPrompt = mutation({
       ownerEmail: args.ownerEmail,
       masterPrompt: args.masterPrompt,
       trainerName: args.trainerName,
+      preferredLanguage: args.preferredLanguage,
       ownerResponses: args.ownerResponses,
       trainerResponses: args.trainerResponses,
       createdAt: Date.now(),
