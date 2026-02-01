@@ -1,7 +1,8 @@
 import { Express, Request, Response } from "express";
 import { requireAuth } from "../lib/middleware";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { clerkMiddleware } from "@clerk/express";import { translateToEnglish, translateFromEnglish } from "../lib/translation";
+import { clerkMiddleware } from "@clerk/express";
+import { translateToEnglish, translateFromEnglish } from "../lib/translation";
 
 const googleGenAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
