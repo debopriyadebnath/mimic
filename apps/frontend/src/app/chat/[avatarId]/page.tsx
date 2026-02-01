@@ -8,8 +8,16 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, ArrowLeft, Loader2, Copy, Link2, Share2, Bot, User, BrainCircuit } from 'lucide-react';
+import { Send, ArrowLeft, Loader2, Copy, Link2, Share2, Bot, User, BrainCircuit, Globe } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { SUPPORTED_LANGUAGES } from '@/lib/supportedLanguages';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useUser } from '@clerk/nextjs';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
@@ -48,6 +56,7 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
   const [sending, setSending] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
   const [generatingLink, setGeneratingLink] = useState(false);
+  const [userLanguage, setUserLanguage] = useState('en');
   const [sessionId, setSessionId] = useState<string>(() => {
     if (typeof window === 'undefined') return '';
     const existing = localStorage.getItem(`chatSession:${avatarId}`);
@@ -160,6 +169,7 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
           message: userMessage.content,
           history: messages.map(m => ({ role: m.role, content: m.content })),
           sessionId: sessionId || undefined,
+          userLanguage: userLanguage,
         }),
       });
 
@@ -313,8 +323,25 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
             </div>
           </div>
 
-          {/* Trainer Link Section */}
-          <div className="flex items-center gap-2">
+          {/* Language Selector + Trainer Link Section */}
+          <div className="flex items-center gap-3">
+            {/* Language Selector */}
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <Select value={userLanguage} onValueChange={setUserLanguage}>
+                <SelectTrigger className="w-40 h-9 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(SUPPORTED_LANGUAGES).map(([code, name]) => (
+                    <SelectItem key={code} value={code}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Training Link - for text/voice training */}
             <Button 
               variant="outline" 
@@ -412,7 +439,7 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
                 className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {message.role === 'assistant' && (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/50 flex-shrink-0">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/50 shrink-0">
                     <Image 
                       src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} 
                       alt={avatar.avatarName} 
@@ -434,7 +461,7 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
                   </p>
                 </div>
                 {message.role === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                     <User className="h-4 w-4 text-primary" />
                   </div>
                 )}
@@ -449,7 +476,7 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
               animate={{ opacity: 1 }}
               className="flex gap-3 justify-start"
             >
-              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/50 flex-shrink-0">
+              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/50 shrink-0">
                 <Image 
                   src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} 
                   alt={avatar.avatarName} 

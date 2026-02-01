@@ -25,6 +25,7 @@ export default defineSchema({
     trainerId: v.optional(v.id("users")),     // Optional trainer (1 person max)
     trainerApprovedAt: v.optional(v.number()), // When trainer was approved
     isActive: v.boolean(),                     // Avatar is active
+    preferredLanguage: v.optional(v.string()), // Language code (e.g., 'en', 'es', 'fr', 'hi')
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -73,6 +74,7 @@ export default defineSchema({
     ),
     sessionId: v.string(),                     // Group related messages
     isActive: v.boolean(),                     // Can end/archive conversations
+    conversationLanguage: v.optional(v.string()),          // Language used in this conversation
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -190,6 +192,7 @@ export default defineSchema({
     ownerEmail: v.optional(v.string()),
     masterPrompt: v.string(),
     trainerName: v.optional(v.string()),
+    preferredLanguage: v.optional(v.string()),            // Language code for this avatar
     ownerResponses: v.optional(v.array(v.object({
       question: v.string(),
       answer: v.string(),

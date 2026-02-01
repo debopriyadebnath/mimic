@@ -9,6 +9,7 @@ export const createAvatar = mutation({
     ownerId: v.id("users"),
     avatarName: v.string(),
     masterPrompt: v.string(),
+    preferredLanguage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -16,6 +17,7 @@ export const createAvatar = mutation({
       ownerId: args.ownerId,
       avatarName: args.avatarName,
       masterPrompt: args.masterPrompt,
+      preferredLanguage: args.preferredLanguage || "en",
       isActive: true,
       createdAt: now,
       updatedAt: now,

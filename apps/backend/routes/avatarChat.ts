@@ -2,6 +2,8 @@ import { Express, Request, Response } from "express";
 import { requireAuth } from "../lib/middleware";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { clerkMiddleware } from "@clerk/express";
+import { translateToEnglish, translateFromEnglish } from "../lib/translation";
+
 const googleGenAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 interface RelevantMemory {
@@ -33,7 +35,7 @@ export const avatarChatRoute = (app: Express) => {
     async (req:any, res: Response) => {
       try {
         const { avatarId } = req.params;
-        let { userId, message, sessionId, embedding } = req.body;
+        let { userId, message, sessionId, embedding, userLanguage } = req.body;
 
         // Prefer authenticated user id when available
         const authUser = req.auth;
@@ -51,6 +53,9 @@ export const avatarChatRoute = (app: Express) => {
             error: "embedding array is required",
           });
         }
+
+        // Default to English if language not specified
+        userLanguage = userLanguage || "en";
 
         // ===== STEP 1: Get avatar config & master prompt =====
         const avatarRes = await fetch(
@@ -71,6 +76,13 @@ export const avatarChatRoute = (app: Express) => {
         }
 
         const avatar = avatarData.data;
+        const avatarLanguage = avatar.preferredLanguage || "en";
+
+        // ===== STEP 1.5: Translate user message to English =====
+        let englishMessage = message;
+        if (userLanguage !== "en" && userLanguage !== "en-US" && userLanguage !== "en-GB") {
+          englishMessage = await translateToEnglish(message, userLanguage);
+        }
 
         // ===== STEP 2: Retrieve relevant memories =====
         const memoriesRes = await fetch(
@@ -140,37 +152,43 @@ export const avatarChatRoute = (app: Express) => {
           });
         }
 
-        // ===== STEP 5: Call Gemini with augmented prompt =====
+        // ===== STEP 5: Call Gemini with augmented prompt (using English message) =====
         const model = googleGenAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const result: any = await model.generateContent({
           contents: [
             {
               role: "user",
-              parts: [{ text: message }],
+              parts: [{ text: englishMessage }],
             },
           ],
           systemInstruction: augmentedPrompt,
         });
 
         // Be defensive: the generative API can return different shapes.
-        let assistantResponse = "";
+        let englishResponse = "";
         try {
           if (result?.response && typeof result.response.text === "function") {
-            assistantResponse = result.response.text();
+            englishResponse = result.response.text();
           } else if (result?.response && typeof result.response.text === "string") {
-            assistantResponse = result.response.text;
+            englishResponse = result.response.text;
           } else if (Array.isArray(result?.output) && result.output[0]?.content) {
-            assistantResponse = result.output[0].content;
+            englishResponse = result.output[0].content;
           } else if (typeof result === "string") {
-            assistantResponse = result;
+            englishResponse = result;
           } else if (result?.text) {
-            assistantResponse = result.text;
+            englishResponse = result.text;
           } else {
-            assistantResponse = JSON.stringify(result);
+            englishResponse = JSON.stringify(result);
           }
         } catch (e) {
-          assistantResponse = "";
+          englishResponse = "";
+        }
+
+        // ===== STEP 5.5: Translate response from English to user/avatar language =====
+        let finalResponse = englishResponse;
+        if (avatarLanguage !== "en" && avatarLanguage !== "en-US" && avatarLanguage !== "en-GB") {
+          finalResponse = await translateFromEnglish(englishResponse, avatarLanguage);
         }
 
         // ===== STEP 6: Ensure conversation exists and store response =====
@@ -183,7 +201,7 @@ export const avatarChatRoute = (app: Express) => {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 path: "conversations:createConversation",
-                args: { avatarId, userId, sessionId: genSessionId },
+                args: { avatarId, userId, sessionId: genSessionId, conversationLanguage: avatarLanguage },
               }),
             });
             const createConvData: any = await createConvRes.json();
@@ -199,7 +217,7 @@ export const avatarChatRoute = (app: Express) => {
 
         let responseId = null;
         if (conversationId) {
-          // Store user message
+          // Store user message (in original user language)
           try {
             await fetch(
               `${process.env.CONVEX_URL}/api/mutation`,
@@ -220,7 +238,7 @@ export const avatarChatRoute = (app: Express) => {
             console.error("Failed to store user message", e);
           }
 
-          // Store assistant reply
+          // Store assistant reply (in avatar language)
           try {
             await fetch(
               `${process.env.CONVEX_URL}/api/mutation`,
@@ -232,7 +250,7 @@ export const avatarChatRoute = (app: Express) => {
                   args: {
                     conversationId,
                     role: "assistant",
-                    content: assistantResponse,
+                    content: finalResponse,
                   },
                 }),
               }
@@ -241,7 +259,7 @@ export const avatarChatRoute = (app: Express) => {
             console.error("Failed to store assistant message", e);
           }
 
-          // Store in responses table
+          // Store in responses table (store English version for analytics)
           const storeRes = await fetch(
             `${process.env.CONVEX_URL}/api/mutation`,
             {
@@ -252,8 +270,8 @@ export const avatarChatRoute = (app: Express) => {
                 args: {
                   avatarId,
                   conversationId,
-                  userMessage: message,
-                  assistantResponse,
+                  userMessage: englishMessage,
+                  assistantResponse: englishResponse,
                   memoryIdsUsed: relevantMemories.map((m: RelevantMemory) => m._id),
                   relevanceScores: relevantMemories.map(
                     (m: RelevantMemory) => ({
@@ -273,7 +291,7 @@ export const avatarChatRoute = (app: Express) => {
         // ===== STEP 7: Return response =====
         return res.status(200).json({
           success: true,
-          response: assistantResponse,
+          response: finalResponse,
           metadata: {
             avatarName: avatar.avatarName,
             memoryCount: relevantMemories.length,
@@ -285,6 +303,8 @@ export const avatarChatRoute = (app: Express) => {
                 relevanceScore: m.score.toFixed(2),
               })),
             responseId,
+            avatarLanguage,
+            userLanguage,
           },
         });
       } catch (error) {
