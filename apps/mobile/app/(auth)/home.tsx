@@ -483,8 +483,8 @@ export default function HomeScreen() {
                 <Text className="text-2xl font-bold text-black">
                   {greeting} {emoji}
                 </Text>
-                <Text className="text-sm text-[#666] mt-0.5">
-                  {user?.firstName || user?.username || 'there'}, {subtitle.toLowerCase()}
+                <Text className="text-lg font-mono text-black mt-0.5 font-bold">
+                       {user?.firstName || user?.username?.toUpperCase() || 'there'}, 
                 </Text>
               </View>
             </View>

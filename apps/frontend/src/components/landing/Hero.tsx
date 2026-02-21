@@ -1,137 +1,79 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useState } from "react"
-import { GlowingButton } from "../ui/glowing-button"
-
-const roles = ["building connection", "exploring relations", "breaking communication barrier", "forging compassion", "crafting understanding"]
+import { Button } from "../ui/button"
 
 export function Hero() {
-  const [currentRole, setCurrentRole] = useState(0)
-  const [displayText, setDisplayText] = useState("")
-  const [isDeleting, setIsDeleting] = useState(false)
-
-  useEffect(() => {
-    const targetText = roles[currentRole]
-    const timeout = setTimeout(
-      () => {
-        if (!isDeleting) {
-          if (displayText.length < targetText.length) {
-            setDisplayText(targetText.slice(0, displayText.length + 1))
-          } else {
-            setTimeout(() => setIsDeleting(true), 2000)
-          }
-        } else {
-          if (displayText.length > 0) {
-            setDisplayText(displayText.slice(0, -1))
-          } else {
-            setIsDeleting(false)
-            setCurrentRole((prev) => (prev + 1) % roles.length)
-          }
-        }
-      },
-      isDeleting ? 30 : 60,
-    )
-    return () => clearTimeout(timeout)
-  }, [displayText, isDeleting, currentRole])
-
-   return (
-    <section className="relative px-4 sm:px-6 pt-20 sm:pt-24 pb-16 sm:pb-24">
-      <div className="mx-auto max-w-7xl">
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-20 lg:items-center lg:min-h-[70vh]">
-          {/* Left column - Text */}
-          <div className="space-y-8 sm:space-y-10">
-            <div className="space-y-3 animate-fade-in-up">
-              <p className="font-mono text-xs uppercase tracking-[0.25em] sm:tracking-[0.35em] text-primary">
-                MIMIC — Your Digital Self
-              </p>
-              <h1 className="text-4xl font-bold tracking-tight sm:text-4xl lg:text-5xl xl:text-6xl text-balance">
-                Building for you
-                <br />
-                <span className="text-foreground">
-                  {displayText || <>&nbsp;</>}
-                  <span className="animate-blink">|</span>
-                </span>
-              </h1>
-            </div>
-
-            <p className="max-w-lg text-base sm:text-lg leading-relaxed text-muted-foreground animate-fade-in-up stagger-2">
-             
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up stagger-3">
-              <GlowingButton text="Create Your Avatar" href="/signup" />
-              <GlowingButton text="Sign In" href="/signin" />
-            </div>
+  return (
+    <section className="relative px-4 sm:px-6 pt-32 sm:pt-48 pb-24 sm:pb-32 flex flex-col items-center justify-center text-center min-h-[80vh]">
+      <div className="mx-auto max-w-3xl space-y-8">
+        <div className="space-y-6 animate-fade-in-up">
+          <div className="inline-flex items-center rounded-full border border-border bg-secondary/50 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm">
+            <span className="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse"></span>
+            MIMIC v1.0 is now available
           </div>
+          
+          <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl text-foreground">
+            Your digital self, <br className="hidden sm:block" />
+            <span className="text-muted-foreground">perfectly preserved.</span>
+          </h1>
+          
+          <p className="mx-auto max-w-2xl text-lg sm:text-xl leading-relaxed text-muted-foreground">
+            Create an AI companion that learns your communication style, preserves your memories, and interacts on your behalf with perfect fidelity.
+          </p>
+        </div>
 
-          {/* Right column - ASCII Art / Visual */}
-          <div className="relative animate-scale-in stagger-4">
-            <div className="relative rounded-xl border border-border bg-card/60 p-5 sm:p-8">
-              <div className="absolute top-4 left-4 flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-destructive/60 transition-colors hover:bg-destructive" />
-                <div className="h-3 w-3 rounded-full bg-yellow-500/60 transition-colors hover:bg-yellow-500" />
-                <div className="h-3 w-3 rounded-full bg-primary/60 transition-colors hover:bg-primary" />
-              </div>
-              <div className="absolute top-3.5 left-1/2 -translate-x-1/2 bg-background/50 rounded-md px-3 py-1 font-mono text-xs text-muted-foreground">
-                terminal://Mimic
-              </div>
-
-              <div className="mt-6 overflow-hidden font-mono text-primary/80 flex items-start gap-4">
-                <div className="flex-1 min-w-0">
-                  <pre className="sm:hidden block text-xs leading-relaxed">{`┌───────────────────────┐
-│  ██████╗███████╗      │
-│ ██╔════╝██╔════╝      │
-│ ██║     █████╗        │
-│ ██║     ██╔══╝        │
-│ ╚██████╗██║           │
-│  ╚═════╝╚═╝           │
-│                       │
-│  > memories: 4        │
-│  > status: learning   │
-└───────────────────────┘`}</pre>
-
-                  <pre className="hidden sm:block text-xs md:text-sm leading-relaxed" style={{color: 'var(--dynamic-text-color)'}}>{`┌──────────────────────────────────────────────────┐
-███╗   ███  ╗██  ╗███╗   ███  ╗██  ╗ ██████╗
-████╗ ████  ║██  ║████╗ ████  ║██  ║██╔════╝
-██╔████╔██  ║██  ║██╔████╔██  ║██  ║██║     
-██║╚██╔╝██  ║██  ║██║╚██╔╝██  ║██  ║██║            |
-██║ ╚═╝ ██  ║██  ║██║ ╚═╝ ██  ║██  ║╚██████╗       | 
-╚═╝     ╚═╝ ╚═╝  ╚═╝     ╚═╝╚ ═╝ ╚═════════╝       |
-│                                                  │
-│                                                  │
-│     > memories_created: 4                        │
-│     > status: continuously_learning              │
-│     > last_update: today                         │
-│                                                  │
-└──────────────────────────────────────────────────┘`}</pre>
-                </div>
-
-                <img src="/mimic.png" alt="Mimic" className="hidden sm:block w-50 h-auto  bg-card/40 p-1" />
-              </div>
-            </div>
-
-            <div className="absolute -right-2 sm:-right-6 -top-2 sm:-top-6 rounded-lg border border-primary/40 bg-primary/15 px-3 sm:px-4 py-1.5 font-mono text-[11px] sm:text-xs text-primary animate-float">
-              <span className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                v1.0.0
-              </span>
-            </div>
-            <div
-              className="absolute -bottom-3 sm:-bottom-6 -left-2 sm:-left-6 rounded-lg border border-border bg-card px-3 sm:px-4 py-1.5 font-mono text-[11px] sm:text-xs text-muted-foreground animate-float"
-              style={{ animationDelay: "1s" }}
-            >
-              2025 Edition
-            </div>
-
-            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] rounded-full bg-primary/5 blur-3xl" />
-          </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 animate-fade-in-up stagger-2">
+          <Link href="/signup" passHref>
+            <Button variant="default" className="w-full sm:w-auto">
+              Create Your Avatar
+            </Button>
+          </Link>
+          <Link href="/signin" passHref>
+            <Button variant="outline" className="w-full sm:w-auto">
+              Sign In
+            </Button>
+          </Link>
         </div>
       </div>
 
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden lg:flex flex-col items-center gap-2 animate-fade-in stagger-6">
-        <span className="font-mono text-xs text-muted-foreground">scroll</span>
-        <div className="w-px h-12 bg-gradient-to-b from-primary/50 to-transparent animate-pulse" />
+      {/* Minimalist visual element */}
+      <div className="mt-24 w-full max-w-5xl mx-auto relative animate-fade-in-up stagger-3">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent blur-3xl -z-10 rounded-full opacity-50" />
+        <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-1 shadow-2xl">
+          <div className="rounded-lg bg-background border border-border/50 overflow-hidden">
+            <div className="flex items-center px-4 py-3 border-b border-border/50 bg-secondary/30">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-border" />
+                <div className="w-3 h-3 rounded-full bg-border" />
+                <div className="w-3 h-3 rounded-full bg-border" />
+              </div>
+              <div className="mx-auto text-xs font-mono text-muted-foreground">mimic-terminal</div>
+            </div>
+            <div className="p-6 font-mono text-sm text-muted-foreground space-y-2">
+              <div className="flex gap-4">
+                <span className="text-primary">~</span>
+                <span>mimic init --user "Alex"</span>
+              </div>
+              <div className="flex gap-4">
+                <span className="text-transparent">~</span>
+                <span>Initializing neural pathways... [OK]</span>
+              </div>
+              <div className="flex gap-4">
+                <span className="text-transparent">~</span>
+                <span>Syncing communication patterns... [OK]</span>
+              </div>
+              <div className="flex gap-4">
+                <span className="text-transparent">~</span>
+                <span>Avatar ready. Awaiting input.</span>
+              </div>
+              <div className="flex gap-4 pt-2">
+                <span className="text-primary">~</span>
+                <span className="animate-pulse">_</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   )
