@@ -14,12 +14,12 @@ export function Hero() {
           </div>
           
           <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl text-foreground">
-            Your digital self, <br className="hidden sm:block" />
-            <span className="text-muted-foreground">perfectly preserved.</span>
+            Clone anyone, <br className="hidden sm:block" />
+            <span className="text-muted-foreground">share their memories.</span>
           </h1>
           
           <p className="mx-auto max-w-2xl text-lg sm:text-xl leading-relaxed text-muted-foreground">
-            Create an AI companion that learns your communication style, preserves your memories, and interacts on your behalf with perfect fidelity.
+            Create a digital clone of your friends, relatives, or anyone. Preserve their memories, communication style, and interact with them anytime.
           </p>
         </div>
 

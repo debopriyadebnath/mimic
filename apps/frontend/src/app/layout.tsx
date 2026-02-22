@@ -7,7 +7,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 
 export const metadata: Metadata = {
   title: 'MIMIC',
-  description: 'Your private, evolving AI companion.',
+  description: 'Create a digital clone of your friends, relatives, or anyone to share their memories.',
 };
 
 export default function RootLayout({

@@ -39,7 +39,7 @@ export function MacbookScrollDemo() {
       <MacbookScroll
         title={
           <span className="text-3xl md:text-5xl font-semibold tracking-tight text-foreground">
-            Experience your avatar <br /> on any device.
+            Experience your clone <br /> on any device.
           </span>
         }
         badge={

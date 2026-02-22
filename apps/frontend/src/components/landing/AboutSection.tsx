@@ -39,10 +39,10 @@ export function AboutSection() {
                     Our Solution
                 </div>
                 <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl text-foreground">
-                    One-to-One Connection
+                    Clone Anyone You Know
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-[480px]">
-                    We believe your digital identity should be shaped only by those you trust. No crowdsourcing, no data leaks.
+                    We believe you should be able to preserve the memories and personality of anyone you care about. Create a digital clone of your friends, relatives, or partner.
                 </p>
             </div>
             
@@ -53,7 +53,7 @@ export function AboutSection() {
                     </div>
                     <div>
                         <h4 className="text-base font-medium text-foreground mb-1">Hyper-Personalization</h4>
-                        <p className="text-sm leading-relaxed">Strict one-to-one training ensures only you and one approved person shape your avatar.</p>
+                        <p className="text-sm leading-relaxed">Train the clone with their specific memories, chat history, and communication style.</p>
                     </div>
                 </li>
                  <li className="flex items-start gap-4">
@@ -62,7 +62,7 @@ export function AboutSection() {
                     </div>
                     <div>
                         <h4 className="text-base font-medium text-foreground mb-1">Adaptive Memory</h4>
-                        <p className="text-sm leading-relaxed">Continuously evolves through memory-based learning, not model retraining.</p>
+                        <p className="text-sm leading-relaxed">The clone continuously evolves through memory-based learning, capturing their essence.</p>
                     </div>
                 </li>
                  <li className="flex items-start gap-4">
@@ -71,7 +71,7 @@ export function AboutSection() {
                     </div>
                     <div>
                        <h4 className="text-base font-medium text-foreground mb-1">Immutable Trust</h4>
-                        <p className="text-sm leading-relaxed">Your data remains private, building a digital personality that is truly yours.</p>
+                        <p className="text-sm leading-relaxed">Your data remains private, building a digital personality that is truly authentic to them.</p>
                     </div>
                 </li>
             </ul>

@@ -42,7 +42,7 @@ export function HeroSection() {
           <div className="space-y-8 sm:space-y-10">
             <div className="space-y-3 animate-fade-in-up">
               <p className="font-mono text-xs uppercase tracking-[0.25em] sm:tracking-[0.35em] text-primary" style={{ '--dynamic-text-color': 'hsl(var(--primary))' } as React.CSSProperties}>
-                Mimic — Your Digital Self
+                Mimic — Clone Anyone
               </p>
               <h1 className="text-4xl font-bold tracking-tight sm:text-4xl lg:text-5xl xl:text-6xl text-balance">
                 <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
@@ -59,8 +59,8 @@ export function HeroSection() {
             </div>
 
             <p className="max-w-lg text-base sm:text-lg leading-relaxed text-muted-foreground animate-fade-in-up stagger-2">
-              Welcome to your digital workshop — a space for evolving your AI companion. Here, ideas are forged,
-              tested, and refined. This isn't just a portfolio. It's a laboratory for your digital identity.
+              Welcome to your digital workshop — a space for cloning your friends, relatives, or anyone. Here, memories are preserved,
+              and digital identities are forged.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up stagger-3">
@@ -69,7 +69,7 @@ export function HeroSection() {
                 className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-lg border border-primary bg-primary/10 px-7 py-4 sm:py-3.5 font-mono text-sm text-primary transition-all duration-500 hover:bg-primary hover:text-primary-foreground active:scale-[0.98]"
                 style={{ '--dynamic-text-color': 'hsl(var(--primary))' } as React.CSSProperties}
               >
-                <span className="relative z-10">Create Your Avatar</span>
+                <span className="relative z-10">Create a Clone</span>
                 <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">→</span>
                 <span className="absolute inset-0 -translate-x-full bg-primary transition-transform duration-500 group-hover:translate-x-0" />
               </Link>
