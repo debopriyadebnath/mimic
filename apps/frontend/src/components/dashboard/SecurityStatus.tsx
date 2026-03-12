@@ -2,7 +2,6 @@
 import { Badge } from "@/components/ui/badge";
 import DashboardCard from "@/components/dashboard/card";
 import type { SecurityStatus as SecurityStatusType } from "@/types/dashboard";
-import Image from "next/image";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { Bullet } from "@/components/ui/bullet";
