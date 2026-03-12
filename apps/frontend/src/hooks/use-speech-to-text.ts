@@ -5,9 +5,10 @@ import { useState, useRef, useCallback } from 'react';
 interface UseSpeechToTextOptions {
   onTranscript?: (text: string, isFinal: boolean) => void;
   onError?: (error: string) => void;
+  languageHint?: string; // Language code hint for better transcription (e.g., 'hi', 'bn', 'ta')
 }
 
-export function useSpeechToText({ onTranscript, onError }: UseSpeechToTextOptions = {}) {
+export function useSpeechToText({ onTranscript, onError, languageHint }: UseSpeechToTextOptions = {}) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -17,6 +18,10 @@ export function useSpeechToText({ onTranscript, onError }: UseSpeechToTextOption
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const transcriptionIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const languageHintRef = useRef<string | undefined>(languageHint);
+  
+  // Update language hint ref when it changes
+  languageHintRef.current = languageHint;
 
   const stopRecording = useCallback(async () => {
     // Clear interval
@@ -44,6 +49,9 @@ export function useSpeechToText({ onTranscript, onError }: UseSpeechToTextOption
       try {
         const formData = new FormData();
         formData.append('audio', audioBlob, 'recording.webm');
+        if (languageHintRef.current) {
+          formData.append('language', languageHintRef.current);
+        }
         
         const response = await fetch('/api/speech-to-text', {
           method: 'POST',
@@ -83,6 +91,9 @@ export function useSpeechToText({ onTranscript, onError }: UseSpeechToTextOption
       const formData = new FormData();
       formData.append('audio', audioBlob, 'chunk.webm');
       formData.append('partial', 'true');
+      if (languageHintRef.current) {
+        formData.append('language', languageHintRef.current);
+      }
       
       const response = await fetch('/api/speech-to-text', {
         method: 'POST',

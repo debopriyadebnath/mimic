@@ -1,16 +1,78 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-export async function POST(request: NextRequest) {
-  const apiKey = process.env.GEMINI_API_KEY;
+// Sarvam AI language code mapping
+const SARVAM_LANGUAGE_CODES: Record<string, string> = {
+  hi: 'hi-IN', // Hindi
+  bn: 'bn-IN', // Bengali
+  ta: 'ta-IN', // Tamil
+  te: 'te-IN', // Telugu
+  kn: 'kn-IN', // Kannada
+  ml: 'ml-IN', // Malayalam
+  mr: 'mr-IN', // Marathi
+  gu: 'gu-IN', // Gujarati
+  pa: 'pa-IN', // Punjabi
+  or: 'od-IN', // Odia (Sarvam uses od-IN)
+  ur: 'ur-IN', // Urdu (if supported, fallback to Gemini if not)
+  as: 'as-IN', // Assamese (if supported)
+  en: 'en-IN', // English
+};
 
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: 'Gemini API key not configured' },
-      { status: 500 }
-    );
+// Languages supported by Sarvam Mayura model
+const SARVAM_SUPPORTED = ['hi', 'bn', 'ta', 'te', 'kn', 'ml', 'mr', 'gu', 'pa', 'or'];
+
+async function translateWithSarvam(text: string, targetLanguage: string): Promise<string | null> {
+  const sarvamApiKey = process.env.SARVAM_API_KEY;
+  if (!sarvamApiKey) return null;
+
+  const targetCode = SARVAM_LANGUAGE_CODES[targetLanguage];
+  if (!targetCode || !SARVAM_SUPPORTED.includes(targetLanguage)) return null;
+
+  try {
+    const response = await fetch('https://api.sarvam.ai/translate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-subscription-key': sarvamApiKey,
+      },
+      body: JSON.stringify({
+        input: text,
+        source_language_code: 'en-IN',
+        target_language_code: targetCode,
+        speaker_gender: 'Male',
+        mode: 'formal',
+        model: 'mayura:v1',
+        enable_preprocessing: true,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Sarvam API error:', response.status, await response.text());
+      return null;
+    }
+
+    const data = await response.json();
+    return data.translated_text || null;
+  } catch (error) {
+    console.error('Sarvam translation error:', error);
+    return null;
   }
+}
 
+async function translateWithGemini(text: string, targetLanguage: string, targetLanguageName: string): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error('Gemini API key not configured');
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+  const prompt = `Translate the following text to ${targetLanguageName} (language code: ${targetLanguage}). Return ONLY the translated text, nothing else. Do not add any explanations, notes, or prefixes. If the text is already in the target language, return it as-is.\n\nText to translate:\n${text}`;
+
+  const result = await model.generateContent(prompt);
+  return result.response.text().trim();
+}
+
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { text, targetLanguage, targetLanguageName } = body;
@@ -22,16 +84,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    // Try Sarvam AI first for supported Indian languages (better quality for Indic)
+    const sarvamResult = await translateWithSarvam(text, targetLanguage);
+    if (sarvamResult) {
+      return NextResponse.json({ 
+        translation: sarvamResult,
+        provider: 'sarvam',
+      });
+    }
 
-    const prompt = `Translate the following text to ${targetLanguageName} (language code: ${targetLanguage}). Return ONLY the translated text, nothing else. Do not add any explanations, notes, or prefixes. If the text is already in the target language, return it as-is.\n\nText to translate:\n${text}`;
+    // Fallback to Gemini for unsupported languages or if Sarvam fails
+    const geminiResult = await translateWithGemini(text, targetLanguage, targetLanguageName);
+    return NextResponse.json({ 
+      translation: geminiResult,
+      provider: 'gemini',
+    });
 
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const translation = response.text().trim();
-
-    return NextResponse.json({ translation });
   } catch (error) {
     console.error('Translation error:', error);
     return NextResponse.json(
