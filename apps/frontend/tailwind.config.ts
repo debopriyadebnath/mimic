@@ -93,11 +93,26 @@ export default {
             transform: "translateY(-50%)",
           },
         },
+        "float-3d": {
+          "0%, 100%": { transform: "translateY(0px) rotateX(0deg)" },
+          "50%": { transform: "translateY(-12px) rotateX(2deg)" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { boxShadow: "0 0 15px rgba(0, 102, 255, 0.2)" },
+          "50%": { boxShadow: "0 0 30px rgba(0, 102, 255, 0.4), 0 0 60px rgba(0, 102, 255, 0.1)" },
+        },
+        "shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         "hero-parallax": "hero-parallax 20s linear infinite",
+        "float-3d": "float-3d 5s ease-in-out infinite",
+        "glow-pulse": "glow-pulse 3s ease-in-out infinite",
+        "shimmer": "shimmer 3s ease-in-out infinite",
       },
     },
   },

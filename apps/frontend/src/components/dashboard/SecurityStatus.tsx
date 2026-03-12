@@ -5,8 +5,9 @@ import type { SecurityStatus as SecurityStatusType } from "@/types/dashboard";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { Bullet } from "@/components/ui/bullet";
+import { motion } from "framer-motion";
 
-const securityStatusItemVariants = cva("border rounded-md ring-4", {
+const securityStatusItemVariants = cva("border rounded-md ring-4 card-3d holographic-border", {
   variants: {
     variant: {
       success: "border-green-500/50 bg-green-500/5 text-green-400 ring-green-500/30",
@@ -26,6 +27,7 @@ interface SecurityStatusItemProps
   value: string;
   status: string;
   className?: string;
+  index: number;
 }
 
 function SecurityStatusItem({
@@ -34,18 +36,24 @@ function SecurityStatusItem({
   status,
   variant,
   className,
+  index,
 }: SecurityStatusItemProps) {
   return (
-    <div className={cn(securityStatusItemVariants({ variant }), className)}>
+    <motion.div
+      initial={{ opacity: 0, y: 20, rotateX: -10 }}
+      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+      transition={{ delay: index * 0.1, duration: 0.5, type: "spring" }}
+      className={cn(securityStatusItemVariants({ variant }), className)}
+    >
       <div className="flex items-center gap-2 py-1 px-2 border-b border-current">
         <Bullet size="sm" variant={variant} />
         <span className="text-sm font-medium">{title}</span>
       </div>
       <div className="py-1 px-2.5">
-        <div className="text-2xl font-bold mb-1">{value}</div>
+        <div className="text-2xl font-bold mb-1 neon-text">{value}</div>
         <div className="text-xs opacity-50">{status}</div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -58,14 +66,19 @@ export default function SecurityStatus({ statuses }: SecurityStatusProps) {
     <DashboardCard
       title="SECURITY STATUS"
       intent="success"
-      addon={<Badge variant="outline">ONLINE</Badge>}
-      className="w-full h-full"
+      addon={
+        <Badge variant="outline" className="animate-pulse-ring">
+          ONLINE
+        </Badge>
+      }
+      className="w-full h-full scanline-effect"
     >
-      <div className="flex flex-row gap-4">
+      <div className="flex flex-row gap-4 perspective-container">
         <div className="grid grid-cols-1 gap-4 py-2 px-1">
           {statuses.map((item, index) => (
             <SecurityStatusItem
               key={index}
+              index={index}
               title={item.title}
               value={item.value}
               status={item.status}
@@ -73,7 +86,6 @@ export default function SecurityStatus({ statuses }: SecurityStatusProps) {
             />
           ))}
         </div>
-        
       </div>
     </DashboardCard>
   );
