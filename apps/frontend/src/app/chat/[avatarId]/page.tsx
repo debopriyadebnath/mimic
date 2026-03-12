@@ -55,23 +55,7 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
     return existing || '';
   });
 
-  // Voice input
-  const {
-    isRecording,
-    isConnecting: isVoiceConnecting,
-    fullTranscript,
-    startRecording,
-    stopRecording: stopVoiceRecording,
-    clearTranscript,
-  } = useSpeechToText({
-    onTranscript: (text, isFinal) => {
-      if (isFinal && text) {
-        setInputMessage(prev => prev ? `${prev} ${text}` : text);
-      }
-    },
-  });
-
-  // Translation state
+  // Translation state (defined before voice input to use in language hint)
   const INDIAN_LANGUAGES = [
     { code: 'hi', name: 'Hindi', native: 'हिन्दी' },
     { code: 'bn', name: 'Bengali', native: 'বাংলা' },
@@ -92,6 +76,23 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [translatingMsgId, setTranslatingMsgId] = useState<string | null>(null);
   const [translations, setTranslations] = useState<Record<string, string>>({});
+
+  // Voice input (with language hint for Sarvam AI transcription)
+  const {
+    isRecording,
+    isConnecting: isVoiceConnecting,
+    fullTranscript,
+    startRecording,
+    stopRecording: stopVoiceRecording,
+    clearTranscript,
+  } = useSpeechToText({
+    languageHint: selectedLanguage, // Pass selected language for better Sarvam ASR
+    onTranscript: (text, isFinal) => {
+      if (isFinal && text) {
+        setInputMessage(prev => prev ? `${prev} ${text}` : text);
+      }
+    },
+  });
 
   // Handle voice recording toggle
   const handleVoiceToggle = async () => {
