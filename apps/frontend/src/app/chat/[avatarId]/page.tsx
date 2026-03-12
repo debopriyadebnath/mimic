@@ -8,9 +8,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, ArrowLeft, Loader2, Copy, Link2, Share2, Bot, User, BrainCircuit } from 'lucide-react';
+import { Send, ArrowLeft, Loader2, Copy, Link2, Share2, Bot, User, BrainCircuit, Mic, MicOff, Languages, ChevronDown } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser } from '@clerk/nextjs';
+import { useSpeechToText } from '@/hooks/use-speech-to-text';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
@@ -54,7 +55,94 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
     return existing || '';
   });
 
- 
+  // Voice input
+  const {
+    isRecording,
+    isConnecting: isVoiceConnecting,
+    fullTranscript,
+    startRecording,
+    stopRecording: stopVoiceRecording,
+    clearTranscript,
+  } = useSpeechToText({
+    onTranscript: (text, isFinal) => {
+      if (isFinal && text) {
+        setInputMessage(prev => prev ? `${prev} ${text}` : text);
+      }
+    },
+  });
+
+  // Translation state
+  const INDIAN_LANGUAGES = [
+    { code: 'hi', name: 'Hindi', native: 'हिन्दी' },
+    { code: 'bn', name: 'Bengali', native: 'বাংলা' },
+    { code: 'ta', name: 'Tamil', native: 'தமிழ்' },
+    { code: 'te', name: 'Telugu', native: 'తెలుగు' },
+    { code: 'kn', name: 'Kannada', native: 'ಕನ್ನಡ' },
+    { code: 'ml', name: 'Malayalam', native: 'മലയാളം' },
+    { code: 'mr', name: 'Marathi', native: 'मराठी' },
+    { code: 'gu', name: 'Gujarati', native: 'ગુજરાતી' },
+    { code: 'pa', name: 'Punjabi', native: 'ਪੰਜਾਬੀ' },
+    { code: 'or', name: 'Odia', native: 'ଓଡ଼ିଆ' },
+    { code: 'ur', name: 'Urdu', native: 'اردو' },
+    { code: 'as', name: 'Assamese', native: 'অসমীয়া' },
+    { code: 'en', name: 'English', native: 'English' },
+  ];
+
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [translatingMsgId, setTranslatingMsgId] = useState<string | null>(null);
+  const [translations, setTranslations] = useState<Record<string, string>>({});
+
+  // Handle voice recording toggle
+  const handleVoiceToggle = async () => {
+    if (isRecording) {
+      await stopVoiceRecording();
+      // After stopping, transcript should already be in inputMessage via onTranscript
+    } else {
+      clearTranscript();
+      await startRecording();
+    }
+  };
+
+  // Translate a message
+  const translateMessage = async (messageId: string, text: string) => {
+    if (selectedLanguage === 'en') {
+      // Remove any existing translation for this message
+      setTranslations(prev => {
+        const next = { ...prev };
+        delete next[messageId];
+        return next;
+      });
+      return;
+    }
+
+    setTranslatingMsgId(messageId);
+    try {
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          targetLanguage: selectedLanguage,
+          targetLanguageName: INDIAN_LANGUAGES.find(l => l.code === selectedLanguage)?.name || selectedLanguage,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.translation) {
+          setTranslations(prev => ({ ...prev, [messageId]: data.translation }));
+        }
+      } else {
+        toast({ title: 'Translation failed', description: 'Could not translate the message.', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Translation error', description: 'Network error during translation.', variant: 'destructive' });
+    } finally {
+      setTranslatingMsgId(null);
+    }
+  };
+
   useEffect(() => {
     const loadConversation = async () => {
       if (!sessionId) return;
@@ -429,9 +517,34 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
                   }`}
                 >
                   <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  <p className="text-xs opacity-50 mt-1">
-                    {new Date(message.timestamp).toLocaleTimeString()}
-                  </p>
+                  {translations[message.id] && (
+                    <div className="mt-2 pt-2 border-t border-current/20 animate-slide-up">
+                      <p className="text-xs text-muted-foreground mb-0.5">
+                        {INDIAN_LANGUAGES.find(l => l.code === selectedLanguage)?.native || 'Translation'}:
+                      </p>
+                      <p className="text-sm whitespace-pre-wrap opacity-90">{translations[message.id]}</p>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-xs opacity-50">
+                      {new Date(message.timestamp).toLocaleTimeString()}
+                    </p>
+                    {selectedLanguage !== 'en' && (
+                      <button
+                        type="button"
+                        onClick={() => translateMessage(message.id, message.content)}
+                        disabled={translatingMsgId === message.id}
+                        className="text-xs opacity-50 hover:opacity-100 transition-opacity flex items-center gap-1 ml-2"
+                      >
+                        {translatingMsgId === message.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Languages className="h-3 w-3" />
+                        )}
+                        Translate
+                      </button>
+                    )}
+                  </div>
                 </div>
                 {message.role === 'user' && (
                   <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -473,7 +586,68 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
 
       {/* Input Area */}
       <div className="border-t border-border/50 bg-background/80 backdrop-blur-sm p-4">
-        <div className="container mx-auto max-w-3xl">
+        <div className="container mx-auto max-w-3xl space-y-2">
+          {/* Voice Recording Indicator */}
+          {isRecording && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="flex items-center gap-2 text-red-400 text-sm px-2"
+            >
+              <span className="w-2 h-2 bg-red-500 rounded-full animate-voice-pulse" />
+              Recording... {fullTranscript && <span className="text-muted-foreground truncate max-w-xs">"{fullTranscript}"</span>}
+            </motion.div>
+          )}
+
+          {/* Language Selector Row */}
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-colors"
+              >
+                <Languages className="h-3.5 w-3.5" />
+                <span>{INDIAN_LANGUAGES.find(l => l.code === selectedLanguage)?.native || 'English'}</span>
+                <ChevronDown className="h-3 w-3 opacity-50" />
+              </button>
+              {showLanguageMenu && (
+                <div className="absolute bottom-full left-0 mb-1 w-48 max-h-56 overflow-y-auto bg-background/95 backdrop-blur-sm border border-border/50 rounded-lg shadow-lg z-50 animate-slide-up">
+                  {INDIAN_LANGUAGES.map(lang => (
+                    <button
+                      key={lang.code}
+                      type="button"
+                      onClick={() => { setSelectedLanguage(lang.code); setShowLanguageMenu(false); }}
+                      className={`w-full text-left px-3 py-1.5 text-xs hover:bg-secondary/50 transition-colors flex items-center justify-between ${
+                        selectedLanguage === lang.code ? 'bg-primary/10 text-primary' : ''
+                      }`}
+                    >
+                      <span>{lang.name}</span>
+                      <span className="text-muted-foreground">{lang.native}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {selectedLanguage !== 'en' && messages.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  // Translate all assistant messages
+                  messages
+                    .filter(m => m.role === 'assistant' && !translations[m.id])
+                    .forEach(m => translateMessage(m.id, m.content));
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                <Languages className="h-3 w-3" />
+                Translate all
+              </button>
+            )}
+          </div>
+
+          {/* Input Form */}
           <form 
             onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
             className="flex gap-2"
@@ -481,10 +655,26 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
             <Input
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder={`Message ${avatar.avatarName}...`}
+              placeholder={isRecording ? 'Listening...' : `Message ${avatar.avatarName}...`}
               className="flex-1 bg-secondary/30"
               disabled={sending}
             />
+            <Button
+              type="button"
+              variant={isRecording ? "destructive" : "outline"}
+              size="icon"
+              onClick={handleVoiceToggle}
+              disabled={sending || isVoiceConnecting}
+              className={isRecording ? 'animate-voice-pulse' : ''}
+            >
+              {isVoiceConnecting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isRecording ? (
+                <MicOff className="h-4 w-4" />
+              ) : (
+                <Mic className="h-4 w-4" />
+              )}
+            </Button>
             <Button type="submit" disabled={!inputMessage.trim() || sending}>
               {sending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

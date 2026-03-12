@@ -36,7 +36,7 @@ export default function DashboardLayout({
         )}>
           <DashboardHeader onMobileMenuClick={() => setIsMobileNavOpen(true)} />
           <main className="flex-1 overflow-y-auto p-6 md:p-8">
-            <div className="mx-auto max-w-7xl w-full min-h-full">
+            <div className="mx-auto max-w-7xl w-full min-h-full perspective-container">
               {children}
             </div>
           </main>

@@ -10,6 +10,7 @@ import { PsychologicalQuestionnaire } from "./PsychologicalQuestionnaire";
 import { useRouter } from "next/navigation";
 import { Users, Bot, CheckCircle, Clock } from "lucide-react";
 import { useUser } from '@clerk/nextjs';
+import { motion } from 'framer-motion';
 
 const initialInvitations = [
   {
@@ -150,21 +151,44 @@ export function WelcomeDashboard() {
     const completedAvatars = userAvatars.filter(a => a.status === 'completed').length + cloudAvatars.filter(cloud => !userAvatars.some(local => local.id === cloud.avatarId)).length;
     const pendingAvatars = userAvatars.filter(a => a.status === 'awaiting_trainer' || a.status === 'draft').length;
 
+    const statCardVariants = {
+        hidden: { opacity: 0, y: 30, rotateX: -15 },
+        visible: (i: number) => ({
+            opacity: 1, y: 0, rotateX: 0,
+            transition: { delay: i * 0.1, duration: 0.6, type: 'spring', stiffness: 100 }
+        }),
+    };
+
+    const avatarCardVariants = {
+        hidden: { opacity: 0, scale: 0.9, y: 20 },
+        visible: (i: number) => ({
+            opacity: 1, scale: 1, y: 0,
+            transition: { delay: i * 0.08, duration: 0.5, type: 'spring' }
+        }),
+    };
+
     return (
         <>
-            <div className="space-y-8 w-full max-w-6xl">
+            <div className="space-y-8 w-full max-w-6xl perspective-container">
                 {/* User Stats Section */}
                 <div>
-                    <h2 className="text-2xl font-headline mb-4" style={{color: 'var(--dynamic-text-color)'}}>
+                    <motion.h2
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="text-2xl font-headline mb-4 neon-text"
+                        style={{color: 'var(--dynamic-text-color)'}}
+                    >
                         Welcome back{userName ? `, ${userName}` : ''}!
-                    </h2>
+                    </motion.h2>
                     {userEmail && (
                         <p className="text-sm text-muted-foreground mb-4">{userEmail}</p>
                     )}
                     
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         {/* Total Avatars */}
-                        <Card className="card-glass">
+                        <motion.div custom={0} variants={statCardVariants} initial="hidden" animate="visible">
+                        <Card className="card-glass card-3d holographic-border">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Total Avatars</CardTitle>
                                 <Bot className="h-4 w-4 text-muted-foreground" />
@@ -191,9 +215,11 @@ export function WelcomeDashboard() {
                                 )}
                             </CardContent>
                         </Card>
+                        </motion.div>
 
                         {/* Trained Avatars */}
-                        <Card className="card-glass">
+                        <motion.div custom={1} variants={statCardVariants} initial="hidden" animate="visible">
+                        <Card className="card-glass card-3d holographic-border">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Trained</CardTitle>
                                 <CheckCircle className="h-4 w-4 text-green-500" />
@@ -220,9 +246,11 @@ export function WelcomeDashboard() {
                                 )}
                             </CardContent>
                         </Card>
+                        </motion.div>
 
                         {/* Pending Avatars */}
-                        <Card className="card-glass">
+                        <motion.div custom={2} variants={statCardVariants} initial="hidden" animate="visible">
+                        <Card className="card-glass card-3d holographic-border">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">In Progress</CardTitle>
                                 <Clock className="h-4 w-4 text-yellow-500" />
@@ -249,9 +277,11 @@ export function WelcomeDashboard() {
                                 )}
                             </CardContent>
                         </Card>
+                        </motion.div>
 
                         {/* Cloud Synced */}
-                        <Card className="card-glass">
+                        <motion.div custom={3} variants={statCardVariants} initial="hidden" animate="visible">
+                        <Card className="card-glass card-3d holographic-border">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Cloud Synced</CardTitle>
                                 <span className="text-sm">☁️</span>
@@ -278,6 +308,7 @@ export function WelcomeDashboard() {
                                 )}
                             </CardContent>
                         </Card>
+                        </motion.div>
                     </div>
                 </div>
 
@@ -302,9 +333,17 @@ export function WelcomeDashboard() {
                     ) : userAvatars.length > 0 || cloudAvatars.length > 0 ? (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {/* Show avatars from local storage */}
-                            {userAvatars.map((avatar) => (
-                                <div key={avatar.id} className="group block text-left cursor-pointer" onClick={() => router.push(`/chat/${avatar.id}`)}>
-                                    <Card className="card-glass overflow-hidden h-full transition-all duration-300 group-hover:border-primary/80 group-hover:shadow-xl group-hover:shadow-primary/10">
+                            {userAvatars.map((avatar, idx) => (
+                                <motion.div
+                                    key={avatar.id}
+                                    custom={idx}
+                                    variants={avatarCardVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    className="group block text-left cursor-pointer"
+                                    onClick={() => router.push(`/chat/${avatar.id}`)}
+                                >
+                                    <Card className="card-glass card-3d holographic-border overflow-hidden h-full transition-all duration-300 group-hover:border-primary/80 group-hover:shadow-xl group-hover:shadow-primary/10">
                                         <div className="relative aspect-[4/3]">
                                             <Image 
                                                 src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} 
@@ -331,15 +370,23 @@ export function WelcomeDashboard() {
                                             </div>
                                         </div>
                                     </Card>
-                                </div>
+                                </motion.div>
                             ))}
                             
                             {/* Show cloud avatars not in local storage */}
                             {cloudAvatars
                                 .filter(cloud => !userAvatars.some(local => local.id === cloud.avatarId))
-                                .map((avatar) => (
-                                    <div key={avatar._id} className="group block text-left cursor-pointer" onClick={() => router.push(`/chat/${avatar.avatarId}`)}>
-                                        <Card className="card-glass overflow-hidden h-full transition-all duration-300 group-hover:border-primary/80 group-hover:shadow-xl group-hover:shadow-primary/10">
+                                .map((avatar, idx) => (
+                                    <motion.div
+                                        key={avatar._id}
+                                        custom={userAvatars.length + idx}
+                                        variants={avatarCardVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        className="group block text-left cursor-pointer"
+                                        onClick={() => router.push(`/chat/${avatar.avatarId}`)}
+                                    >
+                                        <Card className="card-glass card-3d holographic-border overflow-hidden h-full transition-all duration-300 group-hover:border-primary/80 group-hover:shadow-xl group-hover:shadow-primary/10">
                                             <div className="relative aspect-[4/3]">
                                                 <Image 
                                                     src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} 
@@ -366,7 +413,7 @@ export function WelcomeDashboard() {
                                                 </div>
                                             </div>
                                         </Card>
-                                    </div>
+                                    </motion.div>
                                 ))}
                         </div>
                     ) : (
