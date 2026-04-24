@@ -4,6 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InvitationCard } from "./InvitationCard";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { API_URL } from "@/lib/utils";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { PsychologicalQuestionnaire } from "./PsychologicalQuestionnaire";
@@ -72,7 +73,7 @@ export function WelcomeDashboard() {
             }
 
             try {
-                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+                const backendUrl = API_URL;
 
                 setUserEmail(user.primaryEmailAddress?.emailAddress || '');
                 setUserName(user.username || user.fullName || 'User');

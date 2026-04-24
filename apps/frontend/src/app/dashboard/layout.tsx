@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { FloatingDots } from '@/components/dashboard/FloatingDots';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { BackendUserSync } from '@/components/auth/BackendUserSync';
 
 export default function DashboardLayout({
   children,
@@ -17,6 +18,7 @@ export default function DashboardLayout({
 
   return (
     <div className="h-screen w-full">
+      <BackendUserSync />
       <div className="fixed inset-0 z-0">
         <Image
           src="https://i.pinimg.com/originals/29/c7/c9/29c7c98a6be6f7401416d3653cb68907.gif"

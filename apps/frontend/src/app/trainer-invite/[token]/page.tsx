@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, XCircle, Clock, Loader2, User, Mail, FileText, ArrowRight, Check } from 'lucide-react';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = API_URL;
 
 // Psychological MCQ Questions
 // Psychological MCQ Questions

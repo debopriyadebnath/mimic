@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { GlowingButton } from '../ui/glowing-button';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { cn } from '@/lib/utils';
+import { cn, API_URL } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -56,22 +56,17 @@ export function CreateAvatarPage() {
     const { toast } = useToast();
     const router = useRouter();
 
-    // Auto-fetch user info from localStorage on mount
+    // Auto-fill owner identity from the signed-in Clerk user.
     const { user, isLoaded } = useUser();
     useEffect(() => {
-        try {
-            const storedUser = localStorage.getItem('user');
         if (!isLoaded || !user) return;
         setOwnerEmail((prev) => prev || user.primaryEmailAddress?.emailAddress || '');
         setOwnerName((prev) => prev || user.username || user.fullName || '');
         setOwnerId((prev) => prev || user.id);
-    }
-catch (error) {
-            console.error('Error fetching user from localStorage:', error);
-        }
-}, [isLoaded, user])
-;
+    }, [isLoaded, user]);
+
     const handleBack = () => setStep(prev => prev - 1);
+    const handleNext = () => setStep(prev => prev + 1);
 
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,7 +99,7 @@ catch (error) {
         });
 
         try {
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+            const backendUrl = API_URL;
 
             // Derive owner identity from the signed-in Clerk user
             const finalOwnerId = ownerId || ownerEmail || 'owner-' + Date.now();
@@ -240,7 +235,7 @@ catch (error) {
                             </div>
                         </CardContent>
                         <CardFooter className="justify-end">
-                            <GlowingButton text="Next" onClick={handleBack} disabled={!avatarName || !ownerName || !ownerEmail} />
+                            <GlowingButton text="Next" onClick={handleNext} disabled={!avatarName || !ownerName || !ownerEmail} />
                         </CardFooter>
                     </motion.div>
                 );
@@ -286,7 +281,7 @@ catch (error) {
                         </CardContent>
                         <CardFooter className="justify-between">
                             <Button variant="ghost" onClick={handleBack}>Back</Button>
-                            <GlowingButton text="Next" onClick={handleBack} disabled={!selectedAvatar} />
+                            <GlowingButton text="Next" onClick={handleNext} disabled={!selectedAvatar} />
                         </CardFooter>
                     </motion.div>
                 );

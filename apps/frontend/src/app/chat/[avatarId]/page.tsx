@@ -13,7 +13,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser } from '@clerk/nextjs';
 import { useSpeechToText } from '@/hooks/use-speech-to-text';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = API_URL;
 
 interface Message {
   id: string;

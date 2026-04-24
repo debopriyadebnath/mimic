@@ -3,36 +3,35 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from "next/link";
+import { useSignIn } from '@clerk/nextjs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/shared/Logo";
 import { GlowingButton } from "@/components/ui/glowing-button";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://mimic-xt46.onrender.com";
 
 type SignInFields = {
     email: string;
     password: string;
 };
 
-type AuthResponse = {
-    token: string;
-    user: Record<string, unknown>;
-    message?: string;
-    error?: string;
-};
-
-function getErrorMessage(error: unknown): string {
+function getClerkError(error: unknown): string {
+    if (typeof error === "object" && error && Array.isArray((error as any).errors)) {
+        const messages = (error as any).errors
+            .map((err: any) => err?.message || err?.longMessage)
+            .filter(Boolean);
+        if (messages.length > 0) return messages.join("\n");
+    }
     if (error instanceof Error) return error.message;
-    if (typeof error === "string") return error;
     return "Unable to sign in. Please try again.";
 }
 
 export function SignInForm() {
     const router = useRouter();
     const { toast } = useToast();
+    const { isLoaded, signIn, setActive } = useSignIn();
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState<SignInFields>({
         email: "",
@@ -41,35 +40,20 @@ export function SignInForm() {
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
+        if (!isLoaded) return;
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${BACKEND_URL}/api/signin`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email: formData.email.trim().toLowerCase(),
-                    password: formData.password,
-                }),
+            const result = await signIn.create({
+                identifier: formData.email.trim().toLowerCase(),
+                password: formData.password,
             });
 
-            const data = (await response.json().catch(() => ({}))) as Partial<AuthResponse>;
-
-            if (!response.ok) {
-                const message = data?.error || data?.message || "Invalid email or password.";
-                throw new Error(message);
+            if (result.status !== "complete" || !result.createdSessionId) {
+                throw new Error("Sign in requires additional verification.");
             }
 
-            if (!data?.token || !data?.user) {
-                throw new Error("Authentication response missing token or user data.");
-            }
-
-            if (typeof window !== "undefined") {
-                window.localStorage.setItem("token", data.token);
-                window.localStorage.setItem("user", JSON.stringify(data.user));
-            }
+            await setActive({ session: result.createdSessionId });
 
             toast({
                 title: "Welcome back!",
@@ -79,11 +63,30 @@ export function SignInForm() {
         } catch (error) {
             toast({
                 title: "Sign in failed",
-                description: getErrorMessage(error),
+                description: getClerkError(error),
                 variant: "destructive",
             });
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleGoogle = async () => {
+        if (!isLoaded) return;
+        setIsLoading(true);
+        try {
+            await signIn.authenticateWithRedirect({
+                strategy: "oauth_google",
+                redirectUrl: "/sso-callback",
+                redirectUrlComplete: "/dashboard",
+            });
+        } catch (error) {
+            setIsLoading(false);
+            toast({
+                title: "Google sign in failed",
+                description: getClerkError(error),
+                variant: "destructive",
+            });
         }
     };
 
@@ -133,6 +136,14 @@ export function SignInForm() {
                                     disabled={isLoading}
                                 />
                             </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleGoogle}
+                                disabled={isLoading}
+                            >
+                                Continue with Google
+                            </Button>
                         </div>
                     </form>
                     <div className="mt-4 text-center text-sm">

@@ -10,13 +10,13 @@ import { useSpeechToText } from '@/hooks/use-speech-to-text';
 import { Mic, MicOff, Loader2, Trash2, Wand2, Bot, Copy, Link2, AlertCircle, Activity } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { cn } from '@/lib/utils';
+import { cn, API_URL } from '@/lib/utils';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUser } from '@clerk/nextjs';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = API_URL;
 
 interface AvatarInfo {
   id: string;
