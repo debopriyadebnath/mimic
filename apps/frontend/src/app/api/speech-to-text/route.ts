@@ -32,7 +32,8 @@ async function transcribeWithSarvam(
     formData.append('model', 'saarika:v2');
     formData.append('with_timestamps', 'false');
 
-    const response = await fetch('https://api.sarvam.ai/speech-to-text', {
+    const sarvamSpeechUrl = process.env.NEXT_PUBLIC_SARVAM_SPEECH_URL || 'https://api.sarvam.ai/speech-to-text';
+    const response = await fetch(sarvamSpeechUrl, {
       method: 'POST',
       headers: {
         'api-subscription-key': sarvamApiKey,

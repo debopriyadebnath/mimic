@@ -9,7 +9,7 @@
 
 **Build AI avatars that genuinely reflect your personality, not generic chatbots.**
 
-[Live Demo](https://mimic-eta.vercel.app/) • [Render Deployment](https://mimic-zyb3.onrender.com) • [Video Demo](https://youtube.com/shorts/xD5wGwz724k?si=mCXV4I_gls4C9QjV) • [Documentation](#documentation)
+[Live Demo](https://mimic01.vercel.app/dashboard) • [GitHub](https://github.com/debopriyadebnath/mimic) • [Video Demo](https://youtube.com/shorts/xD5wGwz724k?si=mCXV4I_gls4C9QjV) • [Documentation](#documentation)
 
 </div>
 
@@ -234,8 +234,7 @@ Contributions are welcome! Follow these steps:
 
 | Link | Description |
 |------|-------------|
-| [🌐 Live Demo (Vercel)](https://mimic-eta.vercel.app/) | Production deployment |
-| [🌐 Live Demo (Render)](https://mimic-zyb3.onrender.com) | Backup deployment |
+| [🌐 Live Demo](https://mimic01.vercel.app/dashboard) | Production deployment on Vercel |
 | [📹 Video Demo](https://youtube.com/shorts/xD5wGwz724k?si=mCXV4I_gls4C9QjV) | Quick walkthrough |
 | [📧 Support](mailto:support@mimic.ai) | Get help |
 

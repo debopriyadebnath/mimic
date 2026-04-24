@@ -5,4 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://mimic-xt46.onrender.com";
+// Ensure NEXT_PUBLIC_BACKEND_URL is set - remove fallback to old deployed link
+if (!process.env.NEXT_PUBLIC_BACKEND_URL) {
+  console.warn(
+    'NEXT_PUBLIC_BACKEND_URL environment variable is not set. '
+    + 'Please set this in your .env.local file to the current backend URL.'
+  );
+}
+
+export const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";

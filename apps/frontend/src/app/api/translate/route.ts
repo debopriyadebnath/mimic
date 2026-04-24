@@ -29,7 +29,8 @@ async function translateWithSarvam(text: string, targetLanguage: string): Promis
   if (!targetCode || !SARVAM_SUPPORTED.includes(targetLanguage)) return null;
 
   try {
-    const response = await fetch('https://api.sarvam.ai/translate', {
+    const sarvamTranslateUrl = process.env.NEXT_PUBLIC_SARVAM_TRANSLATE_URL || 'https://api.sarvam.ai/translate';
+    const response = await fetch(sarvamTranslateUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

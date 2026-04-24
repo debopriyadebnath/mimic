@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, ArrowLeft, Loader2, Copy, Link2, Share2, Bot, User, BrainCircuit, Mic, MicOff, Languages, ChevronDown } from 'lucide-react';
+import { Send, ArrowLeft, Loader2, Copy, Link2, Share2, Bot, User, BrainCircuit, Mic, MicOff, Languages, ChevronDown, Volume2, VolumeX } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser } from '@clerk/nextjs';
 import { useSpeechToText } from '@/hooks/use-speech-to-text';
@@ -143,6 +143,60 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
     } finally {
       setTranslatingMsgId(null);
     }
+  };
+
+  // TTS state
+  const [playingMsgId, setPlayingMsgId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Play message as speech
+  const playMessage = async (messageId: string, text: string) => {
+    const textToSpeak = translations[messageId] || text;
+    
+    setPlayingMsgId(messageId);
+    try {
+      const res = await fetch('/api/text-to-speech', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: textToSpeak,
+          language: selectedLanguage,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.audio) {
+          if (audioRef.current) {
+            audioRef.current.pause();
+          }
+          const audio = new Audio(`data:audio/mp3;base64,${data.audio}`);
+          audioRef.current = audio;
+          
+          audio.onended = () => setPlayingMsgId(null);
+          audio.onerror = () => {
+            setPlayingMsgId(null);
+            toast({ title: 'Playback error', description: 'Failed to play audio', variant: 'destructive' });
+          };
+          
+          await audio.play();
+        }
+      } else {
+        throw new Error('TTS failed');
+      }
+    } catch {
+      setPlayingMsgId(null);
+      toast({ title: 'Speech error', description: 'Failed to generate speech', variant: 'destructive' });
+    }
+  };
+
+  // Stop playing
+  const stopPlaying = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setPlayingMsgId(null);
   };
 
   useEffect(() => {
@@ -546,21 +600,38 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
                     <p className="text-xs opacity-50">
                       {new Date(message.timestamp).toLocaleTimeString()}
                     </p>
-                    {selectedLanguage !== 'en' && (
-                      <button
-                        type="button"
-                        onClick={() => translateMessage(message.id, message.content)}
-                        disabled={translatingMsgId === message.id}
-                        className="text-xs opacity-50 hover:opacity-100 transition-opacity flex items-center gap-1 ml-2"
-                      >
-                        {translatingMsgId === message.id ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <Languages className="h-3 w-3" />
-                        )}
-                        Translate
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {message.role === 'assistant' && (
+                        <button
+                          type="button"
+                          onClick={() => playingMsgId === message.id ? stopPlaying() : playMessage(message.id, message.content)}
+                          disabled={playingMsgId === message.id && playingMsgId !== null}
+                          className="text-xs opacity-50 hover:opacity-100 transition-opacity flex items-center gap-1"
+                        >
+                          {playingMsgId === message.id ? (
+                            <VolumeX className="h-3 w-3" />
+                          ) : (
+                            <Volume2 className="h-3 w-3" />
+                          )}
+                          {playingMsgId === message.id ? 'Stop' : 'Listen'}
+                        </button>
+                      )}
+                      {selectedLanguage !== 'en' && message.role === 'assistant' && (
+                        <button
+                          type="button"
+                          onClick={() => translateMessage(message.id, message.content)}
+                          disabled={translatingMsgId === message.id}
+                          className="text-xs opacity-50 hover:opacity-100 transition-opacity flex items-center gap-1"
+                        >
+                          {translatingMsgId === message.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Languages className="h-3 w-3" />
+                          )}
+                          Translate
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
                 {message.role === 'user' && (
