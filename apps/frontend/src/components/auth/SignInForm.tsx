@@ -44,7 +44,7 @@ export function SignInForm() {
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${BACKEND_URL}/api/auth/signin`, {
+            const response = await fetch(`${BACKEND_URL}/api/signin`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

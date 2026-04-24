@@ -1,8 +1,8 @@
 {
   "name": "backend",
   "scripts": {
-    "dev": "bun --watch run index.ts",
-    "dev:node": "nodemon --exec ts-node index.ts",
+    "dev": "ts-node index.ts",
+    "dev:node": "ts-node index.ts",
     "start": "ts-node index.ts",
     "build": "tsc -p .",
     "prisma:generate": "prisma generate",
