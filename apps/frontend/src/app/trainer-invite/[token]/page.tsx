@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, XCircle, Clock, Loader2, User, Mail, FileText, ArrowRight, Check } from 'lucide-react';
+import { API_URL } from '@/lib/utils';
 
 const BACKEND_URL = API_URL;
 

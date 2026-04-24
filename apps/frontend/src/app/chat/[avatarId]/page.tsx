@@ -12,6 +12,7 @@ import { Send, ArrowLeft, Loader2, Copy, Link2, Share2, Bot, User, BrainCircuit,
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser } from '@clerk/nextjs';
 import { useSpeechToText } from '@/hooks/use-speech-to-text';
+import { API_URL } from '@/lib/utils';
 
 const BACKEND_URL = API_URL;
 
