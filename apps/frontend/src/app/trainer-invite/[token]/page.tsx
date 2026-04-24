@@ -332,8 +332,9 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
   // Loading state
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="p-8 max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.12),transparent_45%),radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.1),transparent_45%)] pointer-events-none" />
+        <Card className="card-glass p-8 max-w-md border border-white/10 z-10">
           <CardContent className="flex flex-col items-center pt-6">
             <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
             <p className="text-lg text-muted-foreground">Validating invitation...</p>
@@ -346,8 +347,9 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
   // Invalid state
   if (status === 'invalid') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="p-8 max-w-md text-center">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.12),transparent_40%)] pointer-events-none" />
+        <Card className="card-glass p-8 max-w-md text-center border border-red-400/20 z-10">
           <CardContent className="pt-6">
             <XCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
             <h1 className="text-2xl font-bold mb-2">Invalid Invitation</h1>
@@ -361,8 +363,9 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
   // Expired state
   if (status === 'expired') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="p-8 max-w-md text-center">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.14),transparent_45%)] pointer-events-none" />
+        <Card className="card-glass p-8 max-w-md text-center border border-yellow-400/20 z-10">
           <CardContent className="pt-6">
             <Clock className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold mb-2">Invitation Expired</h1>
@@ -376,8 +379,9 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
   // Already completed state
   if (status === 'completed') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="p-8 max-w-md text-center">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.14),transparent_45%)] pointer-events-none" />
+        <Card className="card-glass p-8 max-w-md text-center border border-green-400/20 z-10">
           <CardContent className="pt-6">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold mb-2">Already Completed</h1>
@@ -391,12 +395,14 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
   // Success state after submission
   if (isSubmitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.14),transparent_42%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.12),transparent_42%)] pointer-events-none" />
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
+          className="z-10"
         >
-          <Card className="p-8 max-w-md text-center">
+          <Card className="card-glass p-8 max-w-md text-center border border-white/10">
             <CardContent className="pt-6">
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h1 className="text-2xl font-bold mb-2">Thank You!</h1>
@@ -416,13 +422,14 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
   // Acceptance step - Show owner info and ask for permission
   if (flowStep === 'acceptance' && invitationData) {
     return (
-      <div className="min-h-screen bg-background py-8 px-4">
+      <div className="min-h-screen bg-background py-8 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.1),transparent_45%),radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.1),transparent_45%)] pointer-events-none" />
         <div className="max-w-2xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Card>
+            <Card className="card-glass border border-white/10">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Avatar Training Invitation</CardTitle>
                 <CardDescription>
@@ -431,7 +438,7 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Owner Info */}
-                <div className="bg-secondary/30 rounded-lg p-4 space-y-3">
+                <div className="bg-secondary/20 rounded-lg p-4 space-y-3 border border-white/10">
                   <h3 className="font-semibold text-lg flex items-center gap-2">
                     <User className="w-5 h-5" />
                     Invitation from
@@ -451,7 +458,7 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
                 </div>
 
                 {/* Avatar Info */}
-                <div className="bg-primary/10 rounded-lg p-4 space-y-3">
+                <div className="bg-primary/10 rounded-lg p-4 space-y-3 border border-primary/20">
                   <h3 className="font-semibold text-lg">
                     Avatar: <span className="text-primary">{invitationData.avatarName}</span>
                   </h3>
@@ -476,7 +483,7 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
                 </div>
 
                 {/* What you'll do */}
-                <div className="border rounded-lg p-4">
+                <div className="border border-white/10 bg-black/20 rounded-lg p-4">
                   <h3 className="font-semibold mb-2">What you'll do</h3>
                   <p className="text-sm text-muted-foreground">
                     You'll answer {TRAINER_QUESTIONS.length} personality questions to help shape the avatar's behavior and communication style.
@@ -492,6 +499,7 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
                     placeholder="Enter your name"
                     value={trainerName}
                     onChange={(e) => setTrainerName(e.target.value)}
+                    className="bg-background/40 border-white/10"
                   />
                   <p className="text-xs text-muted-foreground">
                     This will be shown to the avatar owner in their dashboard.
@@ -500,7 +508,7 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
               </CardContent>
               <CardFooter>
                 <Button
-                  className="w-full"
+                  className="w-full shadow-[0_0_20px_rgba(0,102,255,0.25)] hover:shadow-[0_0_28px_rgba(0,102,255,0.35)]"
                   size="lg"
                   onClick={handleAcceptInvitation}
                   disabled={isAccepting}
@@ -530,11 +538,12 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
   const progress = ((currentQuestion + 1) / TRAINER_QUESTIONS.length) * 100;
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
+    <div className="min-h-screen bg-background py-8 px-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.1),transparent_42%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.1),transparent_42%)] pointer-events-none" />
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-2">Personality Assessment</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Personality Assessment</h1>
           <p className="text-muted-foreground">
             Training avatar: <span className="font-semibold text-primary">{invitationData?.avatarName}</span>
           </p>
@@ -546,7 +555,7 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
             <span>Question {currentQuestion + 1} of {TRAINER_QUESTIONS.length}</span>
             <span>{Math.round(progress)}%</span>
           </div>
-          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+          <div className="h-2 bg-secondary/50 rounded-full overflow-hidden border border-white/10">
             <motion.div
               className="h-full bg-primary"
               initial={{ width: 0 }}
@@ -566,7 +575,7 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
             transition={{ duration: 0.2 }}
             style={{ pointerEvents: 'auto' }}
           >
-            <Card className="card-glass">
+            <Card className="card-glass border border-white/10">
               <CardHeader>
                 <CardTitle className="text-xl">{question.question}</CardTitle>
                 <CardDescription>{question.description}</CardDescription>
@@ -579,9 +588,9 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
                       key={index}
                       type="button"
                       onClick={() => handleAnswerSelect(question.id, option)}
-                      className={`w-full p-4 text-left rounded-lg border transition-all cursor-pointer relative z-10 flex items-center gap-3 ${responses[question.id]?.answer === option
+                        className={`w-full p-4 text-left rounded-lg border transition-all cursor-pointer relative z-10 flex items-center gap-3 ${responses[question.id]?.answer === option
                           ? 'border-cyan-500 bg-cyan-500/10 text-cyan-600 shadow-sm shadow-cyan-500/20'
-                          : 'border-border hover:border-primary/50 hover:bg-secondary/50'
+                          : 'border-white/10 hover:border-primary/50 hover:bg-secondary/30'
                         }`}
                     >
                       <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all flex-shrink-0 ${responses[question.id]?.answer === option
@@ -605,7 +614,7 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
                     placeholder="Any extra context..."
                     value={responses[question.id]?.note || ''}
                     onChange={(e) => handleNoteChange(question.id, e.target.value)}
-                    className="mt-2"
+                    className="mt-2 bg-background/40 border-white/10"
                     rows={2}
                   />
                 </div>
@@ -620,7 +629,7 @@ export default function TrainerInvitePage({ params }: { params: Promise<{ token:
             variant="outline"
             onClick={handlePrevious}
             disabled={currentQuestion === 0}
-            className="flex-1"
+            className="flex-1 border-white/15 bg-background/30 hover:bg-background/50"
           >
             Previous
           </Button>

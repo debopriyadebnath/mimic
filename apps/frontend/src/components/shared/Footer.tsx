@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Github, Linkedin, Twitter } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip-card';
 
 const footerLinks = {
     company: [
@@ -87,9 +88,21 @@ export function Footer() {
                 
                 <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-border/50 gap-4">
                     <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs">
-                            M
-                        </div>
+                            <Tooltip
+                                containerClassName="inline-flex"
+                                content={
+                                    <div className="max-w-[220px] space-y-2">
+                                        <p className="text-sm font-semibold text-neutral-100">Mimic</p>
+                                        <p className="text-xs text-neutral-300 leading-relaxed">
+                                            A private avatar workspace for training memory, personality, and conversation style.
+                                        </p>
+                                    </div>
+                                }
+                            >
+                                <div className="h-6 w-6 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs cursor-help">
+                                    M
+                                </div>
+                            </Tooltip>
                         <span className="text-foreground font-medium text-sm">Mimic</span>
                     </div>
                     <p className="text-sm text-muted-foreground">

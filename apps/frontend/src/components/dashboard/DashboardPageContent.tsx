@@ -33,7 +33,7 @@ export function DashboardPageContent() {
     }
   };
 
-  return <div className="w-full h-full flex items-start justify-center">{renderView()}</div>;
+  return <div className="w-full h-full flex items-start justify-center py-2 md:py-4">{renderView()}</div>;
 }
 
 

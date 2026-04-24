@@ -375,16 +375,22 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden perspective-container">
+      {/* Ambient glowing background */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse-ring mix-blend-screen" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[150px] animate-pulse-ring mix-blend-screen" style={{animationDelay: '1s'}} />
+      </div>
+
       {/* Header */}
-      <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-white/10 bg-background/40 backdrop-blur-xl sticky top-0 z-50 card-3d z-shadow-sm">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')}>
+            <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')} className="hover:bg-primary/20 hover:text-primary transition-all duration-300">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-3">
-              <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-primary/50">
+              <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-primary/50 shadow-[0_0_15px_rgba(0,102,255,0.3)] hover:scale-105 transition-transform duration-300">
                 <Image 
                   src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} 
                   alt={avatar.avatarName} 
@@ -392,13 +398,19 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
                   className="object-cover" 
                 />
               </div>
-              <div>
-                <h1 className="font-bold text-lg" style={{ color: 'var(--dynamic-text-color)' }}>
-                  {avatar.avatarName}
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  {avatar.status === 'completed' ? '🟢 Trained' : '🟡 ' + (avatar.status === 'awaiting_trainer' ? 'Awaiting Trainer' : 'Draft')}
-                </p>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h1 className="font-bold text-lg neon-text tracking-tight" style={{ color: 'var(--dynamic-text-color)' }}>
+                    {avatar.avatarName}
+                  </h1>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                  {avatar.status === 'completed' ? (
+                    <span className="bg-primary/20 text-primary px-2 py-0.5 rounded-full border border-primary/30 flex items-center gap-1 shadow-[0_0_10px_rgba(0,102,255,0.2)]">
+                      <BrainCircuit className="h-3 w-3" /> Trained
+                    </span>
+                  ) : '🟡 ' + (avatar.status === 'awaiting_trainer' ? 'Awaiting Trainer' : 'Draft')}
+                </div>
               </div>
             </div>
           </div>
@@ -452,12 +464,12 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
       </header>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="container mx-auto max-w-3xl space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 scrollbar-thin relative z-10">
+        <div className="container mx-auto max-w-3xl space-y-6 pb-24">
           {/* Welcome message if no messages */}
           {messages.length === 0 && (
-            <div className="text-center py-12">
-              <div className="relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-primary/30">
+            <div className="text-center py-20 animate-fade-in card-3d">
+              <div className="relative w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-4 border-primary/30 shadow-[0_0_30px_rgba(0,102,255,0.4)] holographic-border">
                 <Image 
                   src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} 
                   alt={avatar.avatarName} 
@@ -465,15 +477,17 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
                   className="object-cover" 
                 />
               </div>
-              <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--dynamic-text-color)' }}>
+              <h2 className="text-3xl font-bold mb-3 neon-text" style={{ color: 'var(--dynamic-text-color)' }}>
                 Chat with {avatar.avatarName}
               </h2>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                {avatar.status === 'completed' 
-                  ? `Start a conversation with ${avatar.avatarName}. This avatar has been trained with a unique personality!`
-                  : `${avatar.avatarName} is not fully trained yet. Generate a trainer link and share it to complete the training.`
-                }
-              </p>
+              <div className="max-w-md mx-auto backdrop-blur-sm bg-black/20 p-5 rounded-2xl border border-white/5 shadow-2xl">
+                <p className="text-muted-foreground text-lg">
+                  {avatar.status === 'completed' 
+                    ? `Start a conversation with ${avatar.avatarName}. This avatar has been tailored with a unique personality!`
+                    : `${avatar.avatarName} is not fully configured yet. Generate a trainer link to complete the persona.`
+                  }
+                </p>
+              </div>
               {avatar.status !== 'completed' && !inviteLink && (
                 <Button 
                   className="mt-4"
@@ -496,13 +510,14 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
             {messages.map((message) => (
               <motion.div
                 key={message.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {message.role === 'assistant' && (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/50 flex-shrink-0">
+                  <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-primary/50 shadow-[0_0_10px_rgba(0,102,255,0.2)] flex-shrink-0 self-end mb-1">
                     <Image 
                       src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} 
                       alt={avatar.avatarName} 
@@ -512,13 +527,13 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
                   </div>
                 )}
                 <div
-                  className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                  className={`max-w-[75%] rounded-3xl px-5 py-3 ${
                     message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary/50 border border-border/50'
+                      ? 'bg-primary text-primary-foreground rounded-br-sm shadow-[0_4px_15px_rgba(0,102,255,0.3)]'
+                      : 'card-glass rounded-bl-sm border border-white/10 text-foreground'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{message.content}</p>
                   {translations[message.id] && (
                     <div className="mt-2 pt-2 border-t border-current/20 animate-slide-up">
                       <p className="text-xs text-muted-foreground mb-0.5">
@@ -549,8 +564,8 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
                   </div>
                 </div>
                 {message.role === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                    <User className="h-4 w-4 text-primary" />
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 self-end mb-1 shadow-[0_0_10px_rgba(0,102,255,0.2)]">
+                    <User className="h-5 w-5 text-primary" />
                   </div>
                 )}
               </motion.div>
@@ -560,11 +575,11 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
           {/* Typing indicator */}
           {sending && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex gap-3 justify-start"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex gap-4 justify-start"
             >
-              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/50 flex-shrink-0">
+              <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-primary/50 shadow-[0_0_10px_rgba(0,102,255,0.2)] flex-shrink-0 self-end mb-1">
                 <Image 
                   src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} 
                   alt={avatar.avatarName} 
@@ -572,11 +587,11 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
                   className="object-cover" 
                 />
               </div>
-              <div className="bg-secondary/50 border border-border/50 rounded-2xl px-4 py-3">
-                <div className="flex gap-1">
-                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div className="card-glass border border-white/10 rounded-3xl rounded-bl-sm px-5 py-4 flex items-center h-12">
+                <div className="flex gap-1.5 align-middle">
+                  <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
               </div>
             </motion.div>
@@ -587,64 +602,77 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-border/50 bg-background/80 backdrop-blur-sm p-4">
+      <div className="absolute pl-10 bottom-0 left-0 w-full p-4 backdrop-blur-xl border-t border-white/5 z-20 z-shadow-lg">
         <div className="container mx-auto max-w-3xl space-y-2">
           {/* Voice Recording Indicator */}
-          {isRecording && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="flex items-center gap-2 text-red-400 text-sm px-2"
-            >
-              <span className="w-2 h-2 bg-red-500 rounded-full animate-voice-pulse" />
-              Recording... {fullTranscript && <span className="text-muted-foreground truncate max-w-xs">"{fullTranscript}"</span>}
-            </motion.div>
-          )}
+          <AnimatePresence>
+            {isRecording && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex items-center gap-2 text-red-500 font-medium text-sm px-4 bg-red-500/10 border border-red-500/20 rounded-full py-1.5 w-max shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+              >
+                <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-voice-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
+                Listening... {fullTranscript && <span className="text-white/80 font-normal truncate max-w-xs ml-1">"{fullTranscript}"</span>}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Language Selector Row */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between pb-1">
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-background/50 border border-white/10 hover:bg-white/10 hover:border-primary/50 transition-all shadow-sm"
               >
-                <Languages className="h-3.5 w-3.5" />
+                <Languages className="h-3.5 w-3.5 text-primary" />
                 <span>{INDIAN_LANGUAGES.find(l => l.code === selectedLanguage)?.native || 'English'}</span>
                 <ChevronDown className="h-3 w-3 opacity-50" />
               </button>
-              {showLanguageMenu && (
-                <div className="absolute bottom-full left-0 mb-1 w-48 max-h-56 overflow-y-auto bg-background/95 backdrop-blur-sm border border-border/50 rounded-lg shadow-lg z-50 animate-slide-up">
-                  {INDIAN_LANGUAGES.map(lang => (
-                    <button
-                      key={lang.code}
-                      type="button"
-                      onClick={() => { setSelectedLanguage(lang.code); setShowLanguageMenu(false); }}
-                      className={`w-full text-left px-3 py-1.5 text-xs hover:bg-secondary/50 transition-colors flex items-center justify-between ${
-                        selectedLanguage === lang.code ? 'bg-primary/10 text-primary' : ''
-                      }`}
-                    >
-                      <span>{lang.name}</span>
-                      <span className="text-muted-foreground">{lang.native}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
+              
+              <AnimatePresence>
+                {showLanguageMenu && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute bottom-full left-0 mb-2 w-48 max-h-60 overflow-y-auto card-glass border border-white/10 rounded-xl shadow-xl z-50 p-1"
+                  >
+                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b border-white/10 sticky top-0 bg-background/80 backdrop-blur-md z-10">
+                      Speaking & Output
+                    </div>
+                    {INDIAN_LANGUAGES.map(lang => (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={() => { setSelectedLanguage(lang.code); setShowLanguageMenu(false); }}
+                        className={`w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-white/10 transition-colors flex items-center justify-between mt-1 ${
+                          selectedLanguage === lang.code ? 'bg-primary/20 text-primary font-medium' : ''
+                        }`}
+                      >
+                        <span>{lang.name}</span>
+                        <span className="text-xs opacity-70">{lang.native}</span>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
+            
             {selectedLanguage !== 'en' && messages.length > 0 && (
               <button
                 type="button"
                 onClick={() => {
-                  // Translate all assistant messages
                   messages
                     .filter(m => m.role === 'assistant' && !translations[m.id])
                     .forEach(m => translateMessage(m.id, m.content));
                 }}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                className="text-xs text-primary/80 hover:text-primary transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-primary/10"
               >
-                <Languages className="h-3 w-3" />
-                Translate all
+                <Languages className="h-3.5 w-3.5" />
+                Translate All Responses
               </button>
             )}
           </div>
@@ -652,38 +680,51 @@ export default function AvatarChatPage({ params }: { params: Promise<{ avatarId:
           {/* Input Form */}
           <form 
             onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
-            className="flex gap-2"
+            className="flex items-end gap-3 bg-secondary/20 p-2 rounded-3xl border border-white/10 shadow-inner"
           >
             <Input
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder={isRecording ? 'Listening...' : `Message ${avatar.avatarName}...`}
-              className="flex-1 bg-secondary/30"
+              placeholder={isRecording ? 'Listening carefully...' : `Message ${avatar.avatarName}...`}
+              className="flex-1 bg-transparent border-0 rounded-2xl px-5 py-6 focus-visible:ring-0 focus-visible:ring-offset-0 text-base"
               disabled={sending}
             />
-            <Button
-              type="button"
-              variant={isRecording ? "destructive" : "outline"}
-              size="icon"
-              onClick={handleVoiceToggle}
-              disabled={sending || isVoiceConnecting}
-              className={isRecording ? 'animate-voice-pulse' : ''}
-            >
-              {isVoiceConnecting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isRecording ? (
-                <MicOff className="h-4 w-4" />
-              ) : (
-                <Mic className="h-4 w-4" />
-              )}
-            </Button>
-            <Button type="submit" disabled={!inputMessage.trim() || sending}>
-              {sending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </Button>
+            
+            <div className="flex gap-2 pb-1 pr-1">
+              <Button
+                type="button"
+                variant={isRecording ? "destructive" : "secondary"}
+                size="icon"
+                onClick={handleVoiceToggle}
+                disabled={sending || isVoiceConnecting}
+                className={`h-12 w-12 rounded-full transition-all duration-300 ${
+                  isRecording 
+                    ? 'animate-voice-pulse shadow-[0_0_20px_rgba(239,68,68,0.5)]' 
+                    : 'hover:bg-primary/20 hover:text-primary hover:shadow-[0_0_15px_rgba(0,102,255,0.3)] bg-background/50 border border-white/5'
+                }`}
+              >
+                {isVoiceConnecting ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : isRecording ? (
+                  <MicOff className="h-5 w-5 text-white" />
+                ) : (
+                  <Mic className="h-5 w-5" />
+                )}
+              </Button>
+              
+              <Button 
+                type="submit" 
+                disabled={!inputMessage.trim() || sending}
+                size="icon"
+                className="h-12 w-12 rounded-full shadow-[0_0_15px_rgba(0,102,255,0.4)] hover:shadow-[0_0_25px_rgba(0,102,255,0.6)] hover:scale-105 transition-all duration-300 bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                {sending ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Send className="h-5 w-5 ml-1" />
+                )}
+              </Button>
+            </div>
           </form>
         </div>
       </div>

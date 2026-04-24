@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Brain, Database, MessageSquare, Shield } from "lucide-react";
+import { Tooltip } from "@/components/ui/tooltip-card";
 
 const features = [
   {
@@ -45,9 +46,28 @@ export function FeaturesSection() {
                             <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary/50 border border-border/50">
                                 {feature.icon}
                             </div>
-                            <h3 className="mb-2 text-lg font-medium text-foreground">
-                                {feature.title}
-                            </h3>
+                            <div className="mb-2 flex items-center gap-2">
+                                <h3 className="text-lg font-medium text-foreground">
+                                    {feature.title}
+                                </h3>
+                                {feature.title === "Privacy First" && (
+                                    <Tooltip
+                                        containerClassName="inline-flex"
+                                        content={
+                                            <div className="max-w-[220px] space-y-2">
+                                                <p className="text-sm font-semibold text-neutral-100">Private by design</p>
+                                                <p className="text-xs text-neutral-300 leading-relaxed">
+                                                    Only the memories you approve are used. No public training, no crowdsourced identity drift.
+                                                </p>
+                                            </div>
+                                        }
+                                    >
+                                        <span className="cursor-help rounded-full border border-border/60 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground">
+                                            Why?
+                                        </span>
+                                    </Tooltip>
+                                )}
+                            </div>
                             <p className="text-sm leading-relaxed text-muted-foreground">
                                 {feature.description}
                             </p>
