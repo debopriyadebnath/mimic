@@ -1,7 +1,6 @@
 
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InvitationCard } from "./InvitationCard";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { API_URL } from "@/lib/utils";
@@ -9,9 +8,10 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { PsychologicalQuestionnaire } from "./PsychologicalQuestionnaire";
 import { useRouter } from "next/navigation";
-import { Users, Bot, CheckCircle, Clock } from "lucide-react";
+import { Bot, CheckCircle, Clock, Cloud, Plus, Sparkles, ArrowRight } from "lucide-react";
 import { useUser } from '@clerk/nextjs';
 import { motion } from 'framer-motion';
+import { Button } from "@/components/ui/button";
 
 const initialInvitations = [
   {
@@ -31,7 +31,7 @@ const initialInvitations = [
 interface UserAvatar {
   id: string;
   avatarName: string;
-  avatarImageUrl?: string;  // Selected avatar image URL
+  avatarImageUrl?: string;
   status: 'draft' | 'awaiting_trainer' | 'completed';
   finalMasterPrompt?: string;
   createdAt: number;
@@ -50,408 +50,295 @@ interface CloudPrompt {
   createdAt: number;
 }
 
+const STATUS_CONFIG = {
+  completed:       { label: 'Trained',          bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400', border: 'border-emerald-500/20' },
+  awaiting_trainer:{ label: 'Awaiting Trainer',  bg: 'bg-amber-500/15',   text: 'text-amber-400',   dot: 'bg-amber-400',   border: 'border-amber-500/20'   },
+  draft:           { label: 'Draft',             bg: 'bg-blue-500/15',    text: 'text-blue-400',    dot: 'bg-blue-400',    border: 'border-blue-500/20'    },
+} as const;
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1, y: 0,
+    transition: { delay: i * 0.07, duration: 0.45, ease: [0.4, 0, 0.2, 1] },
+  }),
+};
+
 export function WelcomeDashboard() {
-    const router = useRouter();
-    const [invitations, setInvitations] = useState(initialInvitations);
-    const [userAvatars, setUserAvatars] = useState<UserAvatar[]>([]);
-    const [cloudAvatars, setCloudAvatars] = useState<CloudPrompt[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [showQuestionnaire, setShowQuestionnaire] = useState(false);
-    const [selectedAvatar, setSelectedAvatar] = useState<{name: string, imageUrl: string} | null>(null);
-    const [userEmail, setUserEmail] = useState<string>('');
-    const [userName, setUserName] = useState<string>('');
-    const { user, isLoaded } = useUser();
-    useEffect(() => {
-        const fetchUserAvatars = async () => {
-            if (!isLoaded) {
-                return;
-            }
+  const router = useRouter();
+  const [invitations, setInvitations] = useState(initialInvitations);
+  const [userAvatars, setUserAvatars] = useState<UserAvatar[]>([]);
+  const [cloudAvatars, setCloudAvatars] = useState<CloudPrompt[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<{name: string; imageUrl: string} | null>(null);
+  const [userName, setUserName] = useState<string>('');
+  const { user, isLoaded } = useUser();
 
-            if (!user) {
-                setLoading(false);
-                return;
-            }
-
-            try {
-                const backendUrl = API_URL;
-
-                setUserEmail(user.primaryEmailAddress?.emailAddress || '');
-                setUserName(user.username || user.fullName || 'User');
-
-                const dashboardRes = await fetch(`${backendUrl}/api/avatar-flow/dashboard/${user.id}`);
-                if (dashboardRes.ok) {
-                    const dashboardData = await dashboardRes.json();
-                    if (dashboardData.success && dashboardData.avatars) {
-                        setUserAvatars(dashboardData.avatars);
-                    }
-                }
-
-                const cloudRes = await fetch(`${backendUrl}/api/avatar-flow/cloud-prompts/${user.id}`);
-                if (cloudRes.ok) {
-                    const cloudData = await cloudRes.json();
-                    if (cloudData.success && cloudData.prompts) {
-                        setCloudAvatars(cloudData.prompts);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching avatars:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        
-        fetchUserAvatars();
-    }, [isLoaded, user]);
-
-    const handleAcceptInvitation = (inviteId: string, avatarName: string, avatarImageUrl: string) => {
-        setSelectedAvatar({ name: avatarName, imageUrl: avatarImageUrl });
-        setShowQuestionnaire(true);
-        setInvitations(invitations.filter(inv => inv.id !== inviteId));
-    };
-
-    const handleRejectInvitation = (inviteId: string) => {
-        setInvitations(invitations.filter(inv => inv.id !== inviteId));
-    }
-    
-    const handleQuestionnaireSubmit = () => {
-        setShowQuestionnaire(false);
-        setSelectedAvatar(null);
-    }
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'completed': return 'bg-green-500/50';
-            case 'awaiting_trainer': return 'bg-yellow-500/50';
-            case 'draft': return 'bg-blue-500/50';
-            default: return 'bg-gray-500/50';
+  useEffect(() => {
+    const fetchUserAvatars = async () => {
+      if (!isLoaded) return;
+      if (!user) { setLoading(false); return; }
+      try {
+        setUserName(user.username || user.fullName || 'User');
+        const backendUrl = API_URL;
+        const [dashRes, cloudRes] = await Promise.all([
+          fetch(`${backendUrl}/api/avatar-flow/dashboard/${user.id}`),
+          fetch(`${backendUrl}/api/avatar-flow/cloud-prompts/${user.id}`),
+        ]);
+        if (dashRes.ok) {
+          const d = await dashRes.json();
+          if (d.success && d.avatars) setUserAvatars(d.avatars);
         }
-    };
-
-    const getStatusLabel = (status: string) => {
-        switch (status) {
-            case 'completed': return 'Trained';
-            case 'awaiting_trainer': return 'Awaiting Trainer';
-            case 'draft': return 'Draft';
-            default: return status;
+        if (cloudRes.ok) {
+          const d = await cloudRes.json();
+          if (d.success && d.prompts) setCloudAvatars(d.prompts);
         }
+      } catch (error) {
+        console.error('Error fetching avatars:', error);
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchUserAvatars();
+  }, [isLoaded, user]);
 
-    // Get avatar image - use stored URL if available, otherwise fallback to generated
-    const getAvatarImage = (avatarName: string, avatarImageUrl?: string) => {
-        if (avatarImageUrl) return avatarImageUrl;
-        const index = avatarName.charCodeAt(0) % PlaceHolderImages.length;
-        return PlaceHolderImages[index]?.imageUrl || PlaceHolderImages[0]?.imageUrl || '';
-    };
+  const handleAcceptInvitation = (inviteId: string, avatarName: string, avatarImageUrl: string) => {
+    setSelectedAvatar({ name: avatarName, imageUrl: avatarImageUrl });
+    setShowQuestionnaire(true);
+    setInvitations(invitations.filter(inv => inv.id !== inviteId));
+  };
 
-    if (showQuestionnaire && selectedAvatar) {
-        return <PsychologicalQuestionnaire avatarName={selectedAvatar.name} onSubmit={handleQuestionnaireSubmit} />;
-    }
+  const handleRejectInvitation = (inviteId: string) =>
+    setInvitations(invitations.filter(inv => inv.id !== inviteId));
 
-    // Calculate avatar stats
-    const totalAvatars = userAvatars.length + cloudAvatars.filter(cloud => !userAvatars.some(local => local.id === cloud.avatarId)).length;
-    const completedAvatars = userAvatars.filter(a => a.status === 'completed').length + cloudAvatars.filter(cloud => !userAvatars.some(local => local.id === cloud.avatarId)).length;
-    const pendingAvatars = userAvatars.filter(a => a.status === 'awaiting_trainer' || a.status === 'draft').length;
+  const handleQuestionnaireSubmit = () => {
+    setShowQuestionnaire(false);
+    setSelectedAvatar(null);
+  };
 
-    const statCardVariants = {
-        hidden: { opacity: 0, y: 30, rotateX: -15 },
-        visible: (i: number) => ({
-            opacity: 1, y: 0, rotateX: 0,
-            transition: { delay: i * 0.1, duration: 0.6, type: 'spring', stiffness: 100 }
-        }),
-    };
+  const getAvatarImage = (avatarName: string, avatarImageUrl?: string) => {
+    if (avatarImageUrl) return avatarImageUrl;
+    const index = avatarName.charCodeAt(0) % PlaceHolderImages.length;
+    return PlaceHolderImages[index]?.imageUrl || PlaceHolderImages[0]?.imageUrl || '';
+  };
 
-    const avatarCardVariants = {
-        hidden: { opacity: 0, scale: 0.9, y: 20 },
-        visible: (i: number) => ({
-            opacity: 1, scale: 1, y: 0,
-            transition: { delay: i * 0.08, duration: 0.5, type: 'spring' }
-        }),
-    };
+  if (showQuestionnaire && selectedAvatar) {
+    return <PsychologicalQuestionnaire avatarName={selectedAvatar.name} onSubmit={handleQuestionnaireSubmit} />;
+  }
 
-    return (
-        <>
-            <div className="space-y-8 w-full max-w-6xl perspective-container">
-                {/* User Stats Section */}
-                <div>
-                    <motion.h2
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="text-2xl font-headline mb-4 neon-text"
-                        style={{color: 'var(--dynamic-text-color)'}}
-                    >
-                        Welcome back{userName ? `, ${userName}` : ''}!
-                    </motion.h2>
-                    {userEmail && (
-                        <p className="text-sm text-muted-foreground mb-4">{userEmail}</p>
-                    )}
-                    
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        {/* Total Avatars */}
-                        <motion.div custom={0} variants={statCardVariants} initial="hidden" animate="visible">
-                        <Card className="card-glass card-3d holographic-border">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Total Avatars</CardTitle>
-                                <Bot className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold" style={{color: 'var(--dynamic-text-color)'}}>{loading ? '...' : totalAvatars}</div>
-                                <p className="text-xs text-muted-foreground mb-2">
-                                    Created by you
-                                </p>
-                                {/* Avatar thumbnails */}
-                                {!loading && totalAvatars > 0 && (
-                                    <div className="flex -space-x-2 mt-2">
-                                        {userAvatars.slice(0, 4).map((avatar, idx) => (
-                                            <div key={avatar.id} className="relative w-8 h-8 rounded-full border-2 border-background overflow-hidden" style={{zIndex: 4-idx}}>
-                                                <Image src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} alt={avatar.avatarName} fill className="object-cover" />
-                                            </div>
-                                        ))}
-                                        {totalAvatars > 4 && (
-                                            <div className="w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs font-medium">
-                                                +{totalAvatars - 4}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                        </motion.div>
+  const totalAvatars = userAvatars.length + cloudAvatars.filter(c => !userAvatars.some(l => l.id === c.avatarId)).length;
+  const completedAvatars = userAvatars.filter(a => a.status === 'completed').length + cloudAvatars.filter(c => !userAvatars.some(l => l.id === c.avatarId)).length;
+  const pendingAvatars = userAvatars.filter(a => a.status === 'awaiting_trainer' || a.status === 'draft').length;
 
-                        {/* Trained Avatars */}
-                        <motion.div custom={1} variants={statCardVariants} initial="hidden" animate="visible">
-                        <Card className="card-glass card-3d holographic-border">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Trained</CardTitle>
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-green-500">{loading ? '...' : completedAvatars}</div>
-                                <p className="text-xs text-muted-foreground mb-2">
-                                    Fully trained avatars
-                                </p>
-                                {/* Trained avatar thumbnails */}
-                                {!loading && completedAvatars > 0 && (
-                                    <div className="flex -space-x-2 mt-2">
-                                        {userAvatars.filter(a => a.status === 'completed').slice(0, 4).map((avatar, idx) => (
-                                            <div key={avatar.id} className="relative w-8 h-8 rounded-full border-2 border-green-500/50 overflow-hidden" style={{zIndex: 4-idx}}>
-                                                <Image src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} alt={avatar.avatarName} fill className="object-cover" />
-                                            </div>
-                                        ))}
-                                        {completedAvatars > 4 && (
-                                            <div className="w-8 h-8 rounded-full bg-green-500/20 border-2 border-green-500/50 flex items-center justify-center text-xs font-medium text-green-500">
-                                                +{completedAvatars - 4}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                        </motion.div>
+  const stats = [
+    { label: 'Total Avatars',  value: totalAvatars,       icon: Bot,          color: 'text-blue-400',    glow: 'shadow-blue-500/10'    },
+    { label: 'Trained',        value: completedAvatars,   icon: CheckCircle,  color: 'text-emerald-400', glow: 'shadow-emerald-500/10' },
+    { label: 'In Progress',    value: pendingAvatars,     icon: Clock,        color: 'text-amber-400',   glow: 'shadow-amber-500/10'   },
+    { label: 'Cloud Synced',   value: cloudAvatars.length,icon: Cloud,        color: 'text-purple-400',  glow: 'shadow-purple-500/10'  },
+  ];
 
-                        {/* Pending Avatars */}
-                        <motion.div custom={2} variants={statCardVariants} initial="hidden" animate="visible">
-                        <Card className="card-glass card-3d holographic-border">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-                                <Clock className="h-4 w-4 text-yellow-500" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-yellow-500">{loading ? '...' : pendingAvatars}</div>
-                                <p className="text-xs text-muted-foreground mb-2">
-                                    Awaiting training
-                                </p>
-                                {/* Pending avatar thumbnails */}
-                                {!loading && pendingAvatars > 0 && (
-                                    <div className="flex -space-x-2 mt-2">
-                                        {userAvatars.filter(a => a.status === 'awaiting_trainer' || a.status === 'draft').slice(0, 4).map((avatar, idx) => (
-                                            <div key={avatar.id} className="relative w-8 h-8 rounded-full border-2 border-yellow-500/50 overflow-hidden" style={{zIndex: 4-idx}}>
-                                                <Image src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} alt={avatar.avatarName} fill className="object-cover" />
-                                            </div>
-                                        ))}
-                                        {pendingAvatars > 4 && (
-                                            <div className="w-8 h-8 rounded-full bg-yellow-500/20 border-2 border-yellow-500/50 flex items-center justify-center text-xs font-medium text-yellow-500">
-                                                +{pendingAvatars - 4}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                        </motion.div>
+  return (
+    <div className="space-y-10 w-full max-w-6xl">
 
-                        {/* Cloud Synced */}
-                        <motion.div custom={3} variants={statCardVariants} initial="hidden" animate="visible">
-                        <Card className="card-glass card-3d holographic-border">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Cloud Synced</CardTitle>
-                                <span className="text-sm">☁️</span>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-purple-500">{loading ? '...' : cloudAvatars.length}</div>
-                                <p className="text-xs text-muted-foreground mb-2">
-                                    Saved to cloud
-                                </p>
-                                {/* Cloud avatar thumbnails */}
-                                {!loading && cloudAvatars.length > 0 && (
-                                    <div className="flex -space-x-2 mt-2">
-                                        {cloudAvatars.slice(0, 4).map((avatar, idx) => (
-                                            <div key={avatar._id} className="relative w-8 h-8 rounded-full border-2 border-purple-500/50 overflow-hidden" style={{zIndex: 4-idx}}>
-                                                <Image src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} alt={avatar.avatarName} fill className="object-cover" />
-                                            </div>
-                                        ))}
-                                        {cloudAvatars.length > 4 && (
-                                            <div className="w-8 h-8 rounded-full bg-purple-500/20 border-2 border-purple-500/50 flex items-center justify-center text-xs font-medium text-purple-500">
-                                                +{cloudAvatars.length - 4}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                        </motion.div>
-                    </div>
-                </div>
+      {/* Greeting */}
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h2 className="text-2xl font-semibold tracking-tight text-white/90">
+          {userName ? `Welcome back, ${userName}` : 'Welcome back'}
+          <span className="text-white/25"> — </span>
+          <span className="gradient-text-blue">your workspace</span>
+        </h2>
+        <p className="text-sm text-white/35 mt-1">Manage your avatars, training, and memories from one place.</p>
+      </motion.div>
 
-                {/* My Avatars Section */}
-                <div>
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-2xl font-headline" style={{color: 'var(--dynamic-text-color)'}}>My Avatars</h2>
-                        <button 
-                            onClick={() => router.push('/dashboard?view=create-avatar')}
-                            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors text-sm"
-                        >
-                            + Create Avatar
-                        </button>
-                    </div>
-                    
-                    {loading ? (
-                        <Card className="card-glass">
-                            <CardHeader>
-                                <CardDescription>Loading your avatars...</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    ) : userAvatars.length > 0 || cloudAvatars.length > 0 ? (
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {/* Show avatars from local storage */}
-                            {userAvatars.map((avatar, idx) => (
-                                <motion.div
-                                    key={avatar.id}
-                                    custom={idx}
-                                    variants={avatarCardVariants}
-                                    initial="hidden"
-                                    animate="visible"
-                                    className="group block text-left cursor-pointer"
-                                    onClick={() => router.push(`/chat/${avatar.id}`)}
-                                >
-                                    <Card className="card-glass card-3d holographic-border overflow-hidden h-full transition-all duration-300 group-hover:border-primary/80 group-hover:shadow-xl group-hover:shadow-primary/10">
-                                        <div className="relative aspect-[4/3]">
-                                            <Image 
-                                                src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} 
-                                                alt={avatar.avatarName} 
-                                                fill 
-                                                className="object-cover transition-transform duration-300 group-hover:scale-105" 
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                                            <div className="absolute bottom-4 left-4 right-4">
-                                                <h3 className="text-xl font-bold text-white">{avatar.avatarName}</h3>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className={`text-xs text-white px-2 py-1 rounded-full ${getStatusColor(avatar.status)}`}>
-                                                        {getStatusLabel(avatar.status)}
-                                                    </span>
-                                                    {avatar.convexPromptId && (
-                                                        <span className="text-xs text-white/80 bg-purple-500/50 px-2 py-1 rounded-full">
-                                                            ☁️ Cloud
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="text-xs text-white/60 mt-2">
-                                                    Created {new Date(avatar.createdAt).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                </motion.div>
-                            ))}
-                            
-                            {/* Show cloud avatars not in local storage */}
-                            {cloudAvatars
-                                .filter(cloud => !userAvatars.some(local => local.id === cloud.avatarId))
-                                .map((avatar, idx) => (
-                                    <motion.div
-                                        key={avatar._id}
-                                        custom={userAvatars.length + idx}
-                                        variants={avatarCardVariants}
-                                        initial="hidden"
-                                        animate="visible"
-                                        className="group block text-left cursor-pointer"
-                                        onClick={() => router.push(`/chat/${avatar.avatarId}`)}
-                                    >
-                                        <Card className="card-glass card-3d holographic-border overflow-hidden h-full transition-all duration-300 group-hover:border-primary/80 group-hover:shadow-xl group-hover:shadow-primary/10">
-                                            <div className="relative aspect-[4/3]">
-                                                <Image 
-                                                    src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)} 
-                                                    alt={avatar.avatarName} 
-                                                    fill 
-                                                    className="object-cover transition-transform duration-300 group-hover:scale-105" 
-                                                />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                                                <div className="absolute bottom-4 left-4 right-4">
-                                                    <h3 className="text-xl font-bold text-white">{avatar.avatarName}</h3>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        <span className="text-xs text-white px-2 py-1 rounded-full bg-green-500/50">
-                                                            Trained
-                                                        </span>
-                                                        <span className="text-xs text-white/80 bg-purple-500/50 px-2 py-1 rounded-full">
-                                                            ☁️ Cloud
-                                                        </span>
-                                                    </div>
-                                                    {avatar.trainerName && (
-                                                        <p className="text-xs text-white/60 mt-2">
-                                                            Trained by {avatar.trainerName}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    </motion.div>
-                                ))}
-                        </div>
-                    ) : (
-                        <Card className="card-glass">
-                            <CardHeader>
-                                <CardTitle className="text-lg">No avatars yet</CardTitle>
-                                <CardDescription>
-                                    Create your first avatar to get started with personalized AI training.
-                                </CardDescription>
-                            </CardHeader>
-                        </Card>
-                    )}
-                </div>
-
-                {/* Pending Invitations Section */}
-                <div>
-                    <h2 className="text-2xl font-headline mb-4" style={{color: 'var(--dynamic-text-color)'}}>Pending Invitations</h2>
-                    {invitations.length > 0 ? (
-                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {invitations.map((invite) => (
-                                <InvitationCard 
-                                    key={invite.id}
-                                    {...invite}
-                                    onAccept={() => handleAcceptInvitation(invite.id, invite.avatarName, invite.avatarImageUrl)}
-                                    onReject={() => handleRejectInvitation(invite.id)}
-                                />
-                            ))}
-                        </div>
-                    ) : (
-                        <Card className="card-glass">
-                            <CardHeader>
-                                <CardDescription>You have no pending invitations.</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    )}
-                </div>
+      {/* Stat Cards */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat, i) => (
+          <motion.div key={stat.label} custom={i} variants={cardVariants} initial="hidden" animate="visible">
+            <div className={`rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 shadow-lg ${stat.glow} hover:border-white/[0.12] hover:bg-white/[0.04] transition-all duration-200`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-medium text-white/40 uppercase tracking-wider">{stat.label}</span>
+                <stat.icon className={`h-4 w-4 ${stat.color} opacity-70`} />
+              </div>
+              <div className={`text-3xl font-bold tracking-tight ${stat.color}`}>
+                {loading ? <span className="inline-block w-6 h-6 rounded bg-white/10 animate-pulse" /> : stat.value}
+              </div>
             </div>
-        </>
-    );
+          </motion.div>
+        ))}
+      </div>
+
+      {/* My Avatars */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-base font-semibold text-white/80">My Avatars</h3>
+            <p className="text-xs text-white/30 mt-0.5">Click any avatar to start chatting</p>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => router.push('/dashboard?view=create-avatar')}
+            className="h-8 px-3 rounded-lg bg-primary/90 hover:bg-primary text-white text-xs font-medium border-0 shadow-[0_0_16px_rgba(0,102,255,0.25)] hover:shadow-[0_0_24px_rgba(0,102,255,0.4)] transition-all"
+          >
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
+            New Avatar
+          </Button>
+        </div>
+
+        {loading ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="rounded-xl border border-white/[0.06] bg-white/[0.02] aspect-[4/3] animate-pulse" />
+            ))}
+          </div>
+        ) : userAvatars.length > 0 || cloudAvatars.length > 0 ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Local avatars */}
+            {userAvatars.map((avatar, idx) => {
+              const s = STATUS_CONFIG[avatar.status] ?? STATUS_CONFIG.draft;
+              return (
+                <motion.div
+                  key={avatar.id}
+                  custom={idx}
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="group cursor-pointer"
+                  onClick={() => router.push(`/chat/${avatar.id}`)}
+                >
+                  <div className="relative rounded-xl border border-white/[0.07] overflow-hidden aspect-[4/3] bg-white/[0.02] hover:border-primary/30 transition-all duration-200 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+                    <Image
+                      src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)}
+                      alt={avatar.avatarName}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+
+                    {/* Top-right badges */}
+                    <div className="absolute top-3 right-3 flex gap-1.5">
+                      {avatar.convexPromptId && (
+                        <span className="status-pill bg-purple-500/20 text-purple-300 border border-purple-500/20">
+                          <Cloud className="h-2.5 w-2.5" /> Cloud
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Bottom info */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <h4 className="text-base font-semibold text-white leading-tight">{avatar.avatarName}</h4>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className={`status-pill border ${s.bg} ${s.text} ${s.border}`}>
+                          <span className={`status-pill-dot ${s.dot}`} />
+                          {s.label}
+                        </span>
+                        <span className="text-xs text-white/35">{new Date(avatar.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+
+                    {/* Hover arrow */}
+                    <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <div className="h-7 w-7 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
+                        <ArrowRight className="h-3.5 w-3.5 text-white" />
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+
+            {/* Cloud-only avatars */}
+            {cloudAvatars
+              .filter(c => !userAvatars.some(l => l.id === c.avatarId))
+              .map((avatar, idx) => (
+                <motion.div
+                  key={avatar._id}
+                  custom={userAvatars.length + idx}
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="group cursor-pointer"
+                  onClick={() => router.push(`/chat/${avatar.avatarId}`)}
+                >
+                  <div className="relative rounded-xl border border-white/[0.07] overflow-hidden aspect-[4/3] bg-white/[0.02] hover:border-primary/30 transition-all duration-200 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+                    <Image
+                      src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)}
+                      alt={avatar.avatarName}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                    <div className="absolute top-3 right-3 flex gap-1.5">
+                      <span className="status-pill bg-purple-500/20 text-purple-300 border border-purple-500/20">
+                        <Cloud className="h-2.5 w-2.5" /> Cloud
+                      </span>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <h4 className="text-base font-semibold text-white leading-tight">{avatar.avatarName}</h4>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="status-pill border bg-emerald-500/15 text-emerald-400 border-emerald-500/20">
+                          <span className="status-pill-dot bg-emerald-400" />
+                          Trained
+                        </span>
+                        {avatar.trainerName && (
+                          <span className="text-xs text-white/35">by {avatar.trainerName}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <div className="h-7 w-7 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
+                        <ArrowRight className="h-3.5 w-3.5 text-white" />
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+          </div>
+        ) : (
+          /* Empty state */
+          <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.01] p-10 flex flex-col items-center justify-center text-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <Sparkles className="h-5 w-5 text-primary/70" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white/60">No avatars yet</p>
+              <p className="text-xs text-white/30 mt-1 max-w-xs">Create your first avatar to begin personalised AI training and memory preservation.</p>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => router.push('/dashboard?view=create-avatar')}
+              className="h-8 px-4 rounded-lg bg-primary/90 hover:bg-primary text-white text-xs border-0 shadow-[0_0_16px_rgba(0,102,255,0.25)]"
+            >
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Create Avatar
+            </Button>
+          </div>
+        )}
+      </section>
+
+      {/* Pending Invitations */}
+      {invitations.length > 0 && (
+        <section>
+          <div className="mb-4">
+            <h3 className="text-base font-semibold text-white/80">Pending Invitations</h3>
+            <p className="text-xs text-white/30 mt-0.5">{invitations.length} invitation{invitations.length !== 1 ? 's' : ''} waiting for your response</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {invitations.map((invite) => (
+              <InvitationCard
+                key={invite.id}
+                {...invite}
+                onAccept={() => handleAcceptInvitation(invite.id, invite.avatarName, invite.avatarImageUrl)}
+                onReject={() => handleRejectInvitation(invite.id)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
 }

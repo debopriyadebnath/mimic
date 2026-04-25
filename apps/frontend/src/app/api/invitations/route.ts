@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
-// In-memory store for invitations (in production, use a database)
-// This is exported so other routes can access it
+// WARNING: in-memory store — all invitations are lost on server restart / redeploy.
+// TODO: migrate to Convex (trainerInvitations table) for persistence.
 export const invitations = new Map<string, {
   id: string;
   avatarId: string;
@@ -71,16 +71,19 @@ export async function POST(request: Request) {
 
 // GET endpoint to list all invitations (for dashboard)
 export async function GET() {
-  const invitationList = Array.from(invitations.values()).map(inv => ({
-    id: inv.id.substring(0, 8) + '...',
-    avatarName: inv.avatarName,
-    createdAt: inv.createdAt,
-    expiresAt: inv.expiresAt,
-    used: inv.used,
-    usedAt: inv.usedAt,
-    hasResponses: !!inv.responses,
-    hasMasterPrompt: !!inv.masterPrompt,
-  }));
+  const now = new Date();
+  const invitationList = Array.from(invitations.values())
+    .filter(inv => inv.expiresAt > now)
+    .map(inv => ({
+      id: inv.id.substring(0, 8) + '...',
+      avatarName: inv.avatarName,
+      createdAt: inv.createdAt,
+      expiresAt: inv.expiresAt,
+      used: inv.used,
+      usedAt: inv.usedAt,
+      hasResponses: !!inv.responses,
+      hasMasterPrompt: !!inv.masterPrompt,
+    }));
 
   return NextResponse.json({ invitations: invitationList });
 }

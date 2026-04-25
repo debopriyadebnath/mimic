@@ -41,7 +41,8 @@ interface TrainerInvitation {
   }>;
 }
 
-// In-memory storage (can be moved to Convex later)
+// WARNING: in-memory only — all avatar drafts and invitations are lost on server restart.
+// TODO: migrate both maps to Convex (avatarFlowConversations / trainerInvitations tables).
 const avatars = new Map<string, AvatarDraft>();
 const invitations = new Map<string, TrainerInvitation>();
 
