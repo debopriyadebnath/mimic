@@ -122,7 +122,69 @@ DATABASE_URL=your_mongodb_url
 JWT_SECRET=your_jwt_secret
 GOOGLE_API_KEY=your_google_genai_key
 ASSEMBLYAI_API_KEY=your_assemblyai_key
+
+# Neo4j (optional — GraphRAG memory layer)
+NEO4J_URI=neo4j+s://<your-aura-instance>.databases.neo4j.io
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=your_neo4j_password
+NEO4J_DATABASE=neo4j
+NEO4J_GRAPH_ENABLED=true
+NEO4J_GRAPH_MAX_DEPTH=2
+NEO4J_GRAPH_CONTEXT_LIMIT=12
 ```
+
+---
+
+## 🕸️ Neo4j Graph Layer (optional GraphRAG)
+
+Mimic stores memories primarily in **Convex** (with vector similarity search). On top of that, an **optional Neo4j graph layer** adds relationship-aware retrieval, explainability, and contradiction detection — without replacing any existing storage.
+
+### What it adds
+
+- **Graph nodes:** `User`, `Avatar`, `Trainer`, `Memory`, `Entity`, `Trait`
+- **Relationships:** `OWNS`, `HAS_MEMORY`, `TRAINED`, `ADDED`, `MENTIONS`, `EXPRESSES`, `RELATED_TO`, `CONTRADICTS`
+- **GraphRAG expansion:** after top-K vector retrieval, chat prompts are enriched with related memories, traits, mentioned entities, and any contradictions.
+- **Explainability:** chat responses include `graphContextUsed`, `graphMemoryIdsUsed`, and `contradictions` fields.
+
+### Required env vars
+
+| Variable | Purpose | Default |
+|---|---|---|
+| `NEO4J_URI` | Bolt/Aura connection string | — |
+| `NEO4J_USERNAME` | Neo4j user | — |
+| `NEO4J_PASSWORD` | Neo4j password | — |
+| `NEO4J_DATABASE` | Database name | `neo4j` |
+| `NEO4J_GRAPH_ENABLED` | Set to `false` to force-disable | `true` |
+| `NEO4J_GRAPH_MAX_DEPTH` | Max graph traversal depth | `2` |
+| `NEO4J_GRAPH_CONTEXT_LIMIT` | Max nodes per expansion | `12` |
+
+### Setup (free Neo4j Aura)
+
+1. Create a free Aura instance at **https://neo4j.com/cloud/aura/** (Aura Free tier).
+2. Download the credentials file and copy `NEO4J_URI`, username, and password into your `apps/backend/.env`.
+3. Initialize constraints once:
+   ```bash
+   cd apps/backend
+   npm run neo4j:init
+   ```
+4. Smoke-test connectivity:
+   ```bash
+   npm run neo4j:smoke
+   ```
+5. Check the live health endpoint:
+   ```bash
+   curl http://localhost:8000/health/neo4j
+   # => { "enabled": true, "connected": true, "database": "neo4j" }
+   ```
+
+### Behavior when Neo4j is not configured
+
+If any of `NEO4J_URI` / `NEO4J_USERNAME` / `NEO4J_PASSWORD` is missing (or `NEO4J_GRAPH_ENABLED=false`):
+
+- The backend **still runs normally** and writes to Convex as before.
+- Graph mirroring and `expandMemoryContext` become **no-ops** and return empty results.
+- `/health/neo4j` reports `{ "enabled": false, "connected": false }`.
+- A single concise warning is logged at startup; no secrets are ever printed.
 
 ---
 

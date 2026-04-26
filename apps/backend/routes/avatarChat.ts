@@ -2,6 +2,18 @@ import { Express, Request, Response } from "express";
 import { requireAuth } from "../lib/middleware";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { clerkMiddleware } from "@clerk/express";
+import {
+  expandMemoryContext,
+  extractEntitiesAndTraits,
+  linkAvatarMemory,
+  linkMemoryEntities,
+  linkMemoryTraits,
+  linkTrainerMemory,
+  renderGraphContextForPrompt,
+  upsertAvatarNode,
+  upsertMemoryNode,
+  upsertTrainerNode,
+} from "../lib/memory-graph";
 const _geminiKey = process.env.GEMINI_API_KEY;
 if (!_geminiKey) throw new Error("GEMINI_API_KEY environment variable is required");
 const googleGenAI = new GoogleGenerativeAI(_geminiKey);
@@ -133,6 +145,22 @@ export const avatarChatRoute = (app: Express) => {
                   : "📝";
             augmentedPrompt += `- ${trustLabel} ${memory.text}\n`;
           });
+        }
+
+        // ===== STEP 4b: GraphRAG expansion over starting memory ids =====
+        let graphContext: Awaited<ReturnType<typeof expandMemoryContext>> | null = null;
+        try {
+          const startingIds = relevantMemories.map((m) => m._id).filter(Boolean);
+          if (startingIds.length > 0) {
+            graphContext = await expandMemoryContext(startingIds, {
+              includeContradictions: true,
+            });
+            const graphBlock = renderGraphContextForPrompt(graphContext);
+            if (graphBlock) augmentedPrompt += graphBlock;
+          }
+        } catch (gErr) {
+          console.warn("[neo4j] expandMemoryContext failed (non-critical):",
+            gErr instanceof Error ? gErr.message : String(gErr));
         }
 
         if (contextMessages.length > 0) {
@@ -287,6 +315,20 @@ export const avatarChatRoute = (app: Express) => {
                 relevanceScore: m.score.toFixed(2),
               })),
             responseId,
+            // Graph explainability (optional — empty when Neo4j is disabled)
+            graphContextUsed: graphContext && graphContext.enabled
+              ? {
+                  relatedMemoryCount: graphContext.relatedMemories.length,
+                  entities: graphContext.entities.slice(0, 8),
+                  traits: graphContext.traits.slice(0, 8),
+                }
+              : undefined,
+            graphMemoryIdsUsed: graphContext && graphContext.enabled
+              ? graphContext.relatedMemories.map((m) => m.id)
+              : undefined,
+            contradictions: graphContext && graphContext.enabled
+              ? graphContext.contradictions
+              : undefined,
           },
         });
       } catch (error) {
@@ -319,9 +361,13 @@ export const avatarChatRoute = (app: Express) => {
         const { avatarId } = req.params;
         const { userId, text, embedding, category, source } = req.body;
 
-        if (!avatarId || !text || !embedding) {
+        // Normalize params (Express may return string | string[])
+        const aid = Array.isArray(avatarId) ? avatarId[0] : avatarId;
+        const uid = userId ? (Array.isArray(userId) ? userId[0] : userId) : null;
+
+        if (!aid || !uid || !text || !embedding) {
           return res.status(400).json({
-            error: "avatarId, text, and embedding are required",
+            error: "avatarId, userId, text, and embedding are required",
           });
         }
 
@@ -333,17 +379,17 @@ export const avatarChatRoute = (app: Express) => {
           conversation_extract: "derived",
         };
 
-        const trustWeight = trustWeightMap[source] || "derived";
+        const trustWt = trustWeightMap[source] || "derived";
 
         // Use the new training memories table with string avatarId
         const saveRes = await globalThis.convex.mutation("trainers:saveTrainingMemory", {
-          avatarId,
+          avatarId: aid,
           text,
           embedding,
           category,
-          trustWeight,
+          trustWeight: trustWt,
           source: source || "user_saved",
-          trainerId: userId,
+          trainerId: uid,
         });
 
         if (!saveRes.success) {
@@ -352,22 +398,49 @@ export const avatarChatRoute = (app: Express) => {
           });
         }
 
+        // ===== Mirror memory into Neo4j graph (best-effort, never blocks) =====
+        try {
+          const memoryId = String(saveRes.memoryId);
+          await upsertAvatarNode({ id: aid, name: aid });
+          await upsertMemoryNode({
+            id: memoryId,
+            avatarId: aid,
+            text,
+            category: category ?? null,
+            trustWeight: trustWt,
+            source: (source as any) || "user_saved",
+            isActive: true,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          });
+          await linkAvatarMemory(aid, memoryId);
+          if (uid) {
+            await upsertTrainerNode({ id: String(uid) });
+            await linkTrainerMemory(String(uid), memoryId, aid);
+          }
+          const { entities, traits } = extractEntitiesAndTraits(text);
+          if (entities.length) await linkMemoryEntities(memoryId, entities);
+          if (traits.length) await linkMemoryTraits(memoryId, traits);
+        } catch (gErr) {
+          console.warn("[neo4j] mirror memory failed (non-critical):",
+            gErr instanceof Error ? gErr.message : String(gErr));
+        }
+
         // Generate access token for trainer (if they don't already have one)
         let accessToken: string | null = null;
         try {
           accessToken = await globalThis.convex.mutation("trainerAccess:generateAccessToken", {
-            avatarId,
+            avatarId: aid,
           });
         } catch (error) {
           console.error("Error generating access token:", error);
-          // Don't fail the request if token generation fails
         }
 
         return res.status(200).json({
           success: true,
           message: "Memory saved successfully",
           memoryId: saveRes.memoryId,
-          accessToken, // Return the token so frontend can display it
+          accessToken,
         });
       } catch (error) {
         console.error("Error saving memory:", error);

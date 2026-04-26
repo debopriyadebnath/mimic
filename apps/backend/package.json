@@ -7,7 +7,9 @@
     "build": "tsc -p .",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "neo4j:init": "ts-node scripts/neo4j-init.ts",
+    "neo4j:smoke": "ts-node scripts/neo4j-smoke.ts"
   },
   "dependencies": {
     "@clerk/express": "^1.7.60",
@@ -24,7 +26,8 @@
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.0.0",
     "mongoose": "^9.1.1",
-    "nanoid": "^3.3.11"
+    "nanoid": "^3.3.11",
+    "neo4j-driver": "^6.0.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

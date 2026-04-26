@@ -20,7 +20,9 @@ import { userRoute } from "./routes/user";
 import { qaRoute } from "./routes/qa";
 import { avatarFlowRoute } from "./routes/avatarFlow";
 import { authRoute } from "./routes/auth";
+import { neo4jHealthRoute } from "./routes/neo4jHealth";
 import { clerkMiddleware } from "@clerk/express";
+import { closeNeo4jDriver, getNeo4jDriver, isNeo4jEnabled } from "./lib/neo4j";
 // removed MongoDB connection; auth will use Convex
 
 // Initialize Convex globally
@@ -61,6 +63,12 @@ userRoute(app);
 qaRoute(app);
 avatarFlowRoute(app);
 authRoute(app);
+neo4jHealthRoute(app);
+
+// Warm up Neo4j driver (lazy init) if enabled; safe no-op otherwise
+if (isNeo4jEnabled()) {
+  getNeo4jDriver();
+}
 
 app.get("/", (req, res) => {
   console.log("localhost is running");
@@ -69,9 +77,23 @@ app.get("/", (req, res) => {
 
 async function start() {
   const port = process.env.PORT ? Number(process.env.PORT) : 8000;
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });
+
+  const shutdown = async (signal: string) => {
+    console.log(`${signal} received. Shutting down gracefully...`);
+    server.close(() => {
+      console.log("HTTP server closed.");
+    });
+    try {
+      await closeNeo4jDriver();
+    } catch {
+      /* already logged */
+    }
+  };
+  process.on("SIGINT", () => { void shutdown("SIGINT"); });
+  process.on("SIGTERM", () => { void shutdown("SIGTERM"); });
 }
 
 start();

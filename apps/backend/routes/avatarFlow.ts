@@ -1,6 +1,10 @@
 import { Express, Request, Response } from "express";
 import { nanoid } from "nanoid";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import {
+  expandMemoryContext,
+  renderGraphContextForPrompt,
+} from "../lib/memory-graph";
 
 interface AvatarDraft {
   id: string;
@@ -896,6 +900,24 @@ Write the master prompt as a single, well-structured paragraph or short set of p
         });
       }
 
+      // === GraphRAG: expand memory context from Neo4j (best-effort) ===
+      let graphContext: Awaited<ReturnType<typeof expandMemoryContext>> | null = null;
+      try {
+        const startingIds = Array.isArray((relevantMemories as any))
+          ? ((relevantMemories as any)
+              .map((m: any) => m?._id ?? m?.id)
+              .filter((id: any): id is string => typeof id === "string" && id.length > 0))
+          : [];
+        if (startingIds.length > 0) {
+          graphContext = await expandMemoryContext(startingIds, { includeContradictions: true });
+          const graphBlock = renderGraphContextForPrompt(graphContext);
+          if (graphBlock) augmentedPrompt += graphBlock;
+        }
+      } catch (gErr) {
+        console.warn("[neo4j] expandMemoryContext (flow) failed (non-critical):",
+          gErr instanceof Error ? gErr.message : String(gErr));
+      }
+
       const model = googleGenAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
       // Build conversation history for context
@@ -950,6 +972,19 @@ ${avatarName} (respond ONLY based on your training, stay in character):`;
         avatarName,
         memoriesUsed: relevantMemories.length,
         sessionId,
+        graphContextUsed: graphContext && graphContext.enabled
+          ? {
+              relatedMemoryCount: graphContext.relatedMemories.length,
+              entities: graphContext.entities.slice(0, 8),
+              traits: graphContext.traits.slice(0, 8),
+            }
+          : undefined,
+        graphMemoryIdsUsed: graphContext && graphContext.enabled
+          ? graphContext.relatedMemories.map((m) => m.id)
+          : undefined,
+        contradictions: graphContext && graphContext.enabled
+          ? graphContext.contradictions
+          : undefined,
       });
     } catch (error: any) {
       console.error("Chat error:", error);

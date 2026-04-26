@@ -1,6 +1,10 @@
 import { Express, Request, Response } from "express";
 import { ConvexHttpClient } from "convex/browser";
 import { GoogleGenAI } from "@google/genai";
+import {
+  expandMemoryContext,
+  renderGraphContextForPrompt,
+} from "../lib/memory-graph";
 
 declare global {
   var convex: any;
@@ -75,6 +79,22 @@ export const qaRoute = (app: Express) => {
           "No relevant training memories found. Say 'I don't know' if you cannot answer from general knowledge.\n";
       }
 
+      // === GraphRAG expansion (best-effort; no-op if Neo4j disabled) ===
+      let graphContext: Awaited<ReturnType<typeof expandMemoryContext>> | null = null;
+      try {
+        const startingIds = (relevantMemoriesResult.relevantMemories || [])
+          .map((m: any) => m?._id)
+          .filter((id: any): id is string => typeof id === "string" && id.length > 0);
+        if (startingIds.length > 0) {
+          graphContext = await expandMemoryContext(startingIds, { includeContradictions: true });
+          const graphBlock = renderGraphContextForPrompt(graphContext);
+          if (graphBlock) contextPrompt += graphBlock;
+        }
+      } catch (gErr) {
+        console.warn("[neo4j] expandMemoryContext (qa) failed (non-critical):",
+          gErr instanceof Error ? gErr.message : String(gErr));
+      }
+
       // Fetch avatar details for master prompt
       const avatar = await globalThis.convex.query("queries:getAvatarById", {
         avatarId,
@@ -125,6 +145,19 @@ Provide a helpful and relevant answer based on the training context.`,
           relevantCount: relevantMemoriesResult.relevantCount,
           confidenceThreshold,
         },
+        graphContextUsed: graphContext && graphContext.enabled
+          ? {
+              relatedMemoryCount: graphContext.relatedMemories.length,
+              entities: graphContext.entities.slice(0, 8),
+              traits: graphContext.traits.slice(0, 8),
+            }
+          : undefined,
+        graphMemoryIdsUsed: graphContext && graphContext.enabled
+          ? graphContext.relatedMemories.map((m) => m.id)
+          : undefined,
+        contradictions: graphContext && graphContext.enabled
+          ? graphContext.contradictions
+          : undefined,
       });
     } catch (error: any) {
       console.error("Q&A error:", error);
