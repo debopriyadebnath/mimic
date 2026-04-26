@@ -2,8 +2,13 @@
 import dotenv from "dotenv";
 import { resolve } from "path";
 dotenv.config({ path: resolve(process.cwd(), ".env") });
+
+const REQUIRED_ENV = ["CONVEX_URL", "GEMINI_API_KEY", "JWT_SECRET"] as const;
+for (const key of REQUIRED_ENV) {
+  if (!process.env[key]) throw new Error(`Missing required environment variable: ${key}`);
+}
+
 import cors from "cors";
-console.log("Hello via Bun!");
 import express from "express";
 import { ConvexHttpClient } from "convex/browser";
 import { geminiCallRoute } from "./routes/emotion";
@@ -44,7 +49,6 @@ app.use(cors({
   optionsSuccessStatus: 200,
 }));
 app.use(clerkMiddleware());
-app.use(express.json());
 
 // Register routes
 geminiCallRoute(app);

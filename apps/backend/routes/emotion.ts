@@ -18,7 +18,7 @@ export const geminiCallRoute = (app: Express) => {
   // Main handler – accepts POST (you can add GET if needed)
   app.post("/gemini/:emotion", async (req: Request, res: Response) => {
     try {
-      const { prompt } = req.body as { prompt?: string };
+      const { prompt, avatarId, conversationId } = req.body as { prompt?: string; avatarId?: string; conversationId?: string };
       const { emotion } = req.params as { emotion: Emotion };
   
       // Initialize GoogleGenerativeAI lazily to ensure env vars are loaded
@@ -47,34 +47,26 @@ export const geminiCallRoute = (app: Express) => {
         text = JSON.stringify(result);
       }
   
-      // ---- Convex call with logging ----
-      const convexRes = await fetch(
-        `${process.env.CONVEX_URL}/api/mutation`,
-        {
+      // Only persist to Convex when caller provides real IDs
+      if (avatarId && conversationId && process.env.CONVEX_URL) {
+        const convexRes = await fetch(`${process.env.CONVEX_URL}/api/mutation`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             path: "emotions:storeEmotionResponse",
             args: {
-              avatarId: "TODO_AVATAR_ID",
-              conversationId: "TODO_CONVERSATION_ID",
+              avatarId,
+              conversationId,
               userMessage: prompt || "Hey, how are you?",
               assistantResponse: text,
               emotion,
             },
           }),
+        });
+        if (!convexRes.ok) {
+          console.error("Convex error:", convexRes.status, await convexRes.text());
         }
-      );
-  
-      if (!convexRes.ok) {
-        const body = await convexRes.text();
-        console.error("Convex error:", convexRes.status, body);
-      } else {
-        console.log("Convex OK:", await convexRes.text());
       }
-      // -----------------------------------
   
       res
         .status(200)

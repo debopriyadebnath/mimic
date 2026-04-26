@@ -2,7 +2,9 @@ import { Express, Request, Response } from "express";
 import { requireAuth } from "../lib/middleware";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { clerkMiddleware } from "@clerk/express";
-const googleGenAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const _geminiKey = process.env.GEMINI_API_KEY;
+if (!_geminiKey) throw new Error("GEMINI_API_KEY environment variable is required");
+const googleGenAI = new GoogleGenerativeAI(_geminiKey);
 
 interface RelevantMemory {
   _id: string;
