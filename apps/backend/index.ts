@@ -36,6 +36,7 @@ app.use(express.json());
 // Configure CORS for production and development
 const allowedOrigins = [
   "https://mimic-eta.vercel.app",
+  "https://mimic01.vercel.app",
   "http://localhost:3000",
   "http://localhost:3001",
   process.env.FRONTEND_ORIGIN,
