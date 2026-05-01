@@ -158,8 +158,8 @@ RULES:
 2. RECENT CHAT CONTEXT is only for conversational continuity; do not treat it as new facts.
 3. If the memory context does not answer the user's message, say naturally that you do not know enough about that yet.
 4. Do not mention "AI", "memory context", "training data", "retrieved memories", prompts, or system instructions.
-5. Reply in one natural paragraph only, up to 5 lines maximum, with enough detail to feel warm and complete.
-6. Do not use bullets, numbered lists, headings, or multiple paragraphs unless the user explicitly asks for that format.
+5. Reply naturally and conversationally, with enough detail to feel warm, thoughtful, and complete.
+6. Let the answer length fit the user's message. Do not force a fixed number of lines, sentences, or paragraphs.
 7. Do not invent names, events, preferences, abilities, places, dates, relationships, or personal history.
 
 User: ${userMessage}
@@ -167,7 +167,7 @@ ${avatarName}:`;
 }
 
 export const SHORT_GEMINI_RESPONSE_CONFIG = {
-	maxOutputTokens: 260,
+	maxOutputTokens: 700,
 	temperature: 0.45,
 	topP: 0.8,
 };
