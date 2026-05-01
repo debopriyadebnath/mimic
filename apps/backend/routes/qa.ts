@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
 import { ConvexHttpClient } from "convex/browser";
 import { GoogleGenAI } from "@google/genai";
-import { GEMINI_MODEL } from "../lib/gemini";
+import { GEMINI_EMBEDDING_MODEL, generateContentWithFallback, getGeminiText } from "../lib/gemini";
 import {
   expandMemoryContext,
   renderGraphContextForPrompt,
@@ -44,7 +44,7 @@ export const qaRoute = (app: Express) => {
 
       const ai = new GoogleGenAI({ apiKey });
       const embeddingResponse = await ai.models.embedContent({
-        model: "gemini-embedding-002",
+        model: GEMINI_EMBEDDING_MODEL,
         contents: question,
       });
 
@@ -106,8 +106,7 @@ export const qaRoute = (app: Express) => {
       }
 
       // Step 5: Generate answer using constrained prompt
-      const answerResponse = await ai.models.generateContent({
-        model: GEMINI_MODEL,
+      const { result: answerResponse } = await generateContentWithFallback(ai, {
         contents: {
           role: "user",
           parts: [
@@ -125,9 +124,7 @@ Provide a helpful and relevant answer based on the training context.`,
         },
       });
 
-      const answer =
-        answerResponse.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "I couldn't generate an answer.";
+      const answer = getGeminiText(answerResponse) || "I couldn't generate an answer.";
 
       // Return answer with memory context
       return res.status(200).json({
@@ -162,7 +159,10 @@ Provide a helpful and relevant answer based on the training context.`,
       });
     } catch (error: any) {
       console.error("Q&A error:", error);
-      res.status(500).json({ error: error.message });
+      res.status(error?.status || 500).json({
+        error: error?.status === 429 ? "Gemini quota exhausted" : error.message,
+        retryAfterSeconds: error?.retryAfterSeconds,
+      });
     }
   });
 };

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+
 // Sarvam Saarika ASR supported languages
 const SARVAM_ASR_LANGUAGES: Record<string, string> = {
   hi: 'hi-IN',
@@ -69,7 +71,7 @@ async function transcribeWithGemini(
     : 'Transcribe this audio recording accurately. Return ONLY the transcribed text with proper punctuation. If the audio is unclear or silent, return an empty string.';
 
   const result = await client.models.generateContent({
-    model: 'gemini-1.5-flash-latest',
+    model: GEMINI_MODEL,
     contents: [
       {
         inlineData: {

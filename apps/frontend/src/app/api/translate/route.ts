@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+
 // Sarvam AI language code mapping
 const SARVAM_LANGUAGE_CODES: Record<string, string> = {
   hi: 'hi-IN', // Hindi
@@ -69,7 +71,7 @@ async function translateWithGemini(text: string, targetLanguage: string, targetL
   const prompt = `Translate the following text to ${targetLanguageName} (language code: ${targetLanguage}). Return ONLY the translated text, nothing else. Do not add any explanations, notes, or prefixes. If the text is already in the target language, return it as-is.\n\nText to translate:\n${text}`;
 
   const result = await client.models.generateContent({
-    model: 'gemini-1.5-flash-latest',
+    model: GEMINI_MODEL,
     contents: prompt,
   });
   return result.text?.trim() || '';

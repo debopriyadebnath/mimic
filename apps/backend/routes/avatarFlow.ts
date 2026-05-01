@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
 import { nanoid } from "nanoid";
 import { GoogleGenAI } from "@google/genai";
-import { GEMINI_MODEL, generateContentWithFallback } from "../lib/gemini";
+import { GEMINI_EMBEDDING_MODEL, generateContentWithFallback, getGeminiText } from "../lib/gemini";
 import {
   expandMemoryContext,
   renderGraphContextForPrompt,
@@ -478,7 +478,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
             },
           ],
         });
-        finalMasterPrompt = typeof result?.response?.text === 'function' ? result.response.text() : (result?.response?.text ?? JSON.stringify(result));
+        finalMasterPrompt = getGeminiText(result) || JSON.stringify(result);
         console.log("Gemini generated master prompt successfully");
 
       } catch (geminiError: any) {
@@ -871,7 +871,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
       try {
         // Generate embedding for the user's message
         const embeddingResult = await client.models.embedContent({
-          model: "text-embedding-004",
+          model: GEMINI_EMBEDDING_MODEL,
           contents: message,
         });
 
@@ -956,7 +956,7 @@ ${avatarName} (respond ONLY based on your training, stay in character):`;
           },
         ],
       });
-      const response = typeof result?.response?.text === 'function' ? result.response.text() : (result?.response?.text ?? '');
+      const response = getGeminiText(result);
 
       // Persist both user and assistant messages to Convex (avatar-flow conversations)
       try {
@@ -1046,7 +1046,7 @@ ${avatarName} (respond ONLY based on your training, stay in character):`;
 
       const client = new GoogleGenAI({ apiKey });
       const embeddingResult = await client.models.embedContent({
-        model: "text-embedding-004",
+        model: GEMINI_EMBEDDING_MODEL,
         contents: text,
       });
 

@@ -2,7 +2,7 @@ import { Express, Request, Response } from "express";
 import { requireAuth } from "../lib/middleware";
 import { GoogleGenAI } from "@google/genai";
 import { clerkMiddleware } from "@clerk/express";
-import { GEMINI_MODEL, generateContentWithFallback } from "../lib/gemini";
+import { generateContentWithFallback, getGeminiText } from "../lib/gemini";
 import {
   expandMemoryContext,
   extractEntitiesAndTraits,
@@ -182,25 +182,7 @@ export const avatarChatRoute = (app: Express) => {
           systemInstruction: augmentedPrompt,
         });
 
-        // Be defensive: the generative API can return different shapes.
-        let assistantResponse = "";
-        try {
-          if (result?.response && typeof result.response.text === "function") {
-            assistantResponse = result.response.text();
-          } else if (result?.response && typeof result.response.text === "string") {
-            assistantResponse = result.response.text;
-          } else if (Array.isArray(result?.output) && result.output[0]?.content) {
-            assistantResponse = result.output[0].content;
-          } else if (typeof result === "string") {
-            assistantResponse = result;
-          } else if (result?.text) {
-            assistantResponse = result.text;
-          } else {
-            assistantResponse = JSON.stringify(result);
-          }
-        } catch (e) {
-          assistantResponse = "";
-        }
+        const assistantResponse = getGeminiText(result) || JSON.stringify(result);
 
         // ===== STEP 6: Ensure conversation exists and store response =====
         // If client passed 'new' or no sessionId, create a conversation record.
@@ -332,8 +314,11 @@ export const avatarChatRoute = (app: Express) => {
         });
       } catch (error) {
         console.error("Error in avatar chat:", error);
-        return res.status(500).json({
-          error: error instanceof Error ? error.message : "Internal server error",
+        return res.status((error as any)?.status || 500).json({
+          error: (error as any)?.status === 429
+            ? "Gemini quota exhausted"
+            : error instanceof Error ? error.message : "Internal server error",
+          retryAfterSeconds: (error as any)?.retryAfterSeconds,
         });
       }
     }

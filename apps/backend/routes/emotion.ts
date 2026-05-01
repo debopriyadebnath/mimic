@@ -1,6 +1,6 @@
 import { Express, Request, Response } from "express";
 import { GoogleGenAI } from "@google/genai";
-import { GEMINI_MODEL, generateContentWithFallback } from "../lib/gemini";
+import { generateContentWithFallback, getGeminiText } from "../lib/gemini";
 import { Emotion } from "./types";
 
 export const geminiCallRoute = (app: Express) => {
@@ -38,14 +38,7 @@ export const geminiCallRoute = (app: Express) => {
         systemInstruction: `You will only respond to the user in the tone of ${emotion} emotion.`,
       });
 
-      let text = "";
-      if (result?.response && typeof result.response.text === "function") {
-        text = result.response.text();
-      } else if (result?.response && typeof result.response.text === "string") {
-        text = result.response.text;
-      } else {
-        text = JSON.stringify(result);
-      }
+      const text = getGeminiText(result) || JSON.stringify(result);
   
       // Only persist to Convex when caller provides real IDs
       if (avatarId && conversationId && process.env.CONVEX_URL) {
@@ -74,14 +67,17 @@ export const geminiCallRoute = (app: Express) => {
           "Access-Control-Allow-Origin": "*",
         })
         .json({ text });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in /gemini route:", error);
       res
-        .status(500)
+        .status(error?.status || 500)
         .set({
           "Access-Control-Allow-Origin": "*",
         })
-        .json({ error: "Failed to generate content" });
+        .json({
+          error: error?.status === 429 ? "Gemini quota exhausted" : "Failed to generate content",
+          retryAfterSeconds: error?.retryAfterSeconds,
+        });
     }
   });
 };
