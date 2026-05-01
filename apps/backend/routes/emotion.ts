@@ -1,6 +1,6 @@
 import { Express, Request, Response } from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { GEMINI_MODEL } from "../lib/gemini";
+import { GoogleGenAI } from "@google/genai";
+import { GEMINI_MODEL, generateContentWithFallback } from "../lib/gemini";
 import { Emotion } from "./types";
 
 export const geminiCallRoute = (app: Express) => {
@@ -22,14 +22,13 @@ export const geminiCallRoute = (app: Express) => {
       const { prompt, avatarId, conversationId } = req.body as { prompt?: string; avatarId?: string; conversationId?: string };
       const { emotion } = req.params as { emotion: Emotion };
   
-      // Initialize GoogleGenerativeAI lazily to ensure env vars are loaded
+      // Initialize genAI client lazily to ensure env vars are loaded
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
         throw new Error("GEMINI_API_KEY environment variable is not set");
       }
-      const googleGenAI = new GoogleGenerativeAI(apiKey);
-      const model = googleGenAI.getGenerativeModel({ model: GEMINI_MODEL });
-      const result = await model.generateContent({
+      const client = new GoogleGenAI({ apiKey });
+      const { result } = await generateContentWithFallback(client, {
         contents: [
           {
             role: "user",

@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
 import { nanoid } from "nanoid";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { GEMINI_MODEL } from "../lib/gemini";
+import { GoogleGenAI } from "@google/genai";
+import { GEMINI_MODEL, generateContentWithFallback } from "../lib/gemini";
 import {
   expandMemoryContext,
   renderGraphContextForPrompt,
@@ -440,8 +440,7 @@ export const avatarFlowRoute = (app: Express) => {
           throw new Error("GEMINI_API_KEY environment variable is not set");
         }
 
-        const googleGenAI = new GoogleGenerativeAI(apiKey);
-        const model = googleGenAI.getGenerativeModel({ model: GEMINI_MODEL });
+        const client = new GoogleGenAI({ apiKey });
 
         // Format owner responses
         const ownerContext = avatar.ownerResponses
@@ -471,8 +470,15 @@ Create a detailed, cohesive master prompt that:
 
 Write the master prompt as a single, well-structured paragraph or short set of paragraphs. Make it personalized and natural, not a bullet list. Focus on creating a genuine personality profile.`;
 
-        const result = await model.generateContent(prompt);
-        finalMasterPrompt = result.response.text();
+        const { result } = await generateContentWithFallback(client, {
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: prompt }],
+            },
+          ],
+        });
+        finalMasterPrompt = typeof result?.response?.text === 'function' ? result.response.text() : (result?.response?.text ?? JSON.stringify(result));
         console.log("Gemini generated master prompt successfully");
 
       } catch (geminiError: any) {
@@ -857,21 +863,23 @@ Write the master prompt as a single, well-structured paragraph or short set of p
         throw new Error("GEMINI_API_KEY environment variable is not set");
       }
 
-      const googleGenAI = new GoogleGenerativeAI(apiKey);
+      const client = new GoogleGenAI({ apiKey });
 
       // === RAG: Fetch relevant training memories ===
       let relevantMemories: Array<{ text: string; trustWeight: string; score: number }> = [];
 
       try {
         // Generate embedding for the user's message
-        const embeddingModel = googleGenAI.getGenerativeModel({ model: "text-embedding-004" });
-        const embeddingResult = await embeddingModel.embedContent(message);
+        const embeddingResult = await client.models.embedContent({
+          model: "text-embedding-004",
+          contents: message,
+        });
 
-        if (embeddingResult?.embedding?.values) {
+        if (embeddingResult?.embeddings?.[0]?.values) {
           // Query relevant memories from Convex
           const memories = await globalThis.convex.query("trainers:getRelevantTrainingMemories", {
             avatarId: avatarIdValue,
-            queryEmbedding: embeddingResult.embedding.values,
+            queryEmbedding: embeddingResult.embeddings[0].values,
             topK: 5,
           });
 
@@ -918,8 +926,6 @@ Write the master prompt as a single, well-structured paragraph or short set of p
           gErr instanceof Error ? gErr.message : String(gErr));
       }
 
-      const model = googleGenAI.getGenerativeModel({ model: GEMINI_MODEL });
-
       // Build conversation history for context
       const conversationHistory = history.map((msg: { role: string; content: string }) =>
         `${msg.role === 'user' ? 'User' : avatarName}: ${msg.content}`
@@ -942,8 +948,15 @@ User: ${message}
 
 ${avatarName} (respond ONLY based on your training, stay in character):`;
 
-      const result = await model.generateContent(prompt);
-      const response = result.response.text();
+      const { result } = await generateContentWithFallback(client, {
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: prompt }],
+          },
+        ],
+      });
+      const response = typeof result?.response?.text === 'function' ? result.response.text() : (result?.response?.text ?? '');
 
       // Persist both user and assistant messages to Convex (avatar-flow conversations)
       try {
@@ -1031,19 +1044,20 @@ ${avatarName} (respond ONLY based on your training, stay in character):`;
         throw new Error("GEMINI_API_KEY environment variable is not set");
       }
 
-      const googleGenAI = new GoogleGenerativeAI(apiKey);
-      const embeddingModel = googleGenAI.getGenerativeModel({ model: "text-embedding-004" });
+      const client = new GoogleGenAI({ apiKey });
+      const embeddingResult = await client.models.embedContent({
+        model: "text-embedding-004",
+        contents: text,
+      });
 
-      const result = await embeddingModel.embedContent(text);
-
-      if (!result?.embedding?.values) {
+      if (!embeddingResult?.embeddings?.[0]?.values) {
         throw new Error("Failed to generate embedding");
       }
 
       res.json({
         success: true,
-        embedding: result.embedding.values,
-        dimensions: result.embedding.values.length,
+        embedding: embeddingResult.embeddings[0].values,
+        dimensions: embeddingResult.embeddings[0].values.length,
       });
     } catch (error: any) {
       console.error("Embedding generation error:", error);

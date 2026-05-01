@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 // Sarvam AI language code mapping
 const SARVAM_LANGUAGE_CODES: Record<string, string> = {
@@ -64,13 +64,15 @@ async function translateWithGemini(text: string, targetLanguage: string, targetL
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('Gemini API key not configured');
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+  const client = new GoogleGenAI({ apiKey });
 
   const prompt = `Translate the following text to ${targetLanguageName} (language code: ${targetLanguage}). Return ONLY the translated text, nothing else. Do not add any explanations, notes, or prefixes. If the text is already in the target language, return it as-is.\n\nText to translate:\n${text}`;
 
-  const result = await model.generateContent(prompt);
-  return result.response.text().trim();
+  const result = await client.models.generateContent({
+    model: 'gemini-1.5-flash-latest',
+    contents: prompt,
+  });
+  return result.text?.trim() || '';
 }
 
 export async function POST(request: NextRequest) {

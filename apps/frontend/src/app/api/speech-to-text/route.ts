@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 // Sarvam Saarika ASR supported languages
 const SARVAM_ASR_LANGUAGES: Record<string, string> = {
@@ -62,24 +62,26 @@ async function transcribeWithGemini(
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('Gemini API key not configured');
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+  const client = new GoogleGenAI({ apiKey });
 
   const prompt = isPartial
     ? 'Transcribe this audio clip. Return ONLY the transcribed text, nothing else. If the audio is unclear or silent, return an empty string.'
     : 'Transcribe this audio recording accurately. Return ONLY the transcribed text with proper punctuation. If the audio is unclear or silent, return an empty string.';
 
-  const result = await model.generateContent([
-    {
-      inlineData: {
-        mimeType,
-        data: base64Audio,
+  const result = await client.models.generateContent({
+    model: 'gemini-1.5-flash-latest',
+    contents: [
+      {
+        inlineData: {
+          mimeType,
+          data: base64Audio,
+        },
       },
-    },
-    prompt,
-  ]);
+      prompt,
+    ],
+  });
 
-  const transcript = result.response.text().trim();
+  const transcript = result.text?.trim() || '';
 
   // Filter out meta-responses
   const invalidResponses = [

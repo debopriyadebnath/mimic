@@ -1,8 +1,8 @@
 import { Express, Request, Response } from "express";
 import { requireAuth } from "../lib/middleware";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import { clerkMiddleware } from "@clerk/express";
-import { GEMINI_MODEL } from "../lib/gemini";
+import { GEMINI_MODEL, generateContentWithFallback } from "../lib/gemini";
 import {
   expandMemoryContext,
   extractEntitiesAndTraits,
@@ -17,7 +17,7 @@ import {
 } from "../lib/memory-graph";
 const _geminiKey = process.env.GEMINI_API_KEY;
 if (!_geminiKey) throw new Error("GEMINI_API_KEY environment variable is required");
-const googleGenAI = new GoogleGenerativeAI(_geminiKey);
+const geminClient = new GoogleGenAI({ apiKey: _geminiKey });
 
 interface RelevantMemory {
   _id: string;
@@ -172,9 +172,7 @@ export const avatarChatRoute = (app: Express) => {
         }
 
         // ===== STEP 5: Call Gemini with augmented prompt =====
-        const model = googleGenAI.getGenerativeModel({ model: GEMINI_MODEL });
-
-        const result: any = await model.generateContent({
+        const { result } = await generateContentWithFallback(geminClient, {
           contents: [
             {
               role: "user",
