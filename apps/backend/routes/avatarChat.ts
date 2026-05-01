@@ -2,6 +2,7 @@ import { Express, Request, Response } from "express";
 import { requireAuth } from "../lib/middleware";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { clerkMiddleware } from "@clerk/express";
+import { GEMINI_MODEL } from "../lib/gemini";
 import {
   expandMemoryContext,
   extractEntitiesAndTraits,
@@ -171,7 +172,7 @@ export const avatarChatRoute = (app: Express) => {
         }
 
         // ===== STEP 5: Call Gemini with augmented prompt =====
-        const model = googleGenAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = googleGenAI.getGenerativeModel({ model: GEMINI_MODEL });
 
         const result: any = await model.generateContent({
           contents: [

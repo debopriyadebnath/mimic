@@ -1,6 +1,7 @@
 import { Express, Request, Response } from "express";
 import { nanoid } from "nanoid";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GEMINI_MODEL } from "../lib/gemini";
 import {
   expandMemoryContext,
   renderGraphContextForPrompt,
@@ -440,8 +441,7 @@ export const avatarFlowRoute = (app: Express) => {
         }
 
         const googleGenAI = new GoogleGenerativeAI(apiKey);
-        // Use correct model name - gemini-2.0-flash or gemini-1.5-flash-latest
-        const model = googleGenAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = googleGenAI.getGenerativeModel({ model: GEMINI_MODEL });
 
         // Format owner responses
         const ownerContext = avatar.ownerResponses
@@ -918,7 +918,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
           gErr instanceof Error ? gErr.message : String(gErr));
       }
 
-      const model = googleGenAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = googleGenAI.getGenerativeModel({ model: GEMINI_MODEL });
 
       // Build conversation history for context
       const conversationHistory = history.map((msg: { role: string; content: string }) =>

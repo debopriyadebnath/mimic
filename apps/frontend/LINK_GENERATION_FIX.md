@@ -44,7 +44,7 @@ Changed backend URL from old deployed link to local development:
 NEXT_PUBLIC_BACKEND_URL=https://mimic-xt46.onrender.com
 
 # After
-NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```
 
@@ -74,11 +74,11 @@ Comprehensive documentation of all required environment variables with guidance 
 ### For Local Development
 1. Update `.env.local` with your local backend URL:
    ```
-   NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+   NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
    NEXT_PUBLIC_BASE_URL=http://localhost:3000
    ```
 
-2. Ensure your backend is running on `localhost:5000`
+2. Ensure your backend is running on `localhost:8000`
 
 3. Restart your development server
 

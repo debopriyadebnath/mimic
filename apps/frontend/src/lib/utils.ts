@@ -11,7 +11,7 @@ export function cn(...inputs: ClassValue[]) {
 if (!process.env.NEXT_PUBLIC_BACKEND_URL) {
   console.warn(
     'NEXT_PUBLIC_BACKEND_URL environment variable is not set. '
-    + 'Set this to your Express backend URL (e.g. http://localhost:5000 locally, '
+    + 'Set this to your Express backend URL (e.g. http://localhost:8000 locally, '
     + 'or your deployed backend URL in production). Without it, API calls will fail.'
   );
 }

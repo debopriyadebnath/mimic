@@ -1,6 +1,7 @@
 import { Express, Request, Response } from "express";
 import { ConvexHttpClient } from "convex/browser";
 import { GoogleGenAI } from "@google/genai";
+import { GEMINI_MODEL } from "../lib/gemini";
 import {
   expandMemoryContext,
   renderGraphContextForPrompt,
@@ -106,7 +107,7 @@ export const qaRoute = (app: Express) => {
 
       // Step 5: Generate answer using constrained prompt
       const answerResponse = await ai.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: GEMINI_MODEL,
         contents: {
           role: "user",
           parts: [

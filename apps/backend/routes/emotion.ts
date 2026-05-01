@@ -1,5 +1,6 @@
 import { Express, Request, Response } from "express";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GEMINI_MODEL } from "../lib/gemini";
 import { Emotion } from "./types";
 
 export const geminiCallRoute = (app: Express) => {
@@ -27,7 +28,7 @@ export const geminiCallRoute = (app: Express) => {
         throw new Error("GEMINI_API_KEY environment variable is not set");
       }
       const googleGenAI = new GoogleGenerativeAI(apiKey);
-      const model = googleGenAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = googleGenAI.getGenerativeModel({ model: GEMINI_MODEL });
       const result = await model.generateContent({
         contents: [
           {

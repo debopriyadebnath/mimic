@@ -63,7 +63,7 @@ async function transcribeWithGemini(
   if (!apiKey) throw new Error('Gemini API key not configured');
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
 
   const prompt = isPartial
     ? 'Transcribe this audio clip. Return ONLY the transcribed text, nothing else. If the audio is unclear or silent, return an empty string.'

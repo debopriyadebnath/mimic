@@ -1,9 +1,9 @@
 {
   "name": "backend",
   "scripts": {
-    "dev": "ts-node index.ts",
-    "dev:node": "ts-node index.ts",
-    "start": "ts-node index.ts",
+    "dev": "node ./node_modules/ts-node/dist/bin.js index.ts",
+    "dev:node": "node ./node_modules/ts-node/dist/bin.js index.ts",
+    "start": "node ./node_modules/ts-node/dist/bin.js index.ts",
     "build": "tsc -p .",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

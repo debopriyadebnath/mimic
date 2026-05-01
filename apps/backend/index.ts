@@ -37,7 +37,6 @@ app.use(express.json());
 
 // Configure CORS for production and development
 const allowedOrigins = [
-  "https://mimic-eta.vercel.app",
   "https://mimic01.vercel.app",
   "http://localhost:3000",
   "http://localhost:3001",
@@ -63,12 +62,12 @@ userRoute(app);
 qaRoute(app);
 avatarFlowRoute(app);
 authRoute(app);
-neo4jHealthRoute(app);
+// neo4jHealthRoute(app);
 
-// Warm up Neo4j driver (lazy init) if enabled; safe no-op otherwise
-if (isNeo4jEnabled()) {
-  getNeo4jDriver();
-}
+// // Warm up Neo4j driver (lazy init) if enabled; safe no-op otherwise
+// if (isNeo4jEnabled()) {
+//   getNeo4jDriver();
+// }
 
 app.get("/", (req, res) => {
   console.log("localhost is running");
