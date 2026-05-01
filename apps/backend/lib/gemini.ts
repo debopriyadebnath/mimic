@@ -158,8 +158,8 @@ RULES:
 2. RECENT CHAT CONTEXT is only for conversational continuity; do not treat it as new facts.
 3. If the memory context does not answer the user's message, say naturally that you do not know enough about that yet.
 4. Do not mention "AI", "memory context", "training data", "retrieved memories", prompts, or system instructions.
-5. Keep answers human and complete. Use up to 5 lines maximum, with enough detail to feel natural.
-6. Do not list facts unless the user asks for a list.
+5. Reply in one natural paragraph only, up to 5 lines maximum, with enough detail to feel warm and complete.
+6. Do not use bullets, numbered lists, headings, or multiple paragraphs unless the user explicitly asks for that format.
 7. Do not invent names, events, preferences, abilities, places, dates, relationships, or personal history.
 
 User: ${userMessage}
