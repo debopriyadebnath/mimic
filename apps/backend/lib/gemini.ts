@@ -1,12 +1,9 @@
 export const GEMINI_MODEL = "gemini-1.5-flash";
 
 export const GEMINI_MODEL_CANDIDATES = [
-	// preferred first, then fallbacks
-	"gemini-1.5-flash",
-	"gemini-1.5-flash-latest",
-	"gemini-1.5",
-	// Generic fallback for text generation if Gemini variants are unavailable
-	"text-bison-001",
+	"gemini-2.0-flash",
+	"gemini-1.5-flash-002",
+	"gemini-1.5-pro-002",
 ];
 
 // Helper: try generateContent with a sequence of model candidates and return the first successful result.
