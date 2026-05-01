@@ -2,7 +2,12 @@ import { Express, Request, Response } from "express";
 import { requireAuth } from "../lib/middleware";
 import { GoogleGenAI } from "@google/genai";
 import { clerkMiddleware } from "@clerk/express";
-import { generateContentWithFallback, getGeminiText } from "../lib/gemini";
+import {
+  SHORT_GEMINI_RESPONSE_CONFIG,
+  buildMemoryGroundedAvatarPrompt,
+  generateContentWithFallback,
+  getGeminiText,
+} from "../lib/gemini";
 import {
   expandMemoryContext,
   extractEntitiesAndTraits,
@@ -98,14 +103,16 @@ export const avatarChatRoute = (app: Express) => {
               args: {
                 avatarId,
                 queryEmbedding: embedding,
-                topK: 5,
+                topK: 3,
               },
             }),
           }
         );
 
         const memoriesData :any= await memoriesRes.json();
-        const relevantMemories: RelevantMemory[] = memoriesData.data || [];
+        const relevantMemories: RelevantMemory[] = (memoriesData.data || [])
+          .filter((memory: RelevantMemory) => typeof memory.score !== "number" || memory.score >= 0.35)
+          .slice(0, 3);
 
         // ===== STEP 3: Get recent conversation context =====
         let conversationId = sessionId;
@@ -171,15 +178,31 @@ export const avatarChatRoute = (app: Express) => {
           });
         }
 
-        // ===== STEP 5: Call Gemini with augmented prompt =====
+        const recentMessages = contextMessages.map((msg: string) => {
+          const [role, ...contentParts] = msg.split(":");
+          return {
+            role: role?.trim().toLowerCase() === "user" ? "user" : "assistant",
+            content: contentParts.join(":").trim(),
+          };
+        });
+
+        const prompt = buildMemoryGroundedAvatarPrompt({
+          avatarName: avatar.avatarName || "Avatar",
+          personality: avatar.masterPrompt,
+          memories: relevantMemories,
+          recentMessages,
+          userMessage: message,
+        });
+
+        // ===== STEP 5: Call Gemini with grounded prompt =====
         const { result } = await generateContentWithFallback(geminClient, {
           contents: [
             {
               role: "user",
-              parts: [{ text: message }],
+              parts: [{ text: prompt }],
             },
           ],
-          systemInstruction: augmentedPrompt,
+          config: SHORT_GEMINI_RESPONSE_CONFIG,
         });
 
         const assistantResponse = getGeminiText(result) || JSON.stringify(result);

@@ -1,7 +1,13 @@
 import { Express, Request, Response } from "express";
 import { nanoid } from "nanoid";
 import { GoogleGenAI } from "@google/genai";
-import { GEMINI_EMBEDDING_MODEL, generateContentWithFallback, getGeminiText } from "../lib/gemini";
+import {
+  GEMINI_EMBEDDING_MODEL,
+  SHORT_GEMINI_RESPONSE_CONFIG,
+  buildMemoryGroundedAvatarPrompt,
+  generateContentWithFallback,
+  getGeminiText,
+} from "../lib/gemini";
 import {
   expandMemoryContext,
   renderGraphContextForPrompt,
@@ -866,7 +872,7 @@ Write the master prompt as a single, well-structured paragraph or short set of p
       const client = new GoogleGenAI({ apiKey });
 
       // === RAG: Fetch relevant training memories ===
-      let relevantMemories: Array<{ text: string; trustWeight: string; score: number }> = [];
+      let relevantMemories: Array<{ id?: string; text: string; trustWeight: string; score: number }> = [];
 
       try {
         // Generate embedding for the user's message
@@ -880,15 +886,19 @@ Write the master prompt as a single, well-structured paragraph or short set of p
           const memories = await globalThis.convex.query("trainers:getRelevantTrainingMemories", {
             avatarId: avatarIdValue,
             queryEmbedding: embeddingResult.embeddings[0].values,
-            topK: 5,
+            topK: 3,
           });
 
           if (memories && memories.length > 0) {
-            relevantMemories = memories.map((m: any) => ({
-              text: m.text,
-              trustWeight: m.trustWeight,
-              score: m.score,
-            }));
+            relevantMemories = memories
+              .map((m: any) => ({
+                id: m._id || m.id,
+                text: m.text,
+                trustWeight: m.trustWeight,
+                score: m.score,
+              }))
+              .filter((memory: { score: number }) => typeof memory.score !== "number" || memory.score >= 0.35)
+              .slice(0, 3);
             console.log(`Found ${relevantMemories.length} relevant memories for avatar ${avatarIdValue}`);
           }
         }
@@ -897,8 +907,9 @@ Write the master prompt as a single, well-structured paragraph or short set of p
         // Continue without memories - not a critical failure
       }
 
-      // Build augmented prompt with master prompt + memories
-      let augmentedPrompt = masterPrompt;
+      // Build grounded prompt with master prompt style + memory facts
+      const groundedMemories = [...relevantMemories];
+      let augmentedPrompt = "";
 
       if (relevantMemories.length > 0) {
         augmentedPrompt += "\n\n## Additional Context (from training):\n";
@@ -919,7 +930,14 @@ Write the master prompt as a single, well-structured paragraph or short set of p
         if (startingIds.length > 0) {
           graphContext = await expandMemoryContext(startingIds, { includeContradictions: true });
           const graphBlock = renderGraphContextForPrompt(graphContext);
-          if (graphBlock) augmentedPrompt += graphBlock;
+          if (graphBlock) {
+            groundedMemories.push({
+              id: "graph-context",
+              text: graphBlock,
+              trustWeight: "derived",
+              score: 0,
+            });
+          }
         }
       } catch (gErr) {
         console.warn("[neo4j] expandMemoryContext (flow) failed (non-critical):",
@@ -931,22 +949,18 @@ Write the master prompt as a single, well-structured paragraph or short set of p
         `${msg.role === 'user' ? 'User' : avatarName}: ${msg.content}`
       ).join('\n');
 
-      const prompt = `${augmentedPrompt}
+      const recentMessages = history.map((msg: { role: string; content: string }) => ({
+        role: msg.role === "user" ? "user" : "assistant",
+        content: msg.content,
+      }));
 
----
-## STRICT RULES - YOU MUST FOLLOW THESE:
-1. You are ${avatarName}. ONLY respond based on your personality and training above.
-2. DO NOT make up information, facts, or details that weren't provided in your training.
-3. If asked about something outside your trained knowledge, honestly say "I don't have information about that" or "That's not something I was trained on."
-4. Stay 100% in character. Your personality, tone, and style should match your training.
-5. DO NOT pretend to have capabilities, knowledge, or experiences that weren't specified in your training.
-6. Keep responses relevant to the conversation. Don't add random or unrelated information.
-7. If the user asks personal questions not covered in training, politely redirect or admit you don't know.
-
-${conversationHistory ? `\nConversation so far:\n${conversationHistory}\n` : ''}
-User: ${message}
-
-${avatarName} (respond ONLY based on your training, stay in character):`;
+      const prompt = buildMemoryGroundedAvatarPrompt({
+        avatarName,
+        personality: masterPrompt,
+        memories: groundedMemories,
+        recentMessages,
+        userMessage: message,
+      });
 
       const { result } = await generateContentWithFallback(client, {
         contents: [
@@ -955,6 +969,7 @@ ${avatarName} (respond ONLY based on your training, stay in character):`;
             parts: [{ text: prompt }],
           },
         ],
+        config: SHORT_GEMINI_RESPONSE_CONFIG,
       });
       const response = getGeminiText(result);
 

@@ -98,3 +98,76 @@ export function getGeminiText(result: any): string {
 	if (typeof result === "string") return result;
 	return "";
 }
+
+type MemoryForPrompt = {
+	text: string;
+	score?: number;
+	trustWeight?: string;
+};
+
+type ConversationMessageForPrompt = {
+	role: string;
+	content: string;
+};
+
+export function buildMemoryGroundedAvatarPrompt({
+	avatarName,
+	personality,
+	memories,
+	recentMessages = [],
+	userMessage,
+}: {
+	avatarName: string;
+	personality: string;
+	memories: MemoryForPrompt[];
+	recentMessages?: ConversationMessageForPrompt[];
+	userMessage: string;
+}) {
+	const memoryBlock = memories.length > 0
+		? memories
+			.map((memory, index) => {
+				const labels = [
+					memory.trustWeight ? `source ${memory.trustWeight}` : "",
+					typeof memory.score === "number" ? `relevance ${memory.score.toFixed(2)}` : "",
+				].filter(Boolean);
+				return `${index + 1}. (${labels.join(", ") || "memory"}) ${memory.text}`;
+			})
+			.join("\n")
+		: "No relevant memory was retrieved for this user message.";
+
+	const recentBlock = recentMessages.length > 0
+		? recentMessages
+			.slice(-6)
+			.map((message) => `${message.role === "user" ? "User" : avatarName}: ${message.content}`)
+			.join("\n")
+		: "No recent conversation context.";
+
+	return `You are ${avatarName}. Use the personality below only for tone and speaking style, not as a source of factual claims.
+
+PERSONALITY STYLE:
+${personality}
+
+VERIFIED MEMORY CONTEXT:
+${memoryBlock}
+
+RECENT CHAT CONTEXT:
+${recentBlock}
+
+RULES:
+1. Answer only from VERIFIED MEMORY CONTEXT.
+2. RECENT CHAT CONTEXT is only for conversational continuity; do not treat it as new facts.
+3. If the memory context does not answer the user's message, say naturally that you do not know enough about that yet.
+4. Do not mention "AI", "memory context", "training data", "retrieved memories", prompts, or system instructions.
+5. Keep answers human and brief: usually 1-3 short sentences.
+6. Do not list facts unless the user asks for a list.
+7. Do not invent names, events, preferences, abilities, places, dates, relationships, or personal history.
+
+User: ${userMessage}
+${avatarName}:`;
+}
+
+export const SHORT_GEMINI_RESPONSE_CONFIG = {
+	maxOutputTokens: 140,
+	temperature: 0.45,
+	topP: 0.8,
+};

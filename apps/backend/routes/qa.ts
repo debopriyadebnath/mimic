@@ -1,7 +1,13 @@
 import { Express, Request, Response } from "express";
 import { ConvexHttpClient } from "convex/browser";
 import { GoogleGenAI } from "@google/genai";
-import { GEMINI_EMBEDDING_MODEL, generateContentWithFallback, getGeminiText } from "../lib/gemini";
+import {
+  GEMINI_EMBEDDING_MODEL,
+  SHORT_GEMINI_RESPONSE_CONFIG,
+  buildMemoryGroundedAvatarPrompt,
+  generateContentWithFallback,
+  getGeminiText,
+} from "../lib/gemini";
 import {
   expandMemoryContext,
   renderGraphContextForPrompt,
@@ -12,24 +18,14 @@ declare global {
 }
 
 export const qaRoute = (app: Express) => {
-  /**
-   * Ask avatar a question with memory-based context
-   * The avatar uses memories trained by trainers to answer questions
-   * 
-   * Workflow:
-   * 1. Generate embedding for question
-   * 2. Fetch relevant memories via cosine similarity
-   * 3. Apply confidence threshold
-   * 4. Build constrained prompt with relevant memories
-   * 5. Generate answer using avatar's master prompt + relevant context
-   */
+ 
   app.post("/api/avatar/:avatarId/ask", async (req: Request, res: Response) => {
     try {
       const { avatarId } = req.params;
       const {
         question,
-        topK = 5,
-        confidenceThreshold = 0.3,
+        topK = 3,
+        confidenceThreshold = 0.45,
       } = req.body;
 
       if (!question) {
@@ -65,20 +61,12 @@ export const qaRoute = (app: Express) => {
         }
       );
 
-      // Step 4: Build constrained prompt with relevant memories
-      let contextPrompt = "";
-      if (relevantMemoriesResult.relevantMemories.length > 0) {
-        contextPrompt = "Relevant context from training memories:\n";
-        relevantMemoriesResult.relevantMemories.forEach(
-          (memory: any, index: number) => {
-            contextPrompt += `${index + 1}. (Confidence: ${(memory.similarity * 100).toFixed(1)}%) ${memory.text}\n`;
-          }
-        );
-        contextPrompt += "\nAnswer the question using only the above context. If nothing relevant found, say 'I don't know.'\n";
-      } else {
-        contextPrompt =
-          "No relevant training memories found. Say 'I don't know' if you cannot answer from general knowledge.\n";
-      }
+      // Step 4: Build constrained memory list. This is the only source of factual truth.
+      const groundedMemories = (relevantMemoriesResult.relevantMemories || []).map((memory: any) => ({
+        text: memory.text,
+        score: memory.similarity,
+        trustWeight: memory.trustWeight || memory.source,
+      }));
 
       // === GraphRAG expansion (best-effort; no-op if Neo4j disabled) ===
       let graphContext: Awaited<ReturnType<typeof expandMemoryContext>> | null = null;
@@ -89,7 +77,13 @@ export const qaRoute = (app: Express) => {
         if (startingIds.length > 0) {
           graphContext = await expandMemoryContext(startingIds, { includeContradictions: true });
           const graphBlock = renderGraphContextForPrompt(graphContext);
-          if (graphBlock) contextPrompt += graphBlock;
+          if (graphBlock) {
+            groundedMemories.push({
+              text: graphBlock,
+              score: 0,
+              trustWeight: "derived",
+            });
+          }
         }
       } catch (gErr) {
         console.warn("[neo4j] expandMemoryContext (qa) failed (non-critical):",
@@ -105,23 +99,20 @@ export const qaRoute = (app: Express) => {
         return res.status(404).json({ error: "Avatar not found" });
       }
 
+      const prompt = buildMemoryGroundedAvatarPrompt({
+        avatarName: avatar.avatarName || "Avatar",
+        personality: avatar.masterPrompt,
+        memories: groundedMemories,
+        userMessage: question,
+      });
+
       // Step 5: Generate answer using constrained prompt
       const { result: answerResponse } = await generateContentWithFallback(ai, {
         contents: {
           role: "user",
-          parts: [
-            {
-              text: `System: You are an AI avatar with the following personality:
-${avatar.masterPrompt}
-
-${contextPrompt}
-
-User Question: ${question}
-
-Provide a helpful and relevant answer based on the training context.`,
-            },
-          ],
+          parts: [{ text: prompt }],
         },
+        config: SHORT_GEMINI_RESPONSE_CONFIG,
       });
 
       const answer = getGeminiText(answerResponse) || "I couldn't generate an answer.";
