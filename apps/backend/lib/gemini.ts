@@ -14,8 +14,10 @@ export async function generateContentWithFallback(googleGenAI: any, payload: any
 	const errors: Array<{ model: string; message: string }> = [];
 	for (const modelName of GEMINI_MODEL_CANDIDATES) {
 		try {
-			const model = googleGenAI.getGenerativeModel({ model: modelName });
-			const result = await model.generateContent(payload);
+			const result = await googleGenAI.models.generateContent({
+				model: modelName,
+				...payload,
+			});
 			return { result, modelName };
 		} catch (err: any) {
 			errors.push({ model: modelName, message: err?.message || String(err) });
