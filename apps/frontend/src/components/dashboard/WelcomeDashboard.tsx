@@ -51,9 +51,9 @@ interface CloudPrompt {
 }
 
 const STATUS_CONFIG = {
-  completed:       { label: 'Trained',          bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400', border: 'border-emerald-500/20' },
-  awaiting_trainer:{ label: 'Awaiting Trainer',  bg: 'bg-amber-500/15',   text: 'text-amber-400',   dot: 'bg-amber-400',   border: 'border-amber-500/20'   },
-  draft:           { label: 'Draft',             bg: 'bg-blue-500/15',    text: 'text-blue-400',    dot: 'bg-blue-400',    border: 'border-blue-500/20'    },
+  completed:       { label: 'TRAINED',          bg: 'bg-emerald-600/10', text: 'text-emerald-700', dot: 'bg-emerald-600', border: 'border-emerald-600/30' },
+  awaiting_trainer:{ label: 'AWAITING',         bg: 'bg-amber-600/10',   text: 'text-amber-700',   dot: 'bg-amber-600',   border: 'border-amber-600/30'   },
+  draft:           { label: 'DRAFT',            bg: 'bg-foreground/5',   text: 'text-muted-foreground', dot: 'bg-muted-foreground', border: 'border-foreground/20' },
 } as const;
 
 const cardVariants = {
@@ -132,10 +132,10 @@ export function WelcomeDashboard() {
   const pendingAvatars = userAvatars.filter(a => a.status === 'awaiting_trainer' || a.status === 'draft').length;
 
   const stats = [
-    { label: 'Total Avatars',  value: totalAvatars,       icon: Bot,          color: 'text-blue-400',    glow: 'shadow-blue-500/10'    },
-    { label: 'Trained',        value: completedAvatars,   icon: CheckCircle,  color: 'text-emerald-400', glow: 'shadow-emerald-500/10' },
-    { label: 'In Progress',    value: pendingAvatars,     icon: Clock,        color: 'text-amber-400',   glow: 'shadow-amber-500/10'   },
-    { label: 'Cloud Synced',   value: cloudAvatars.length,icon: Cloud,        color: 'text-purple-400',  glow: 'shadow-purple-500/10'  },
+    { label: 'TOTAL_AVATARS',  value: totalAvatars,       icon: Bot          },
+    { label: 'TRAINED',        value: completedAvatars,   icon: CheckCircle  },
+    { label: 'IN_PROGRESS',    value: pendingAvatars,     icon: Clock        },
+    { label: 'CLOUD_SYNCED',   value: cloudAvatars.length,icon: Cloud        },
   ];
 
   return (
@@ -147,25 +147,27 @@ export function WelcomeDashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <h2 className="text-2xl font-semibold tracking-tight text-white/90">
-          {userName ? `Welcome back, ${userName}` : 'Welcome back'}
-          <span className="text-white/25"> — </span>
-          <span className="gradient-text-blue">your workspace</span>
+        <h2 className="text-xl font-mono font-bold tracking-tight uppercase text-foreground">
+          {userName ? `Welcome, ${userName}` : 'Welcome back'}
+          <span className="text-muted-foreground"> — </span>
+          <span className="text-[#ea580c]">your workspace</span>
         </h2>
-        <p className="text-sm text-white/35 mt-1">Manage your avatars, training, and memories from one place.</p>
+        <p className="text-xs font-mono text-muted-foreground mt-1">Manage your avatars, training, and memories from one place.</p>
       </motion.div>
 
       {/* Stat Cards */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 border-2 border-foreground">
         {stats.map((stat, i) => (
-          <motion.div key={stat.label} custom={i} variants={cardVariants} initial="hidden" animate="visible">
-            <div className={`rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 shadow-lg ${stat.glow} hover:border-white/[0.12] hover:bg-white/[0.04] transition-all duration-200`}>
+          <motion.div key={stat.label} custom={i} variants={cardVariants} initial="hidden" animate="visible"
+            className={i < stats.length - 1 ? 'border-b-2 sm:border-b-0 sm:border-r-2 border-foreground' : ''}
+          >
+            <div className="p-4 hover:bg-foreground/5 transition-colors duration-200">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-medium text-white/40 uppercase tracking-wider">{stat.label}</span>
-                <stat.icon className={`h-4 w-4 ${stat.color} opacity-70`} />
+                <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">{stat.label}</span>
+                <stat.icon className="h-4 w-4 text-muted-foreground" />
               </div>
-              <div className={`text-3xl font-bold tracking-tight ${stat.color}`}>
-                {loading ? <span className="inline-block w-6 h-6 rounded bg-white/10 animate-pulse" /> : stat.value}
+              <div className="text-2xl font-mono font-bold tracking-tight text-foreground">
+                {loading ? <span className="inline-block w-6 h-6 bg-foreground/10 animate-pulse" /> : stat.value}
               </div>
             </div>
           </motion.div>
@@ -176,13 +178,13 @@ export function WelcomeDashboard() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-base font-semibold text-white/80">My Avatars</h3>
-            <p className="text-xs text-white/30 mt-0.5">Click any avatar to start chatting</p>
+            <h3 className="text-sm font-mono font-bold tracking-wider uppercase text-foreground">My Avatars</h3>
+            <p className="text-[10px] font-mono text-muted-foreground mt-0.5 tracking-wider uppercase">Click any avatar to start chatting</p>
           </div>
           <Button
             size="sm"
             onClick={() => router.push('/dashboard?view=create-avatar')}
-            className="h-8 px-3 rounded-lg bg-primary/90 hover:bg-primary text-white text-xs font-medium border-0 shadow-[0_0_16px_rgba(0,102,255,0.25)] hover:shadow-[0_0_24px_rgba(0,102,255,0.4)] transition-all"
+            className="h-8 px-3 rounded-none bg-foreground hover:bg-foreground/90 text-background text-[10px] font-mono tracking-wider uppercase border-2 border-foreground transition-all"
           >
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             New Avatar
@@ -192,7 +194,7 @@ export function WelcomeDashboard() {
         {loading ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="rounded-xl border border-white/[0.06] bg-white/[0.02] aspect-[4/3] animate-pulse" />
+              <div key={i} className="border-2 border-foreground/20 bg-foreground/5 aspect-[4/3] animate-pulse" />
             ))}
           </div>
         ) : userAvatars.length > 0 || cloudAvatars.length > 0 ? (
@@ -210,7 +212,7 @@ export function WelcomeDashboard() {
                   className="group cursor-pointer"
                   onClick={() => router.push(`/chat/${avatar.id}`)}
                 >
-                  <div className="relative rounded-xl border border-white/[0.07] overflow-hidden aspect-[4/3] bg-white/[0.02] hover:border-primary/30 transition-all duration-200 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+                  <div className="relative border-2 border-foreground overflow-hidden aspect-[4/3] bg-background hover:bg-foreground/5 transition-all duration-200">
                     <Image
                       src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)}
                       alt={avatar.avatarName}
@@ -218,7 +220,7 @@ export function WelcomeDashboard() {
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/90 via-foreground/20 to-transparent" />
 
                     {/* Top-right badges */}
                     <div className="absolute top-3 right-3 flex gap-1.5">
@@ -231,20 +233,20 @@ export function WelcomeDashboard() {
 
                     {/* Bottom info */}
                     <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h4 className="text-base font-semibold text-white leading-tight">{avatar.avatarName}</h4>
+                      <h4 className="text-sm font-mono font-bold tracking-wider uppercase text-background leading-tight">{avatar.avatarName}</h4>
                       <div className="flex items-center gap-2 mt-1.5">
                         <span className={`status-pill border ${s.bg} ${s.text} ${s.border}`}>
                           <span className={`status-pill-dot ${s.dot}`} />
                           {s.label}
                         </span>
-                        <span className="text-xs text-white/35">{new Date(avatar.createdAt).toLocaleDateString()}</span>
+                        <span className="text-[10px] font-mono text-background/50">{new Date(avatar.createdAt).toLocaleDateString()}</span>
                       </div>
                     </div>
 
                     {/* Hover arrow */}
                     <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <div className="h-7 w-7 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
-                        <ArrowRight className="h-3.5 w-3.5 text-white" />
+                      <div className="h-7 w-7 bg-[#ea580c] flex items-center justify-center">
+                        <ArrowRight className="h-3.5 w-3.5 text-background" />
                       </div>
                     </div>
                   </div>
@@ -265,21 +267,21 @@ export function WelcomeDashboard() {
                   className="group cursor-pointer"
                   onClick={() => router.push(`/chat/${avatar.avatarId}`)}
                 >
-                  <div className="relative rounded-xl border border-white/[0.07] overflow-hidden aspect-[4/3] bg-white/[0.02] hover:border-primary/30 transition-all duration-200 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+                  <div className="relative border-2 border-foreground overflow-hidden aspect-[4/3] bg-background hover:bg-foreground/5 transition-all duration-200">
                     <Image
                       src={getAvatarImage(avatar.avatarName, avatar.avatarImageUrl)}
                       alt={avatar.avatarName}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/90 via-foreground/20 to-transparent" />
                     <div className="absolute top-3 right-3 flex gap-1.5">
                       <span className="status-pill bg-purple-500/20 text-purple-300 border border-purple-500/20">
                         <Cloud className="h-2.5 w-2.5" /> Cloud
                       </span>
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h4 className="text-base font-semibold text-white leading-tight">{avatar.avatarName}</h4>
+                      <h4 className="text-sm font-mono font-bold tracking-wider uppercase text-background leading-tight">{avatar.avatarName}</h4>
                       <div className="flex items-center gap-2 mt-1.5">
                         <span className="status-pill border bg-emerald-500/15 text-emerald-400 border-emerald-500/20">
                           <span className="status-pill-dot bg-emerald-400" />
@@ -291,8 +293,8 @@ export function WelcomeDashboard() {
                       </div>
                     </div>
                     <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <div className="h-7 w-7 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
-                        <ArrowRight className="h-3.5 w-3.5 text-white" />
+                      <div className="h-7 w-7 bg-[#ea580c] flex items-center justify-center">
+                        <ArrowRight className="h-3.5 w-3.5 text-background" />
                       </div>
                     </div>
                   </div>
@@ -301,18 +303,18 @@ export function WelcomeDashboard() {
           </div>
         ) : (
           /* Empty state */
-          <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.01] p-10 flex flex-col items-center justify-center text-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <Sparkles className="h-5 w-5 text-primary/70" />
+          <div className="border-2 border-dashed border-foreground/30 p-10 flex flex-col items-center justify-center text-center gap-4">
+            <div className="h-12 w-12 border-2 border-foreground flex items-center justify-center">
+              <Sparkles className="h-5 w-5 text-[#ea580c]" />
             </div>
             <div>
-              <p className="text-sm font-medium text-white/60">No avatars yet</p>
-              <p className="text-xs text-white/30 mt-1 max-w-xs">Create your first avatar to begin personalised AI training and memory preservation.</p>
+              <p className="text-sm font-mono font-bold uppercase text-foreground">No avatars yet</p>
+              <p className="text-xs font-mono text-muted-foreground mt-1 max-w-xs">Create your first avatar to begin personalised AI training and memory preservation.</p>
             </div>
             <Button
               size="sm"
               onClick={() => router.push('/dashboard?view=create-avatar')}
-              className="h-8 px-4 rounded-lg bg-primary/90 hover:bg-primary text-white text-xs border-0 shadow-[0_0_16px_rgba(0,102,255,0.25)]"
+              className="h-8 px-4 rounded-none bg-foreground hover:bg-foreground/90 text-background text-[10px] font-mono tracking-wider uppercase border-2 border-foreground"
             >
               <Plus className="h-3.5 w-3.5 mr-1.5" /> Create Avatar
             </Button>
@@ -324,8 +326,8 @@ export function WelcomeDashboard() {
       {invitations.length > 0 && (
         <section>
           <div className="mb-4">
-            <h3 className="text-base font-semibold text-white/80">Pending Invitations</h3>
-            <p className="text-xs text-white/30 mt-0.5">{invitations.length} invitation{invitations.length !== 1 ? 's' : ''} waiting for your response</p>
+            <h3 className="text-sm font-mono font-bold tracking-wider uppercase text-foreground">Pending Invitations</h3>
+            <p className="text-[10px] font-mono text-muted-foreground mt-0.5 tracking-wider uppercase">{invitations.length} invitation{invitations.length !== 1 ? 's' : ''} waiting</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {invitations.map((invite) => (

@@ -9,9 +9,9 @@ export default function DashboardPage() {
   return (
     <Suspense fallback={
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="card-glass rounded-2xl px-6 py-5 flex items-center gap-3 border border-white/10">
-          <Loader2 className="h-5 w-5 animate-spin text-primary" />
-          <span className="text-sm text-muted-foreground">Loading your dashboard workspace...</span>
+        <div className="border-2 border-foreground px-6 py-5 flex items-center gap-3 bg-background">
+          <Loader2 className="h-5 w-5 animate-spin text-[#ea580c]" />
+          <span className="text-xs font-mono text-muted-foreground tracking-wider uppercase">Loading workspace...</span>
         </div>
       </div>
     }>

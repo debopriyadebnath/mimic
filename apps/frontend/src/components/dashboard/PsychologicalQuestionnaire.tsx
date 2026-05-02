@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -12,17 +11,18 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { GlowingButton } from '../ui/glowing-button';
+import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
-import { Check } from 'lucide-react';
+import { Check, ArrowRight, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const questions = [
   {
     id: 'q1',
     text: 'When you’re stressed or overwhelmed, what do you usually do first?',
-    description: 'Reveals coping style and emotional regulation',
+    description: 'COGNITIVE_COPING_REACTION',
     options: [
       'Take a short break to calm down',
       'Distract myself with entertainment or social media',
@@ -35,7 +35,7 @@ const questions = [
   {
     id: 'q2',
     text: 'What kind of activities make you lose track of time?',
-    description: 'Shows genuine interests and intrinsic motivation',
+    description: 'INTRINSIC_FLOW_DRIVERS',
     options: [
       'Creative work (designing, writing, music, art)',
       'Learning or researching new topics',
@@ -48,7 +48,7 @@ const questions = [
   {
     id: 'q3',
     text: 'How do you usually make important decisions?',
-    description: 'Indicates decision-making style and independence',
+    description: 'DECISION_LOGIC_WEIGHTING',
     options: [
       'Mostly logical analysis and facts',
       'Strong intuition or gut feeling',
@@ -61,7 +61,7 @@ const questions = [
   {
     id: 'q4',
     text: 'What frustrates you most about working with other people?',
-    description: 'Reveals expectations, boundaries, and interpersonal behavior',
+    description: 'INTERPERSONAL_CONFLICT_TRIGGERS',
     options: [
       'Lack of clear communication',
       'Missed deadlines or unreliability',
@@ -74,7 +74,7 @@ const questions = [
   {
     id: 'q5',
     text: 'Do you prefer planning everything in advance or figuring things out as you go?',
-    description: 'Shows structure vs flexibility preference',
+    description: 'STRUCTURAL_ADAPTABILITY_PREF',
     options: [
       'Detailed planning before starting',
       'Light planning with flexibility',
@@ -87,7 +87,7 @@ const questions = [
   {
     id: 'q6',
     text: 'What motivates you more?',
-    description: 'Uncovers core drivers and values',
+    description: 'CORE_VALUE_INCENTIVES',
     options: [
       'Recognition and appreciation',
       'Personal growth and learning',
@@ -100,7 +100,7 @@ const questions = [
   {
     id: 'q7',
     text: 'How do you react when someone strongly disagrees with you?',
-    description: 'Reveals conflict handling and emotional maturity',
+    description: 'CONFLICT_RESOLUTION_BEHAVIOR',
     options: [
       'Listen and try to understand their view',
       'Defend my point with logic',
@@ -113,7 +113,7 @@ const questions = [
   {
     id: 'q8',
     text: 'What kind of feedback affects you the most?',
-    description: 'Shows sensitivity and growth mindset',
+    description: 'EXTERNAL_STIMULI_SENSITIVITY',
     options: [
       'Positive encouragement',
       'Constructive criticism with solutions',
@@ -126,7 +126,7 @@ const questions = [
   {
     id: 'q9',
     text: 'When you imagine your ideal day, what are you mostly doing and with whom?',
-    description: 'Reveals social orientation and lifestyle preferences',
+    description: 'SOCIAL_ORIENTATION_SCHEMA',
     options: [
       'Working deeply on something I love, alone',
       'Creating or building with a small team',
@@ -139,7 +139,7 @@ const questions = [
   {
     id: 'q10',
     text: 'What is something you care deeply about that most people don’t notice?',
-    description: 'Uncovers deeper interests, empathy, and individuality',
+    description: 'DEEP_VALUE_RECOGNITION',
     options: [
       'Small design or aesthetic details',
       'Fairness and how people are treated',
@@ -176,15 +176,8 @@ export function PsychologicalQuestionnaire({ avatarName, onSubmit }: Psychologic
 
     if (!selectedOption) {
       toast({
-        title: 'Please select an option',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (selectedOption === 'Other' && !customInputs[currentQ.id]?.trim()) {
-      toast({
-        title: 'Please enter your thought',
+        title: 'DATA_INPUT_MISSING',
+        description: 'Please select an option to proceed with calibration.',
         variant: 'destructive',
       });
       return;
@@ -207,21 +200,13 @@ export function PsychologicalQuestionnaire({ avatarName, onSubmit }: Psychologic
 
     if (!selectedOption) {
       toast({
-        title: 'Please select an option',
+        title: 'DATA_INPUT_MISSING',
         variant: 'destructive',
       });
       return;
     }
 
-    if (selectedOption === 'Other' && !customInputs[currentQ.id]?.trim()) {
-      toast({
-        title: 'Please enter your thought',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Prepare final answers, replacing 'Other' with the custom input
+    // Prepare final answers
     const finalAnswers = { ...answers };
     Object.keys(finalAnswers).forEach(key => {
       if (finalAnswers[key] === 'Other') {
@@ -229,117 +214,144 @@ export function PsychologicalQuestionnaire({ avatarName, onSubmit }: Psychologic
       }
     });
 
-    // In a real app, you would send these answers to a backend/AI flow
-    console.log('Submitted Answers:', finalAnswers);
-
     toast({
-      title: 'Questionnaire Complete!',
-      description: `Thank you for training ${avatarName}.`,
+      title: 'CALIBRATION_COMPLETE',
+      description: `Persona mapping for ${avatarName} finalized.`,
     });
     onSubmit();
   };
 
   const currentQuestion = questions[currentQuestionIndex];
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   return (
-    <Card className="card-glass w-full max-w-3xl mx-auto">
-      <CardHeader>
-        <CardTitle style={{ color: 'var(--dynamic-text-color)' }}>
-          Personality Analysis for {avatarName}
-        </CardTitle>
-        <CardDescription>
-          Your answers will help shape the avatar's core personality. ({currentQuestionIndex + 1}/{questions.length})
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="w-full max-w-2xl mx-auto border-2 border-foreground bg-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+      {/* Terminal Header */}
+      <div className="flex items-center justify-between px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-[#ea580c]" />
+          <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-foreground">
+            PSYCH_MAPPING_PROTOCOL
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-24 h-1.5 border border-foreground/20 bg-background overflow-hidden hidden sm:block">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              className="h-full bg-[#ea580c]" 
+            />
+          </div>
+          <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+            {currentQuestionIndex + 1}/{questions.length}
+          </span>
+        </div>
+      </div>
+
+      <div className="p-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentQuestionIndex}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-8"
           >
-            <div className="space-y-6">
-              <div>
-                <Label className="text-xl font-medium leading-relaxed block mb-2">
-                  {currentQuestion.text}
-                </Label>
-                <p className="text-sm text-muted-foreground italic">
-                  {currentQuestion.description}
-                </p>
-              </div>
+            <div>
+              <span className="text-[9px] font-mono font-bold text-[#ea580c] uppercase tracking-[0.2em] mb-2 block">
+                {currentQuestion.description}
+              </span>
+              <h3 className="text-lg font-mono font-bold uppercase leading-snug text-foreground">
+                {currentQuestion.text}
+              </h3>
+            </div>
 
-              <div className="space-y-3">
-                {currentQuestion.options.map((option, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleOptionSelect(currentQuestion.id, option)}
-                    className={`w-full p-4 text-left rounded-lg border transition-all flex items-center gap-3 ${answers[currentQuestion.id] === option
-                        ? 'border-cyan-500 bg-cyan-500/10 text-cyan-600 shadow-sm shadow-cyan-500/20'
-                        : 'border-border hover:border-primary/50 hover:bg-secondary/50'
-                      }`}
-                  >
-                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all flex-shrink-0 ${answers[currentQuestion.id] === option
-                        ? 'bg-cyan-500 border-cyan-500'
-                        : 'border-muted-foreground/50'
-                      }`}>
-                      {answers[currentQuestion.id] === option && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
-                    </div>
-                    <span className="text-sm">{option}</span>
-                  </button>
-                ))}
-
-                {/* Custom 'Other' Option */}
+            <div className="grid gap-3">
+              {currentQuestion.options.map((option, index) => (
                 <button
-                  onClick={() => handleOptionSelect(currentQuestion.id, 'Other')}
-                  className={`w-full p-4 text-left rounded-lg border transition-all flex items-center gap-3 ${answers[currentQuestion.id] === 'Other'
-                      ? 'border-cyan-500 bg-cyan-500/10 text-cyan-600 shadow-sm shadow-cyan-500/20'
-                      : 'border-border hover:border-primary/50 hover:bg-secondary/50'
-                    }`}
+                  key={index}
+                  onClick={() => handleOptionSelect(currentQuestion.id, option)}
+                  className={cn(
+                    "w-full p-4 text-left border-2 transition-all flex items-center gap-4 font-mono text-xs uppercase tracking-wider",
+                    answers[currentQuestion.id] === option
+                      ? 'border-foreground bg-foreground text-background shadow-[4px_4px_0px_0px_rgba(234,88,12,0.4)]'
+                      : 'border-foreground/10 bg-background hover:border-foreground/40 hover:bg-foreground/5 text-foreground'
+                  )}
                 >
-                  <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all flex-shrink-0 ${answers[currentQuestion.id] === 'Other'
-                      ? 'bg-cyan-500 border-cyan-500'
-                      : 'border-muted-foreground/50'
-                    }`}>
-                    {answers[currentQuestion.id] === 'Other' && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                  <div className={cn(
+                    "w-4 h-4 border-2 flex items-center justify-center shrink-0",
+                    answers[currentQuestion.id] === option ? 'border-background bg-background' : 'border-foreground/20'
+                  )}>
+                    {answers[currentQuestion.id] === option && <Check className="w-3 h-3 text-foreground stroke-[4]" />}
                   </div>
-                  <span className="text-sm">Other (describe your own thought)</span>
+                  {option}
                 </button>
+              ))}
 
-                {answers[currentQuestion.id] === 'Other' && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="pt-2"
-                  >
-                    <Textarea
-                      placeholder="Type your answer here..."
-                      value={customInputs[currentQuestion.id] || ''}
-                      onChange={(e) => handleCustomInputChange(currentQuestion.id, e.target.value)}
-                      className="bg-transparent border-cyan-500/50 focus-visible:ring-cyan-500"
-                      autoFocus
-                    />
-                  </motion.div>
+              <button
+                onClick={() => handleOptionSelect(currentQuestion.id, 'Other')}
+                className={cn(
+                  "w-full p-4 text-left border-2 transition-all flex items-center gap-4 font-mono text-xs uppercase tracking-wider",
+                  answers[currentQuestion.id] === 'Other'
+                    ? 'border-foreground bg-foreground text-background shadow-[4px_4px_0px_0px_rgba(234,88,12,0.4)]'
+                    : 'border-foreground/10 bg-background hover:border-foreground/40 hover:bg-foreground/5 text-foreground'
                 )}
-              </div>
+              >
+                <div className={cn(
+                  "w-4 h-4 border-2 flex items-center justify-center shrink-0",
+                  answers[currentQuestion.id] === 'Other' ? 'border-background bg-background' : 'border-foreground/20'
+                )}>
+                  {answers[currentQuestion.id] === 'Other' && <Check className="w-3 h-3 text-foreground stroke-[4]" />}
+                </div>
+                CUSTOM_SPECIFICATION
+              </button>
+
+              {answers[currentQuestion.id] === 'Other' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="pt-2"
+                >
+                  <Textarea
+                    placeholder="INITIALIZE_CUSTOM_RESPONSE..."
+                    value={customInputs[currentQuestion.id] || ''}
+                    onChange={(e) => handleCustomInputChange(currentQuestion.id, e.target.value)}
+                    className="bg-background border-2 border-foreground rounded-none font-mono text-xs focus:ring-0 focus:border-[#ea580c] min-h-[100px] p-4"
+                    autoFocus
+                  />
+                </motion.div>
+              )}
             </div>
           </motion.div>
         </AnimatePresence>
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <GlowingButton
-          text="Back"
+      </div>
+
+      <div className="p-6 border-t-2 border-foreground bg-foreground/5 flex justify-between">
+        <Button
+          variant="outline"
           onClick={handleBack}
           disabled={currentQuestionIndex === 0}
-          className={currentQuestionIndex === 0 ? 'opacity-50' : ''}
-        />
+          className="rounded-none border-2 border-foreground font-mono text-[10px] uppercase tracking-widest px-6 h-12 bg-background disabled:opacity-30"
+        >
+          <ArrowLeft className="h-3.5 w-3.5 mr-2" /> PREV
+        </Button>
         {currentQuestionIndex < questions.length - 1 ? (
-          <GlowingButton text="Next" onClick={handleNext} />
+          <Button 
+            onClick={handleNext}
+            className="rounded-none border-2 border-foreground bg-foreground hover:bg-foreground/90 text-background font-mono text-[10px] uppercase tracking-widest px-8 h-12"
+          >
+            NEXT_PHASE <ArrowRight className="h-3.5 w-3.5 ml-2" />
+          </Button>
         ) : (
-          <GlowingButton text="Submit" onClick={handleSubmit} />
+          <Button 
+            onClick={handleSubmit}
+            className="rounded-none border-2 border-foreground bg-[#ea580c] hover:bg-[#ea580c]/90 text-background font-mono text-[10px] uppercase tracking-widest px-8 h-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all"
+          >
+            COMMIT_PERSONA <Check className="h-3.5 w-3.5 ml-2" />
+          </Button>
         )}
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
