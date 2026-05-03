@@ -194,14 +194,17 @@ export function CreateAvatarPage() {
             case 1:
                 return (
                     <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }}>
-                        <CardHeader>
-                            <CardTitle style={{ color: 'var(--dynamic-text-color)' }}>Step 1: Your Information</CardTitle>
-                            <CardDescription>Your details are automatically fetched from your account.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <Label htmlFor="ownerEmail" className="flex items-center gap-2">
-                                    <Mail className="h-4 w-4" /> Your Email
+                        <div className="flex items-center justify-between px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+                          <div className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 bg-[#ea580c]" />
+                            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-foreground">STEP_01: IDENTITY</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">INITIALIZING...</span>
+                        </div>
+                        <div className="p-8 space-y-6">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="ownerEmail" className="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">
+                                    USER_ID_EMAIL
                                 </Label>
                                 <Input
                                     id="ownerEmail"
@@ -209,144 +212,200 @@ export function CreateAvatarPage() {
                                     value={ownerEmail}
                                     readOnly
                                     disabled
-                                    className="bg-secondary/30 mt-2 cursor-not-allowed"
+                                    className="bg-foreground/5 border-2 border-foreground/20 rounded-none h-12 font-mono text-xs cursor-not-allowed"
                                 />
-                                <p className="text-xs text-muted-foreground mt-1">Auto-fetched from your account</p>
+                                <p className="text-[10px] font-mono text-muted-foreground uppercase">SYSTEM_GENERATED_LOCKED</p>
                             </div>
-                            <div>
-                                <Label htmlFor="ownerName">Your Name *</Label>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="ownerName" className="text-[10px] font-mono font-bold uppercase tracking-widest text-foreground">OWNER_NAME_MANIFEST *</Label>
                                 <Input
                                     id="ownerName"
                                     value={ownerName}
                                     onChange={(e) => setOwnerName(e.target.value)}
-                                    placeholder="e.g., John Smith"
-                                    className="bg-transparent mt-2"
+                                    placeholder="e.g., JOHN_SMITH"
+                                    className="bg-background border-2 border-foreground rounded-none h-12 font-mono text-xs focus:ring-0 focus:border-[#ea580c] transition-colors"
                                 />
                             </div>
-                            <div>
-                                <Label htmlFor="avatarName">Avatar Name *</Label>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="avatarName" className="text-[10px] font-mono font-bold uppercase tracking-widest text-foreground">AVATAR_DESIGNATION *</Label>
                                 <Input
                                     id="avatarName"
                                     value={avatarName}
                                     onChange={(e) => setAvatarName(e.target.value)}
-                                    placeholder="e.g., Neo, Aura, K.A.I."
-                                    className="bg-transparent mt-2"
+                                    placeholder="e.g., NEO_AURA"
+                                    className="bg-background border-2 border-foreground rounded-none h-12 font-mono text-xs focus:ring-0 focus:border-[#ea580c] transition-colors"
                                 />
                             </div>
-                        </CardContent>
-                        <CardFooter className="justify-end">
-                            <GlowingButton text="Next" onClick={handleNext} disabled={!avatarName || !ownerName || !ownerEmail} />
-                        </CardFooter>
+                        </div>
+                        <div className="p-6 border-t-2 border-foreground bg-foreground/5 flex justify-end">
+                            <Button 
+                              onClick={handleNext} 
+                              disabled={!avatarName || !ownerName || !ownerEmail}
+                              className="bg-foreground hover:bg-foreground/90 text-background rounded-none border-2 border-foreground font-mono text-xs uppercase tracking-widest px-8"
+                            >
+                                NEXT_PHASE
+                            </Button>
+                        </div>
                     </motion.div>
                 );
             case 2:
-                // ... same as before ...
                 return (
                     <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }}>
-                        <CardHeader>
-                            <CardTitle style={{ color: 'var(--dynamic-text-color)' }}>Step 2: Choose Its Appearance</CardTitle>
-                            <CardDescription>Select a base visual form for the avatar, or upload your own.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="max-h-[50vh] overflow-y-auto">
-                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                                <label htmlFor="avatar-upload" className="relative aspect-square w-full rounded-lg border-2 border-dashed border-border/50 flex flex-col items-center justify-center text-muted-foreground hover:bg-accent/10 hover:border-primary cursor-pointer transition-all">
-                                    <UploadCloud className="h-8 w-8" />
-                                    <span className="text-xs mt-2 text-center">Upload Your Own</span>
+                        <div className="flex items-center justify-between px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+                          <div className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 bg-[#ea580c]" />
+                            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-foreground">STEP_02: VISUAL_FORM</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">LOADING_MODELS...</span>
+                        </div>
+                        <div className="p-8">
+                            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-[0.2em] mb-6">SELECT_BASE_VISUAL_OR_UPLOAD_CUSTOM</p>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-[50vh] overflow-y-auto pr-2">
+                                <label htmlFor="avatar-upload" className="relative aspect-square w-full border-2 border-dashed border-foreground/30 flex flex-col items-center justify-center text-muted-foreground hover:bg-foreground/5 hover:border-foreground cursor-pointer transition-all">
+                                    <UploadCloud className="h-6 w-6 mb-2" />
+                                    <span className="text-[8px] font-mono uppercase tracking-widest text-center">UPLOAD_SRC</span>
                                     <input id="avatar-upload" type="file" className="sr-only" accept="image/*" onChange={handleImageUpload} />
                                 </label>
                                 {uploadedAvatar && (
                                     <button
                                         onClick={() => setSelectedAvatar(uploadedAvatar)}
-                                        className={cn("relative aspect-square w-full rounded-lg overflow-hidden border-2 transition-all",
-                                            selectedAvatar === uploadedAvatar ? 'border-primary ring-2 ring-primary/50' : 'border-border/50 hover:border-primary'
+                                        className={cn("relative aspect-square w-full border-2 transition-all overflow-hidden",
+                                            selectedAvatar === uploadedAvatar ? 'border-[#ea580c] ring-2 ring-[#ea580c]/50' : 'border-foreground/20 hover:border-foreground'
                                         )}
                                     >
                                         <Image src={uploadedAvatar} alt="Uploaded Avatar" fill className="object-cover" />
-                                        {selectedAvatar === uploadedAvatar && <div className="absolute inset-0 bg-primary/50" />}
+                                        {selectedAvatar === uploadedAvatar && <div className="absolute inset-0 bg-[#ea580c]/20" />}
                                     </button>
                                 )}
                                 {avatars.map(avatar => (
                                     <button
                                         key={avatar.id}
                                         onClick={() => setSelectedAvatar(avatar.imageUrl)}
-                                        className={cn("relative aspect-square w-full rounded-lg overflow-hidden border-2 transition-all",
-                                            selectedAvatar === avatar.imageUrl ? 'border-primary ring-2 ring-primary/50' : 'border-border/50 hover:border-primary'
+                                        className={cn("relative aspect-square w-full border-2 transition-all overflow-hidden",
+                                            selectedAvatar === avatar.imageUrl ? 'border-[#ea580c] ring-2 ring-[#ea580c]/50' : 'border-foreground/20 hover:border-foreground'
                                         )}
                                     >
-                                        <Image src={avatar.imageUrl} alt={avatar.imageHint || 'Avatar image'} fill className="object-cover" data-ai-hint={avatar.imageHint} unoptimized />
-                                        {selectedAvatar === avatar.imageUrl && <div className="absolute inset-0 bg-primary/50" />}
+                                        <Image src={avatar.imageUrl} alt={avatar.imageHint || 'Avatar image'} fill className="object-cover" unoptimized />
+                                        {selectedAvatar === avatar.imageUrl && <div className="absolute inset-0 bg-[#ea580c]/20" />}
                                     </button>
                                 ))}
                             </div>
-                        </CardContent>
-                        <CardFooter className="justify-between">
-                            <Button variant="ghost" onClick={handleBack}>Back</Button>
-                            <GlowingButton text="Next" onClick={handleNext} disabled={!selectedAvatar} />
-                        </CardFooter>
+                        </div>
+                        <div className="p-6 border-t-2 border-foreground bg-foreground/5 flex justify-between">
+                            <Button 
+                              variant="outline" 
+                              onClick={handleBack}
+                              className="rounded-none border-2 border-foreground font-mono text-xs uppercase tracking-widest px-8 bg-background hover:bg-foreground/5"
+                            >
+                              PREV
+                            </Button>
+                            <Button 
+                              onClick={handleNext} 
+                              disabled={!selectedAvatar}
+                              className="bg-foreground hover:bg-foreground/90 text-background rounded-none border-2 border-foreground font-mono text-xs uppercase tracking-widest px-8"
+                            >
+                              NEXT_PHASE
+                            </Button>
+                        </div>
                     </motion.div>
                 );
             case 3:
                 return (
                     <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }}>
-                        <CardHeader>
-                            <CardTitle style={{ color: 'var(--dynamic-text-color)' }}>Step 3: Define & Configure</CardTitle>
-                            <CardDescription>Answer these questions and set invitation settings.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+                          <div className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 bg-[#ea580c]" />
+                            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-foreground">STEP_03: COGNITIVE_CFG</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">CALIBRATING...</span>
+                        </div>
+                        <div className="p-8 space-y-8">
                             {questions.map(q => (
-                                <div key={q.id} className="grid w-full items-center gap-1.5">
-                                    <Label htmlFor={q.id}>{q.label}</Label>
-                                    <Textarea id={q.id} value={answers[q.id as keyof typeof answers]} onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })} placeholder={q.placeholder} className="bg-transparent" />
+                                <div key={q.id} className="space-y-2">
+                                    <Label htmlFor={q.id} className="text-[10px] font-mono font-bold uppercase tracking-widest text-foreground">{q.label}</Label>
+                                    <Textarea 
+                                      id={q.id} 
+                                      value={answers[q.id as keyof typeof answers]} 
+                                      onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })} 
+                                      placeholder={q.placeholder} 
+                                      className="bg-background border-2 border-foreground rounded-none min-h-[100px] font-mono text-xs focus:ring-0 focus:border-[#ea580c] transition-colors" 
+                                    />
                                 </div>
                             ))}
 
-                            <div className="grid w-full items-center gap-1.5 pt-4 border-t border-border/50">
-                                <Label htmlFor="expiration" className="flex items-center gap-2">
-                                    <Clock className="h-4 w-4" /> Link Expiration
+                            <div className="pt-8 border-t-2 border-foreground/10">
+                                <Label htmlFor="expiration" className="flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-widest text-foreground mb-3">
+                                    <Clock className="h-3 w-3" /> LINK_TTL_EXPIRATION
                                 </Label>
                                 <Select value={expirationHours} onValueChange={setExpirationHours}>
-                                    <SelectTrigger className="w-full bg-transparent">
+                                    <SelectTrigger className="w-full bg-background border-2 border-foreground rounded-none h-12 font-mono text-xs">
                                         <SelectValue placeholder="Select duration" />
                                     </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="0.5">30 Minutes</SelectItem>
-                                        <SelectItem value="1">1 Hour</SelectItem>
-                                        <SelectItem value="1.5">1.5 Hours</SelectItem>
-                                        <SelectItem value="2">2 Hours</SelectItem>
+                                    <SelectContent className="rounded-none border-2 border-foreground font-mono text-xs">
+                                        <SelectItem value="0.5" className="focus:bg-foreground/5 rounded-none">30_MINUTES</SelectItem>
+                                        <SelectItem value="1" className="focus:bg-foreground/5 rounded-none">01_HOUR</SelectItem>
+                                        <SelectItem value="1.5" className="focus:bg-foreground/5 rounded-none">1.5_HOURS</SelectItem>
+                                        <SelectItem value="2" className="focus:bg-foreground/5 rounded-none">02_HOURS</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <p className="text-xs text-muted-foreground">The invitation link will become invalid after this time.</p>
+                                <p className="text-[10px] font-mono text-muted-foreground uppercase mt-2">INVITATION_LOCKED_AFTER_EXPIRY</p>
                             </div>
-                        </CardContent>
-                        <CardFooter className="justify-between">
-                            <Button variant="ghost" onClick={handleBack} disabled={isGenerating}>Back</Button>
-                            <GlowingButton
-                                text={isGenerating ? "Generating..." : "Generate Invite Link"}
+                        </div>
+                        <div className="p-6 border-t-2 border-foreground bg-foreground/5 flex justify-between">
+                            <Button 
+                              variant="outline" 
+                              onClick={handleBack} 
+                              disabled={isGenerating}
+                              className="rounded-none border-2 border-foreground font-mono text-xs uppercase tracking-widest px-8 bg-background hover:bg-foreground/5"
+                            >
+                              PREV
+                            </Button>
+                            <Button
                                 onClick={handleGenerateLink}
                                 disabled={isGenerating || !avatarName || !selectedAvatar || !answers.q1 || !answers.q2 || !answers.q3}
-                            />
-                        </CardFooter>
+                                className="bg-foreground hover:bg-foreground/90 text-background rounded-none border-2 border-foreground font-mono text-xs uppercase tracking-widest px-8"
+                            >
+                                {isGenerating ? "GEN_PROCESS..." : "INIT_MIMIC_LINK"}
+                            </Button>
+                        </div>
                     </motion.div>
                 );
             case 4:
                 return (
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-8">
-                        <CardTitle className="text-2xl font-headline mb-4" style={{ color: 'var(--dynamic-text-color)' }}>Invitation Ready!</CardTitle>
-                        <CardDescription className="mb-6">The avatar, {avatarName}, has been created for your participant.</CardDescription>
-                        <div className="relative aspect-square max-w-xs mx-auto rounded-lg overflow-hidden border-2 border-primary shadow-2xl shadow-primary/20 mb-8">
-                            {selectedAvatar && <Image src={selectedAvatar} alt="Final Avatar" fill className="object-cover" unoptimized />}
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
+                        <div className="flex items-center justify-between px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+                          <div className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 bg-green-600" />
+                            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-foreground">MIMIC_SYNC_SUCCESS</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-green-700 uppercase tracking-widest">DEPLOYED</span>
                         </div>
-                        <div className='flex flex-col items-center gap-4 w-full max-w-md mx-auto'>
-                            <p className='text-sm text-muted-foreground'>Share this link with your participant:</p>
+                        <div className="p-8">
+                          <h2 className="text-xl font-mono font-bold uppercase tracking-tight mb-4 text-foreground">Invitation Ready!</h2>
+                          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-8">AVATAR_{avatarName}_INITIALIZED</p>
+                          
+                          <div className="relative aspect-square max-w-[200px] mx-auto border-2 border-foreground mb-8">
+                              {selectedAvatar && <Image src={selectedAvatar} alt="Final Avatar" fill className="object-cover" unoptimized />}
+                          </div>
+                          
+                          <div className='flex flex-col items-center gap-6 w-full max-w-sm mx-auto'>
+                              <p className='text-[10px] font-mono text-muted-foreground uppercase tracking-widest'>SHARE_SECURE_ACCESS_LINK:</p>
 
-                            <div className="flex items-center w-full gap-2">
-                                <Input value={invitationLink} readOnly className="bg-secondary/50 font-mono text-sm" />
-                                <Button size="icon" variant="outline" onClick={copyToClipboard}>
-                                    <Copy className="h-4 w-4" />
-                                </Button>
-                            </div>
+                              <div className="flex items-center w-full gap-0 border-2 border-foreground bg-background">
+                                  <Input value={invitationLink} readOnly className="border-0 rounded-none bg-transparent font-mono text-xs h-12 focus-visible:ring-0" />
+                                  <Button size="icon" variant="ghost" onClick={copyToClipboard} className="h-12 w-12 rounded-none border-l-2 border-foreground hover:bg-foreground/5">
+                                      <Copy className="h-4 w-4" />
+                                  </Button>
+                              </div>
 
-                            <Button variant="ghost" onClick={handleRestart} className="mt-4">Create Another</Button>
+                              <Button 
+                                variant="outline" 
+                                onClick={handleRestart} 
+                                className="rounded-none border-2 border-foreground font-mono text-[10px] uppercase tracking-widest px-8 bg-background hover:bg-foreground/5"
+                              >
+                                CREATE_ANOTHER_MIMIC
+                              </Button>
+                          </div>
                         </div>
                     </motion.div>
                 );
@@ -354,13 +413,13 @@ export function CreateAvatarPage() {
     };
 
     return (
-        <Card className="card-glass w-full max-w-3xl mx-auto">
+        <div className="w-full max-w-3xl mx-auto border-2 border-foreground bg-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <AnimatePresence mode="wait">
                 <motion.div key={step}>
                     {renderStep()}
                 </motion.div>
             </AnimatePresence>
-        </Card>
+        </div>
     );
 }
 

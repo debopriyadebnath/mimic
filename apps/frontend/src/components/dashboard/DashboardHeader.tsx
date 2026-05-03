@@ -32,36 +32,44 @@ export function DashboardHeader({ onMobileMenuClick }: DashboardHeaderProps) {
   }, [searchParams]);
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-white/[0.06] bg-black/30 backdrop-blur-xl px-4 md:px-6">
-      <div className="flex items-center gap-3">
+    <header className="flex h-16 items-center justify-between border-b-2 border-foreground bg-background px-6 md:px-8">
+      <div className="flex items-center gap-6">
         {/* Mobile menu trigger */}
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden h-8 w-8 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.06]"
+          className="md:hidden h-10 w-10 border-2 border-foreground rounded-none text-foreground hover:bg-foreground/5"
           onClick={onMobileMenuClick}
         >
-          <Menu className="h-4 w-4" />
+          <Menu className="h-5 w-5" />
         </Button>
 
         {/* Icon badge */}
-        <div className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary shadow-[0_0_10px_rgba(0,102,255,0.2)]">
-          {currentView.icon}
+        <div className="hidden md:flex h-10 w-10 items-center justify-center border-2 border-foreground text-foreground bg-foreground/5">
+          {React.cloneElement(currentView.icon as React.ReactElement<any>, { className: "h-5 w-5" })}
         </div>
 
         {/* Title area */}
-        <div className="flex flex-col leading-none">
-          <span className="text-sm font-medium text-white/85" style={{ color: 'var(--dynamic-text-color)' }}>
-            {currentView.title}
-          </span>
-          <span className="text-[11px] text-white/30 hidden sm:block mt-0.5">
-            Manage avatars, memory &amp; training
-          </span>
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-mono font-bold tracking-[0.2em] uppercase text-foreground">
+              {currentView.title.replace(" ", "_")}
+            </h2>
+          </div>
+          <p className="text-[9px] font-mono text-muted-foreground hidden sm:block tracking-[0.1em] uppercase">
+            PATH_ROOT: DASHBOARD / {currentView.title.toUpperCase().replace(" ", "_")}
+          </p>
         </div>
       </div>
 
       {/* Right controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-6">
+        <div className="hidden lg:flex items-center gap-2 border-2 border-foreground/10 px-3 py-1.5 bg-foreground/5">
+          <div className="h-2 w-2 rounded-full bg-green-600 animate-pulse" />
+          <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-foreground font-bold">
+            SECURE_CONNECTION
+          </span>
+        </div>
         <ClientOnly>
           <ColorSwitcher />
         </ClientOnly>

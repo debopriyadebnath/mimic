@@ -113,146 +113,156 @@ export function SignUpForm() {
 
   return (
     <div className="w-full max-w-md">
-      <div className="rounded-2xl border border-white/[0.07] bg-[#0a0a0e]/80 backdrop-blur-2xl shadow-[0_0_0_1px_rgba(0,0,0,0.4),0_32px_80px_rgba(0,0,0,0.7)] p-8">
-
-        {/* Header */}
-        <div className="flex flex-col items-center gap-4 mb-8">
-          <Logo />
-          <div className="text-center space-y-1">
-            <h1 className="text-xl font-semibold text-white tracking-tight">
-              {isVerificationStep ? "Verify your email" : "Create an account"}
-            </h1>
-            <p className="text-sm text-white/40">
-              {isVerificationStep
-                ? "Enter the 6-digit code we sent to your inbox"
-                : "Sign up with your details or continue with Google"}
-            </p>
+      <div className="border-2 border-foreground bg-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+        {/* Terminal Header */}
+        <div className="flex items-center justify-between px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 bg-[#ea580c]" />
+            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-foreground">
+              {isVerificationStep ? "VERIFICATION_PROTOCOL" : "REGISTRATION_INITIALIZE"}
+            </span>
           </div>
+          <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">v1.0.4</span>
         </div>
 
-        {isVerificationStep ? (
-          <form onSubmit={handleVerifyCode} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="code" className="text-xs font-medium text-white/50 uppercase tracking-wider">Verification code</Label>
-              <div className="relative">
-                <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25 pointer-events-none" />
-                <Input
-                  id="code"
-                  inputMode="numeric"
-                  pattern="[0-9]{6}"
-                  placeholder="123456"
-                  required
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  disabled={isLoading}
-                  className="pl-9 h-10 rounded-lg bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/25 focus:border-primary/50 transition-all text-center tracking-[0.4em] text-lg font-mono"
-                />
-              </div>
-            </div>
+        <div className="p-8">
+          <div className="mb-8 flex flex-col items-center">
+            <Logo />
+            <p className="mt-4 text-[10px] font-mono text-muted-foreground uppercase tracking-[0.2em] text-center">
+              {isVerificationStep 
+                ? "INPUT_6_DIGIT_SECURE_TOKEN" 
+                : "ESTABLISH_NEW_USER_CREDENTIALS"}
+            </p>
+          </div>
 
-            <Button
-              type="submit"
-              disabled={isLoading || verificationCode.length === 0}
-              className="w-full h-10 rounded-lg bg-primary hover:bg-primary/90 text-white font-medium shadow-[0_0_20px_rgba(0,102,255,0.3)] hover:shadow-[0_0_28px_rgba(0,102,255,0.45)] transition-all duration-200 border-0"
-            >
-              {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying…</> : <>Verify email <ArrowRight className="ml-2 h-4 w-4" /></>}
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleResendCode}
-              disabled={isLoading}
-              className="w-full h-9 text-white/40 hover:text-white/70 text-sm"
-            >
-              Resend code
-            </Button>
-          </form>
-        ) : (
-          <>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          {isVerificationStep ? (
+            <form onSubmit={handleVerifyCode} className="space-y-6">
               <div className="space-y-1.5">
-                <Label htmlFor="username" className="text-xs font-medium text-white/50 uppercase tracking-wider">Username</Label>
+                <Label htmlFor="code" className="text-[10px] font-mono font-bold uppercase tracking-widest text-foreground">SECURE_TOKEN_CODE</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25 pointer-events-none" />
+                  <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/50 pointer-events-none" />
                   <Input
-                    id="username"
-                    placeholder="splitsbinson"
+                    id="code"
+                    inputMode="numeric"
+                    pattern="[0-9]{6}"
+                    placeholder="000000"
                     required
-                    value={formData.username}
-                    onChange={(e) => updateField("username", e.target.value)}
-                    disabled={isLoading}
-                    className="pl-9 h-10 rounded-lg bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/25 focus:border-primary/50 transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-medium text-white/50 uppercase tracking-wider">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25 pointer-events-none" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    required
-                    value={formData.email}
-                    onChange={(e) => updateField("email", e.target.value)}
-                    disabled={isLoading}
-                    className="pl-9 h-10 rounded-lg bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/25 focus:border-primary/50 transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-xs font-medium text-white/50 uppercase tracking-wider">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25 pointer-events-none" />
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                    minLength={8}
-                    value={formData.password}
-                    onChange={(e) => updateField("password", e.target.value)}
-                    disabled={isLoading}
-                    className="pl-9 h-10 rounded-lg bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/25 focus:border-primary/50 transition-all"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    disabled={isLoading || !isLoaded}
+                    className="pl-10 bg-background border-2 border-foreground rounded-none h-12 font-mono text-lg tracking-[0.4em] text-center focus:ring-0 focus:border-[#ea580c] transition-colors"
                   />
                 </div>
               </div>
 
               <Button
                 type="submit"
-                disabled={isLoading}
-                className="w-full h-10 rounded-lg bg-primary hover:bg-primary/90 text-white font-medium shadow-[0_0_20px_rgba(0,102,255,0.3)] hover:shadow-[0_0_28px_rgba(0,102,255,0.45)] transition-all duration-200 border-0 mt-1"
+                disabled={isLoading || !isLoaded || verificationCode.length === 0}
+                className="w-full bg-foreground hover:bg-foreground/90 text-background rounded-none border-2 border-foreground font-mono text-xs uppercase tracking-widest h-12"
               >
-                {isLoading
-                  ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account…</>
-                  : <>Create account <ArrowRight className="ml-2 h-4 w-4" /></>}
+                {isLoading ? "VERIFYING_TOKEN..." : "VALIDATE_IDENTITY"}
               </Button>
+
+              <button
+                type="button"
+                onClick={handleResendCode}
+                disabled={isLoading || !isLoaded}
+                className="w-full text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground hover:underline transition-all"
+              >
+                RESEND_ACCESS_CODE
+              </button>
             </form>
+          ) : (
+            <div className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="username" className="text-[10px] font-mono font-bold uppercase tracking-widest text-foreground">DESIGNATION_ID</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/50 pointer-events-none" />
+                    <Input
+                      id="username"
+                      placeholder="USER_NAME"
+                      required
+                      value={formData.username}
+                      onChange={(e) => updateField("username", e.target.value)}
+                      disabled={isLoading || !isLoaded}
+                      className="pl-10 bg-background border-2 border-foreground rounded-none h-12 font-mono text-xs focus:ring-0 focus:border-[#ea580c] transition-colors"
+                    />
+                  </div>
+                </div>
 
-            <div className="divider-text my-5">or</div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-[10px] font-mono font-bold uppercase tracking-widest text-foreground">COMM_CHANNEL_EMAIL</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/50 pointer-events-none" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="NAME@HOST.DOMAIN"
+                      required
+                      value={formData.email}
+                      onChange={(e) => updateField("email", e.target.value)}
+                      disabled={isLoading || !isLoaded}
+                      className="pl-10 bg-background border-2 border-foreground rounded-none h-12 font-mono text-xs focus:ring-0 focus:border-[#ea580c] transition-colors"
+                    />
+                  </div>
+                </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGoogle}
-              disabled={isLoading}
-              className="w-full h-10 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-white/70 hover:text-white transition-all duration-200"
-            >
-              <GoogleIcon className="mr-2 h-4 w-4" />
-              Continue with Google
-            </Button>
-          </>
-        )}
+                <div className="space-y-1.5">
+                  <Label htmlFor="password" className="text-[10px] font-mono font-bold uppercase tracking-widest text-foreground">SECURE_ACCESS_PASS</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/50 pointer-events-none" />
+                    <Input
+                      id="password"
+                      type="password"
+                      required
+                      minLength={8}
+                      value={formData.password}
+                      onChange={(e) => updateField("password", e.target.value)}
+                      disabled={isLoading || !isLoaded}
+                      className="pl-10 bg-background border-2 border-foreground rounded-none h-12 font-mono text-xs focus:ring-0 focus:border-[#ea580c] transition-colors"
+                    />
+                  </div>
+                </div>
 
-        <p className="mt-6 text-center text-sm text-white/35">
-          Already have an account?{" "}
-          <Link href="/signin" className="text-primary/80 hover:text-primary transition-colors font-medium">
-            Sign in
-          </Link>
-        </p>
+                <Button
+                  type="submit"
+                  disabled={isLoading || !isLoaded}
+                  className="w-full bg-foreground hover:bg-foreground/90 text-background rounded-none border-2 border-foreground font-mono text-xs uppercase tracking-widest h-12 mt-2"
+                >
+                  {isLoading ? "INITIALIZING_USER..." : "CREATE_CORE_ACCOUNT"}
+                </Button>
+              </form>
+
+              <div className="relative flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t-2 border-foreground/10"></div>
+                </div>
+                <span className="relative px-4 bg-background text-[10px] font-mono text-muted-foreground uppercase tracking-widest">OR_USE</span>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogle}
+                disabled={isLoading || !isLoaded}
+                className="w-full rounded-none border-2 border-foreground bg-background hover:bg-foreground/5 text-foreground font-mono text-xs uppercase tracking-widest h-12"
+              >
+                <GoogleIcon className="mr-2 h-4 w-4" />
+                GOOGLE_AUTH_LINK
+              </Button>
+            </div>
+          )}
+
+          <div className="mt-8 pt-6 border-t-2 border-foreground/5 text-center">
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              ALREADY_REGISTERED?{" "}
+              <Link href="/signin" className="text-[#ea580c] hover:underline font-bold">
+                PROCEED_TO_LOGIN
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

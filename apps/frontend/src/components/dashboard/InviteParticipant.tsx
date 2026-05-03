@@ -71,28 +71,32 @@ export function InviteParticipantPage() {
     };
 
     return (
-        <div className="space-y-6 w-full max-w-4xl mx-auto">
+        <div className="space-y-10 w-full max-w-4xl mx-auto">
             {/* Existing Invitations */}
-            <Card className="card-glass">
-                <CardHeader>
-                    <CardTitle className="font-headline" style={{ color: 'var(--dynamic-text-color)' }}>
-                        Your Invitations
-                    </CardTitle>
-                    <CardDescription>
-                        Manage and track your invitation links.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
+            <div className="border-2 border-foreground bg-background overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+                  <div className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 bg-[#ea580c]" />
+                    <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-foreground">INVITATION_REGISTRY</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">ACTIVE_MONITOR</span>
+                </div>
+                
+                <div className="p-8">
                     {isLoading ? (
-                        <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        <div className="flex items-center justify-center py-12">
+                            <Loader2 className="h-6 w-6 animate-spin text-[#ea580c]" />
+                            <span className="ml-3 text-[10px] font-mono uppercase tracking-widest">SCANNING...</span>
                         </div>
                     ) : invitations.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-8">
-                            No invitations found. Create one from the "Create Avatar" page.
-                        </p>
+                        <div className="text-center py-12 border-2 border-dashed border-foreground/20 bg-foreground/5">
+                          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-[0.2em]">
+                              NO_INVITATIONS_DETECTED
+                          </p>
+                          <p className="text-[9px] font-mono text-muted-foreground uppercase mt-2">Initialize new mimic from the create avatar page.</p>
+                        </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             {invitations.map((invitation) => {
                                 const statusInfo = getInvitationStatus(invitation);
                                 const StatusIcon = statusInfo.icon;
@@ -100,58 +104,65 @@ export function InviteParticipantPage() {
                                 return (
                                     <div
                                         key={invitation.token}
-                                        className="p-4 rounded-lg border border-border bg-secondary/30"
+                                        className="border-2 border-foreground bg-background hover:bg-foreground/5 transition-colors overflow-hidden"
                                     >
-                                        <div className="flex items-start justify-between gap-4">
+                                        <div className="flex items-center justify-between px-4 py-2 border-b-2 border-foreground/10 bg-foreground/5">
+                                          <span className="text-[8px] font-mono text-muted-foreground uppercase tracking-widest">TOKEN_{invitation.token.slice(0,8)}</span>
+                                          <div className={`flex items-center gap-1.5 px-2 py-0.5 border border-foreground/20 bg-background`}>
+                                            <StatusIcon className={`h-2.5 w-2.5 ${statusInfo.color}`} />
+                                            <span className={`text-[8px] font-mono font-bold uppercase tracking-widest ${statusInfo.color}`}>{statusInfo.label}</span>
+                                          </div>
+                                        </div>
+                                        
+                                        <div className="p-4 flex items-center justify-between gap-6">
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <h4 className="font-medium truncate">{invitation.avatarName}</h4>
-                                                    <Badge variant={
-                                                        statusInfo.status === 'completed' ? 'default' :
-                                                            statusInfo.status === 'expired' ? 'destructive' : 'secondary'
-                                                    }>
-                                                        <StatusIcon className={`h-3 w-3 mr-1 ${statusInfo.color}`} />
-                                                        {statusInfo.label}
-                                                    </Badge>
+                                                <h4 className="text-sm font-mono font-bold uppercase tracking-wider text-foreground mb-1 truncate">
+                                                  {invitation.avatarName}
+                                                </h4>
+                                                <div className="flex items-center gap-4">
+                                                  <p className="text-[9px] font-mono text-muted-foreground uppercase">
+                                                      INIT: {new Date(invitation.createdAt).toLocaleDateString()}
+                                                  </p>
+                                                  {statusInfo.status === 'pending' && (
+                                                      <p className="text-[9px] font-mono text-[#ea580c] font-bold uppercase">
+                                                          {formatTimeRemaining(invitation.expiresAt)}
+                                                      </p>
+                                                  )}
                                                 </div>
-                                                <p className="text-xs text-muted-foreground">
-                                                    Created: {new Date(invitation.createdAt).toLocaleString()}
-                                                </p>
-                                                {statusInfo.status === 'pending' && (
-                                                    <p className="text-xs text-yellow-500">
-                                                        {formatTimeRemaining(invitation.expiresAt)}
-                                                    </p>
-                                                )}
-                                                {invitation.masterPrompt && (
-                                                    <details className="mt-2">
-                                                        <summary className="text-xs text-primary cursor-pointer hover:underline">
-                                                            View Master Prompt
-                                                        </summary>
-                                                        <p className="mt-2 text-xs text-muted-foreground p-2 bg-background/50 rounded">
-                                                            {invitation.masterPrompt}
-                                                        </p>
-                                                    </details>
-                                                )}
                                             </div>
+                                            
                                             <div className="flex gap-2">
                                                 {statusInfo.status === 'pending' && (
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
                                                         onClick={() => copyToClipboard(invitation.token)}
+                                                        className="rounded-none border-2 border-foreground font-mono text-[10px] uppercase tracking-widest bg-background hover:bg-foreground h-9 px-4 hover:text-background transition-colors"
                                                     >
-                                                        <Copy className="h-4 w-4" />
+                                                        <Copy className="h-3.5 w-3.5 mr-2" />
+                                                        COPY_SRC
                                                     </Button>
                                                 )}
                                             </div>
                                         </div>
+
+                                        {invitation.masterPrompt && (
+                                            <details className="border-t-2 border-foreground/10">
+                                                <summary className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground cursor-pointer hover:bg-foreground/5 px-4 py-2 transition-colors list-none flex items-center gap-2">
+                                                    <span className="h-1 w-1 bg-foreground" /> VIEW_MASTER_PROMPT
+                                                </summary>
+                                                <div className="p-4 bg-foreground/5 text-[10px] font-mono text-muted-foreground leading-relaxed whitespace-pre-wrap border-t-2 border-foreground/10">
+                                                    {invitation.masterPrompt}
+                                                </div>
+                                            </details>
+                                        )}
                                     </div>
                                 );
                             })}
                         </div>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     );
 }

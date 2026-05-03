@@ -271,63 +271,72 @@ export function AvatarTraining() {
   // Loading state
   if (loading) {
     return (
-      <Card className="card-glass w-full max-w-3xl mx-auto">
-        <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </CardContent>
-      </Card>
+      <div className="w-full max-w-3xl mx-auto border-2 border-foreground bg-background p-12 flex flex-col items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#ea580c]" />
+        <span className="mt-4 text-[10px] font-mono uppercase tracking-[0.2em]">INITIALIZING_SYNC...</span>
+      </div>
     );
   }
 
   // No completed avatars
   if (!avatarIdFromUrl && userAvatars.length === 0) {
     return (
-      <Card className="card-glass w-full max-w-3xl mx-auto">
-        <CardHeader>
-          <CardTitle style={{ color: 'var(--dynamic-text-color)' }}>Train Your Avatar</CardTitle>
-        </CardHeader>
-        <CardContent className="text-center py-8">
-          <AlertCircle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No Trained Avatars Yet</h3>
-          <p className="text-muted-foreground mb-4">
-            You need to create an avatar and complete its initial MCQ training before you can add more memories.
+      <div className="w-full max-w-3xl mx-auto border-2 border-foreground bg-background">
+        <div className="flex items-center justify-between px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-[#ea580c]" />
+            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-foreground">TRAINING_ABORTED</span>
+          </div>
+        </div>
+        <div className="p-12 text-center">
+          <h3 className="text-lg font-mono font-bold uppercase tracking-tight mb-4">No Trained Avatars Detected</h3>
+          <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-8 leading-relaxed max-w-sm mx-auto">
+            You need to initialize an avatar and complete its identity phase before adding advanced memories.
           </p>
-          <Button onClick={() => window.location.href = '/dashboard?view=create-avatar'}>
-            Create Avatar
+          <Button 
+            onClick={() => window.location.href = '/dashboard?view=create-avatar'}
+            className="bg-foreground hover:bg-foreground/90 text-background rounded-none border-2 border-foreground font-mono text-xs uppercase tracking-widest px-8"
+          >
+            CREATE_AVATAR_NOW
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-4">
+    <div className="w-full max-w-3xl mx-auto space-y-10">
       {/* Avatar Selection / Info Card */}
-      <Card className="card-glass">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg" style={{ color: 'var(--dynamic-text-color)' }}>
-              {avatarIdFromUrl ? 'Training Avatar' : 'Select Avatar to Train'}
-            </CardTitle>
-            {selectedAvatarId && (
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => window.location.href = `/dashboard?view=training-results&avatarId=${selectedAvatarId}`}>
-                  <Activity className="h-4 w-4 mr-2" />
-                  View Analysis
-                </Button>
-                <Button variant="outline" size="sm" onClick={generateTrainingLink}>
-                  <Link2 className="h-4 w-4 mr-2" />
-                  Copy Training Link
-                </Button>
-              </div>
-            )}
+      <div className="border-2 border-foreground bg-background overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+          <div className="flex items-center gap-2">
+            <Bot className="h-4 w-4 text-foreground" />
+            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-foreground">
+              {avatarIdFromUrl ? 'MIMIC_TARGET' : 'SELECT_MIMIC_TARGET'}
+            </span>
           </div>
-        </CardHeader>
-        <CardContent>
+          {selectedAvatarId && (
+            <div className="flex gap-4">
+              <button 
+                onClick={() => window.location.href = `/dashboard?view=training-results&avatarId=${selectedAvatarId}`}
+                className="text-[9px] font-mono font-bold uppercase tracking-widest text-[#ea580c] hover:underline flex items-center gap-1"
+              >
+                <Activity className="h-3 w-3" /> ANALYZE
+              </button>
+              <button 
+                onClick={generateTrainingLink}
+                className="text-[9px] font-mono font-bold uppercase tracking-widest text-foreground hover:underline flex items-center gap-1"
+              >
+                <Link2 className="h-3 w-3" /> SHARE_ACCESS
+              </button>
+            </div>
+          )}
+        </div>
+        <div className="p-6">
           {avatarIdFromUrl && avatarInfo ? (
             // Trainer view - show fixed avatar
-            <div className="flex items-center gap-4 p-3 bg-primary/10 rounded-lg">
-              <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-primary/50">
+            <div className="flex items-center gap-6 p-4 border-2 border-foreground bg-foreground/5">
+              <div className="relative w-16 h-16 border-2 border-foreground overflow-hidden">
                 <Image
                   src={getAvatarImage(avatarInfo.avatarName, avatarInfo.avatarImageUrl)}
                   alt={avatarInfo.avatarName}
@@ -335,32 +344,32 @@ export function AvatarTraining() {
                   className="object-cover"
                 />
               </div>
-              <div>
-                <h3 className="font-bold text-lg" style={{ color: 'var(--dynamic-text-color)' }}>
+              <div className="flex-1">
+                <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-foreground mb-1">
                   {avatarInfo.avatarName}
                 </h3>
-                <p className="text-sm text-muted-foreground">
-                  You're training this avatar with new memories
+                <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+                  MODE: ACTIVE_RECEPTOR_TRAINING
                 </p>
                 {memoriesAdded > 0 && (
-                  <p className="text-xs text-green-500 mt-1">
-                    ✓ {memoriesAdded} memories added this session
+                  <p className="text-[10px] font-mono text-green-700 font-bold uppercase mt-2 tracking-widest">
+                    ✓ {memoriesAdded} MEMORIES_UPLOADED_LOCAL_SESSION
                   </p>
                 )}
               </div>
             </div>
           ) : (
             // Owner view - avatar selector
-            <div className="space-y-3">
+            <div className="space-y-6">
               <Select value={selectedAvatarId} onValueChange={setSelectedAvatarId}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-none border-2 border-foreground bg-background h-12 font-mono text-xs">
                   <SelectValue placeholder="Select an avatar to train" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-none border-2 border-foreground font-mono text-xs">
                   {userAvatars.map((avatar) => (
-                    <SelectItem key={avatar.id} value={avatar.id}>
+                    <SelectItem key={avatar.id} value={avatar.id} className="focus:bg-foreground/5 rounded-none">
                       <div className="flex items-center gap-2">
-                        <Bot className="h-4 w-4" />
+                        <Bot className="h-3 w-3" />
                         {avatar.avatarName}
                       </div>
                     </SelectItem>
@@ -369,8 +378,8 @@ export function AvatarTraining() {
               </Select>
 
               {avatarInfo && (
-                <div className="flex items-center gap-4 p-3 bg-secondary/30 rounded-lg">
-                  <div className="relative w-12 h-12 rounded-full overflow-hidden border border-primary/30">
+                <div className="flex items-center gap-6 p-4 border-2 border-foreground/10 bg-foreground/5">
+                  <div className="relative w-12 h-12 border-2 border-foreground/20 overflow-hidden">
                     <Image
                       src={getAvatarImage(avatarInfo.avatarName, avatarInfo.avatarImageUrl)}
                       alt={avatarInfo.avatarName}
@@ -379,13 +388,13 @@ export function AvatarTraining() {
                     />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-medium">{avatarInfo.avatarName}</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Status: {avatarInfo.status === 'completed' ? '🟢 Trained' : '🟡 ' + avatarInfo.status}
+                    <h4 className="text-xs font-mono font-bold uppercase tracking-widest">{avatarInfo.avatarName}</h4>
+                    <p className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest mt-1">
+                      STATUS: {avatarInfo.status === 'completed' ? 'READY' : avatarInfo.status.toUpperCase()}
                     </p>
                   </div>
                   {memoriesAdded > 0 && (
-                    <span className="text-xs text-green-500">+{memoriesAdded} memories</span>
+                    <span className="text-[10px] font-mono text-green-700 font-bold uppercase">+{memoriesAdded}_SRC</span>
                   )}
                 </div>
               )}
@@ -394,158 +403,165 @@ export function AvatarTraining() {
 
           {/* Training Link Display */}
           {trainingLink && (
-            <div className="mt-3 flex items-center gap-2">
-              <Input value={trainingLink} readOnly className="text-xs bg-secondary/50" />
+            <div className="mt-6 flex items-center gap-0 border-2 border-foreground bg-background">
+              <Input value={trainingLink} readOnly className="border-0 rounded-none bg-transparent font-mono text-[10px] h-10 focus-visible:ring-0" />
               <Button
                 size="icon"
-                variant="outline"
+                variant="ghost"
                 onClick={() => {
                   navigator.clipboard.writeText(trainingLink);
                   toast({ title: 'Copied!' });
                 }}
+                className="h-10 w-10 rounded-none border-l-2 border-foreground hover:bg-foreground/5"
               >
-                <Copy className="h-4 w-4" />
+                <Copy className="h-3.5 w-3.5" />
               </Button>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Training Input Card */}
-      <Card className="card-glass">
-        <CardHeader>
-          <CardTitle style={{ color: 'var(--dynamic-text-color)' }}>Add Memory</CardTitle>
-          <CardDescription>
-            Add new memories, thoughts, personality traits, or information for the avatar to learn.
-            You can type or use voice input with real-time transcription.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
+      <div className="border-2 border-foreground bg-background overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+          <div className="flex items-center gap-2">
+            <Wand2 className="h-4 w-4 text-foreground" />
+            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-foreground">MEMORY_INPUT_BUFFER</span>
+          </div>
+          <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">WAITING_FOR_DATA...</span>
+        </div>
+        <div className="p-8 space-y-8">
+          <div className="space-y-4">
             <Textarea
               placeholder="Type a memory, personality trait, preference, or example conversation... or use the microphone for voice input"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              className="bg-transparent min-h-[120px]"
+              className="bg-background border-2 border-foreground rounded-none min-h-[160px] font-mono text-xs focus:ring-0 focus:border-[#ea580c] transition-colors p-6"
               disabled={isProcessing || !selectedAvatarId}
             />
             {/* Real-time transcription preview */}
             {isRecording && fullTranscript && (
-              <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                  <Wand2 className="h-3 w-3" />
-                  <span>Live Transcription</span>
+              <div className="p-4 border-2 border-[#ea580c]/30 bg-[#ea580c]/5">
+                <div className="flex items-center gap-2 text-[10px] font-mono font-bold text-[#ea580c] uppercase tracking-widest mb-2">
+                  <Activity className="h-3 w-3 animate-pulse" />
+                  <span>LIVE_TRANSCRIPTION_STREAM</span>
                 </div>
-                <p className="text-sm text-foreground">{fullTranscript}</p>
+                <p className="text-[11px] font-mono text-foreground leading-relaxed uppercase">{fullTranscript}</p>
               </div>
             )}
           </div>
-          <div className="space-y-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              {isRecording ? 'Listening... speak clearly' : 'Click the microphone to start voice input'}
-            </p>
-            <div className='flex flex-col items-center justify-center gap-4'>
-              <Button
-                size="icon"
-                variant={isRecordingActive ? "destructive" : "outline"}
+          
+          <div className="flex flex-col items-center justify-center py-6 border-2 border-dashed border-foreground/20 bg-foreground/5 space-y-6">
+            <div className="text-center">
+              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-2">
+                {isRecording ? 'STREAMING_AUDIO... SPEAK_NOW' : 'INPUT_VOICE_VIA_MIC'}
+              </p>
+            </div>
+            
+            <div className='relative'>
+              <button
                 onClick={isRecordingActive ? handleStopRecording : handleStartRecording}
                 disabled={isProcessing || isConnecting || !selectedAvatarId}
-                className={cn('w-16 h-16 rounded-full relative',
-                  isRecording && 'animate-pulse ring-4 ring-destructive/50',
-                  isConnecting && 'opacity-50'
+                className={cn('w-20 h-20 flex items-center justify-center transition-all duration-300 relative z-10',
+                  isRecordingActive ? 'bg-[#ea580c] text-background' : 'bg-background border-2 border-foreground text-foreground hover:bg-foreground/5',
+                  isRecording && 'scale-110 shadow-[0_0_30px_rgba(234,88,12,0.4)]',
+                  (isProcessing || isConnecting || !selectedAvatarId) && 'opacity-50 grayscale'
                 )}
               >
                 {isConnecting ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <Loader2 className="h-8 w-8 animate-spin" />
                 ) : isRecording ? (
-                  <MicOff className="h-6 w-6" />
+                  <MicOff className="h-8 w-8" />
                 ) : (
-                  <Mic className="h-6 w-6" />
+                  <Mic className="h-8 w-8" />
                 )}
-              </Button>
-
-              {isConnecting && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Connecting to transcription service...</span>
-                </div>
-              )}
-
+              </button>
               {isRecording && (
-                <div className="flex items-center gap-2 text-sm text-destructive">
-                  <div className="h-2 w-2 rounded-full bg-destructive animate-pulse"></div>
-                  <span>Recording & Transcribing...</span>
-                </div>
+                <div className="absolute inset-0 -m-4 border-2 border-[#ea580c] animate-ping opacity-20 pointer-events-none" />
               )}
             </div>
+
+            {isConnecting && (
+              <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground uppercase tracking-widest animate-pulse">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                <span>LINKING_RECOGNITION_SRV...</span>
+              </div>
+            )}
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-end gap-2">
-          <Button variant="ghost" onClick={handleClear} disabled={!hasInput || isProcessing || isRecordingActive}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Clear
+        </div>
+        <div className="p-6 border-t-2 border-foreground bg-foreground/5 flex justify-end gap-4">
+          <Button 
+            variant="outline" 
+            onClick={handleClear} 
+            disabled={!hasInput || isProcessing || isRecordingActive}
+            className="rounded-none border-2 border-foreground font-mono text-[10px] uppercase tracking-widest bg-background hover:bg-foreground/5 h-12 px-6"
+          >
+            <Trash2 className="mr-2 h-3 w-3" />
+            CLEAR_BUFFER
           </Button>
-          <GlowingButton
+          <Button
             onClick={handleSubmit}
             disabled={!hasInput || isProcessing || isRecordingActive || !selectedAvatarId}
-            text={isProcessing ? "Processing..." : "Submit Memory"}
-          />
-        </CardFooter>
-      </Card>
+            className="bg-foreground hover:bg-foreground/90 text-background rounded-none border-2 border-foreground font-mono text-[10px] uppercase tracking-widest h-12 px-8"
+          >
+            {isProcessing ? "PROCESSING_CORE..." : "COMMIT_MEMORY_SRC"}
+          </Button>
+        </div>
+      </div>
 
       {/* Access Token Display (for trainers) */}
       {accessToken && (
-        <Card className="card-glass border-green-500/50 bg-green-500/5">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Bot className="h-4 w-4 text-green-500" />
-              Your Trainer Access Link
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Save this link to view the avatar you contributed to (read-only access)
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="border-2 border-green-600 bg-green-600/5 overflow-hidden">
+          <div className="px-5 py-3 border-b-2 border-green-600 bg-green-600/10">
             <div className="flex items-center gap-2">
+              <Bot className="h-4 w-4 text-green-700" />
+              <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-green-700">TRAINER_PERSISTENT_LINK</span>
+            </div>
+          </div>
+          <div className="p-6 space-y-4">
+            <p className="text-[10px] font-mono text-green-700 uppercase tracking-widest">SECURE_ACCESS_TOKEN_GENERATED</p>
+            <div className="flex items-center gap-0 border-2 border-green-600 bg-background">
               <Input
                 value={`${typeof window !== 'undefined' ? window.location.origin : ''}/trainer/view?token=${accessToken}`}
                 readOnly
-                className="font-mono text-xs bg-background/50"
+                className="border-0 rounded-none bg-transparent font-mono text-[10px] h-10 focus-visible:ring-0"
               />
               <Button
-                size="sm"
-                variant="outline"
+                size="icon"
+                variant="ghost"
                 onClick={() => {
                   const link = `${typeof window !== 'undefined' ? window.location.origin : ''}/trainer/view?token=${accessToken}`;
                   navigator.clipboard.writeText(link);
-                  toast({
-                    title: 'Link Copied!',
-                    description: 'Your access link has been copied to clipboard.',
-                  });
+                  toast({ title: 'Copied!' });
                 }}
+                className="h-10 w-10 rounded-none border-l-2 border-green-600 hover:bg-green-600/10"
               >
-                <Copy className="h-4 w-4" />
+                <Copy className="h-3.5 w-3.5" />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              💡 This link lets you view the avatar's summary and the memories you contributed, but you won't be able to chat with it or make changes.
+            <p className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest leading-relaxed">
+              💡 THIS_LINK_PERMITS_READ_ONLY_ACCESS_TO_CORE_CONTRIBUTIONS_NO_CHAT_AUTH
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Tips */}
-      <Card className="card-glass">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">💡 Training Tips</CardTitle>
-        </CardHeader>
-        <CardContent className="text-xs text-muted-foreground space-y-1">
-          <p>• Add personality traits: "I love helping people with creative projects"</p>
-          <p>• Add preferences: "I prefer giving concise but thorough answers"</p>
-          <p>• Add example responses: "When asked about hobbies, I talk about painting and hiking"</p>
-          <p>• Add facts: "I have 5 years of experience in web development"</p>
-        </CardContent>
-      </Card>
+      <div className="border-2 border-foreground bg-background p-6">
+        <h4 className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+          <span className="h-1.5 w-1.5 bg-[#ea580c]" /> TRAINING_PROTOCOL_TIPS
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1 text-[9px] font-mono text-muted-foreground uppercase tracking-wider">
+            <p>● Add personality traits: "I am creative"</p>
+            <p>● Add preferences: "I like concise answers"</p>
+          </div>
+          <div className="space-y-1 text-[9px] font-mono text-muted-foreground uppercase tracking-wider">
+            <p>● Add example responses: "Talk about hiking"</p>
+            <p>● Add facts: "I am a web developer"</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
