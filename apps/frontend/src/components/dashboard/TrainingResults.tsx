@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { GlowingButton } from '@/components/ui/glowing-button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { API_URL } from '@/lib/utils';
+import { API_URL, cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Loader2, CheckCircle2, Brain, Zap, MessageSquare, TrendingUp, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
