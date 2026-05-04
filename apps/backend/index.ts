@@ -1,6 +1,7 @@
 // Load environment variables first
 import dotenv from "dotenv";
 import { resolve } from "path";
+import { createServer } from "http";
 dotenv.config({ path: resolve(process.cwd(), ".env") });
 
 const REQUIRED_ENV = ["CONVEX_URL", "GEMINI_API_KEY", "JWT_SECRET"] as const;
@@ -21,6 +22,7 @@ import { qaRoute } from "./routes/qa";
 import { avatarFlowRoute } from "./routes/avatarFlow";
 import { authRoute } from "./routes/auth";
 import { neo4jHealthRoute } from "./routes/neo4jHealth";
+import { registerWebSocketRoute } from "./routes/ws";
 import { clerkMiddleware } from "@clerk/express";
 import { closeNeo4jDriver, getNeo4jDriver, isNeo4jEnabled } from "./lib/neo4j";
 // removed MongoDB connection; auth will use Convex
@@ -31,6 +33,7 @@ if (!globalThis.convex && process.env.CONVEX_URL) {
 }
 
 const app = express();
+const server = createServer(app);
 
 // must be before authRoute(...)
 app.use(express.json());
@@ -40,6 +43,7 @@ const allowedOrigins = [
   "https://mimic01.vercel.app",
   "http://localhost:3000",
   "http://localhost:3001",
+  process.env.NEXT_PUBLIC_BASE_URL,
   process.env.FRONTEND_ORIGIN,
 ].filter((origin): origin is string => Boolean(origin));
 
@@ -76,7 +80,9 @@ app.get("/", (req, res) => {
 
 async function start() {
   const port = process.env.PORT ? Number(process.env.PORT) : 8000;
-  const server = app.listen(port, () => {
+  registerWebSocketRoute(server);
+
+  server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });
 

@@ -311,8 +311,8 @@ export const avatarFlowRoute = (app: Express) => {
 
       invitations.set(token, invitation);
 
-      const frontendUrl = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
-      const inviteUrl = `${frontendUrl}/trainer-invite/${token}`;
+      const frontendUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
+      const inviteUrl = `${frontendUrl.replace(/\/$/, '')}/trainer-invite/${token}`;
 
       res.json({
         success: true,
