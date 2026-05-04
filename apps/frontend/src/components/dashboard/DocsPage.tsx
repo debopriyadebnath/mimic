@@ -44,311 +44,220 @@ export function DocsPage() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 pb-12">
+    <div className="w-full max-w-4xl mx-auto space-y-10 pb-12">
       {/* Header */}
-      <Card className="card-glass border-primary/20 bg-primary/5">
-        <CardHeader className="text-center pb-6">
-          <div className="mx-auto w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-4">
-            <BookOpen className="h-6 w-6 text-primary" />
+      <div className="border-2 border-foreground bg-background overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+          <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-mono">
+            GUIDE_INIT
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 bg-[#ea580c] animate-pulse" />
+            <span className="text-[10px] tracking-[0.2em] uppercase text-[#ea580c] font-mono">
+              VERIFIED
+            </span>
           </div>
-          <CardTitle className="text-3xl font-headline mb-2" style={{ color: 'var(--dynamic-text-color)' }}>
+        </div>
+        <div className="p-8 text-center">
+          <div className="mx-auto w-12 h-12 border-2 border-foreground flex items-center justify-center mb-6">
+            <BookOpen className="h-6 w-6 text-foreground" />
+          </div>
+          <h1 className="text-3xl font-mono font-bold tracking-tight uppercase mb-4 text-foreground">
             Mimic — User Guide
-          </CardTitle>
-          <CardDescription className="text-lg max-w-2xl mx-auto">
+          </h1>
+          <p className="text-xs lg:text-sm font-mono text-muted-foreground leading-relaxed max-w-2xl mx-auto">
             Welcome to Mimic, a platform where you can create a personal AI avatar that represents you and evolves over time using explicit, trusted memory.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+          </p>
+        </div>
+      </div>
 
       <motion.div
         variants={container}
         initial="hidden"
         animate="show"
-        className="space-y-6"
+        className="space-y-10"
       >
         {/* What is Mimic */}
         <motion.div variants={item}>
-          <Card className="card-glass">
-            <CardHeader>
-              <div className="flex items-center gap-3 mb-2">
-                <Brain className="h-6 w-6 text-purple-500" />
-                <CardTitle>What Is Mimic?</CardTitle>
-              </div>
-              <CardDescription>
+          <div className="border-2 border-foreground bg-background overflow-hidden">
+            <div className="flex items-center gap-3 px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+              <Brain className="h-5 w-5 text-foreground" />
+              <span className="text-xs font-mono font-bold tracking-wider uppercase">What Is Mimic?</span>
+            </div>
+            <div className="p-6">
+              <p className="text-xs font-mono text-muted-foreground mb-6 uppercase tracking-wider">
                 Mimic lets you create an AI version of yourself that is grounded in reality.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              </p>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-0 border-t-2 border-l-2 border-foreground">
                 {[
                   "Learns only from information you approve",
                   "Does not hallucinate or guess",
                   "Answers questions using stored memories",
                   "Reflects your personality, preferences, and opinions",
-                  "Adwaits explicit 'I don't know' rather than guessing"
+                  "Refuses to guess if memory is missing"
                 ].map((text, i) => (
-                  <li key={i} className="flex items-start gap-2 bg-secondary/20 p-3 rounded-lg text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                    <span>{text}</span>
+                  <li key={i} className="flex items-start gap-3 border-r-2 border-b-2 border-foreground p-4 bg-background hover:bg-foreground/5 transition-colors">
+                    <CheckCircle2 className="h-4 w-4 text-[#ea580c] mt-0.5 flex-shrink-0" />
+                    <span className="text-xs font-mono tracking-tight">{text}</span>
                   </li>
                 ))}
               </ul>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
 
         {/* User Roles */}
         <motion.div variants={item}>
-          <Card className="card-glass">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <Users className="h-6 w-6 text-blue-500" />
-                <CardTitle>User Roles</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3 p-4 rounded-xl bg-primary/5 border border-primary/10">
-                <h3 className="font-semibold text-primary flex items-center gap-2">
-                  <span className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+          <div className="border-2 border-foreground bg-background overflow-hidden">
+            <div className="flex items-center gap-3 px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+              <Users className="h-5 w-5 text-foreground" />
+              <span className="text-xs font-mono font-bold tracking-wider uppercase">User Roles</span>
+            </div>
+            <div className="p-0 grid grid-cols-1 md:grid-cols-2">
+              <div className="p-6 border-b-2 md:border-b-0 md:border-r-2 border-foreground hover:bg-foreground/5 transition-colors">
+                <h3 className="text-sm font-mono font-bold text-foreground flex items-center gap-3 mb-6 uppercase tracking-wider">
+                  <span className="bg-foreground text-background w-6 h-6 flex items-center justify-center text-[10px]">01</span>
                   Avatar Owner (You)
                 </h3>
-                <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-4">
-                  <li>The person whose AI avatar is created</li>
-                  <li>Full control over identity and memory</li>
-                  <li>Can invite one trusted trainer</li>
-                  <li>Approves the final personality</li>
+                <ul className="space-y-4 text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
+                  <li className="flex items-center gap-2"><span className="h-1 w-1 bg-[#ea580c]" /> The person whose AI avatar is created</li>
+                  <li className="flex items-center gap-2"><span className="h-1 w-1 bg-[#ea580c]" /> Full control over identity and memory</li>
+                  <li className="flex items-center gap-2"><span className="h-1 w-1 bg-[#ea580c]" /> Can invite one trusted trainer</li>
+                  <li className="flex items-center gap-2"><span className="h-1 w-1 bg-[#ea580c]" /> Approves the final personality</li>
                 </ul>
               </div>
 
-              <div className="space-y-3 p-4 rounded-xl bg-orange-500/5 border border-orange-500/10">
-                <h3 className="font-semibold text-orange-500 flex items-center gap-2">
-                  <span className="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+              <div className="p-6 hover:bg-foreground/5 transition-colors">
+                <h3 className="text-sm font-mono font-bold text-[#ea580c] flex items-center gap-3 mb-6 uppercase tracking-wider">
+                  <span className="bg-[#ea580c] text-background w-6 h-6 flex items-center justify-center text-[10px]">02</span>
                   Trainer (Optional)
                 </h3>
-                <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-4">
-                  <li>A trusted person who helps define your personality</li>
-                  <li>Accessed via a one‑time link</li>
-                  <li>Can answer setup questions once</li>
-                  <li>No long‑term access or editing rights</li>
+                <ul className="space-y-4 text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
+                  <li className="flex items-center gap-2"><span className="h-1 w-1 bg-foreground" /> A trusted person who helps define you</li>
+                  <li className="flex items-center gap-2"><span className="h-1 w-1 bg-foreground" /> Accessed via a one‑time link</li>
+                  <li className="flex items-center gap-2"><span className="h-1 w-1 bg-foreground" /> Can answer setup questions once</li>
+                  <li className="flex items-center gap-2"><span className="h-1 w-1 bg-foreground" /> No long‑term access rights</li>
                 </ul>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
 
         {/* Getting Started & Process */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <motion.div variants={item}>
-            <Card className="card-glass h-full">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <Rocket className="h-6 w-6 text-pink-500" />
-                  <CardTitle>Getting Started</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <motion.div variants={item} className="h-full">
+            <div className="border-2 border-foreground bg-background h-full overflow-hidden flex flex-col">
+              <div className="flex items-center gap-3 px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+                <Rocket className="h-5 w-5 text-foreground" />
+                <span className="text-xs font-mono font-bold tracking-wider uppercase">Getting Started</span>
+              </div>
+              <div className="p-6 space-y-8 flex-1">
                 <div>
-                  <h4 className="font-medium mb-2 text-sm uppercase tracking-wider text-muted-foreground">Step 1: Sign In</h4>
-                  <p className="text-sm">Log in using the available authentication method. You will land on your dashboard.</p>
+                  <h4 className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[#ea580c] mb-3">STEP_01: SIGN_IN</h4>
+                  <p className="text-xs font-mono text-muted-foreground leading-relaxed">Log in using the available authentication method. You will land on your dashboard.</p>
                 </div>
                 <div>
-                  <h4 className="font-medium mb-2 text-sm uppercase tracking-wider text-muted-foreground">Step 2: Create Your Avatar</h4>
-                  <p className="text-sm mb-2">Click "Create Avatar" and enter:</p>
-                  <ul className="list-disc pl-4 text-sm text-muted-foreground space-y-1">
-                    <li>Avatar name</li>
-                    <li>Short description about yourself</li>
+                  <h4 className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[#ea580c] mb-3">STEP_02: CREATE_AVATAR</h4>
+                  <p className="text-xs font-mono text-muted-foreground mb-4 leading-relaxed">Click "Create Avatar" and enter:</p>
+                  <ul className="space-y-2 text-[10px] font-mono text-foreground uppercase tracking-widest bg-foreground/5 p-4 border-l-2 border-[#ea580c]">
+                    <li>● Avatar name</li>
+                    <li>● Identity description</li>
                   </ul>
-                  <p className="text-sm mt-2 text-green-500 font-medium">✨ Your avatar is now ready for interaction.</p>
+                  <div className="flex items-center gap-2 mt-6">
+                    <span className="h-1.5 w-1.5 bg-green-600 animate-pulse" />
+                    <p className="text-[10px] font-mono text-green-700 font-bold uppercase tracking-wider">Ready for interaction.</p>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="card-glass h-full">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <UserPlus className="h-6 w-6 text-indigo-500" />
-                  <CardTitle>Trainer (Optional)</CardTitle>
-                </div>
-                <CardDescription>Improve accuracy with a trusted person.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+          <motion.div variants={item} className="h-full">
+            <div className="border-2 border-foreground bg-background h-full overflow-hidden flex flex-col">
+              <div className="flex items-center gap-3 px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+                <UserPlus className="h-5 w-5 text-foreground" />
+                <span className="text-xs font-mono font-bold tracking-wider uppercase">Trainer (Optional)</span>
+              </div>
+              <div className="p-6 space-y-6 flex-1">
                 <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="item-1" className="border-b-0">
-                    <AccordionTrigger className="hover:no-underline py-2">
-                      <span className="text-sm font-medium">How It Works</span>
+                  <AccordionItem value="item-1" className="border-b-2 border-foreground/20">
+                    <AccordionTrigger className="hover:no-underline py-4">
+                      <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-foreground">How It Works</span>
                     </AccordionTrigger>
-                    <AccordionContent className="text-sm text-muted-foreground space-y-2">
-                      <p>1. Click "Invite Trainer"</p>
-                      <p>2. A one‑time link is generated</p>
-                      <p>3. Share the link with your friend/family</p>
+                    <AccordionContent className="text-[11px] font-mono text-muted-foreground space-y-3 pb-4 uppercase tracking-wider">
+                      <p>01. Click "Invite Trainer"</p>
+                      <p>02. A one‑time link is generated</p>
+                      <p>03. Share link with friend/family</p>
                     </AccordionContent>
                   </AccordionItem>
-                  <AccordionItem value="item-2" className="border-b-0">
-                    <AccordionTrigger className="hover:no-underline py-2">
-                      <span className="text-sm font-medium">What the Trainer Does</span>
+                  <AccordionItem value="item-2" className="border-b-2 border-foreground/20">
+                    <AccordionTrigger className="hover:no-underline py-4">
+                      <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-foreground">Trainer Actions</span>
                     </AccordionTrigger>
-                    <AccordionContent className="text-sm text-muted-foreground space-y-2">
+                    <AccordionContent className="text-[11px] font-mono text-muted-foreground space-y-3 pb-4 uppercase tracking-wider">
                       <p>• Verifies identity</p>
-                      <p>• Answers a short MCQ form about you</p>
-                      <p>• Submits once (cannot edit later)</p>
+                      <p>• Completes personality form</p>
+                      <p>• Submits once (read-only after)</p>
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
-                <div className="bg-secondary/30 p-3 rounded-md text-xs">
-                  <strong>Final Approval:</strong> You review the input, accept/edit/reject it, and lock the final personality.
+                <div className="bg-[#ea580c]/10 p-4 border-2 border-[#ea580c]/30">
+                  <p className="text-[10px] font-mono text-[#ea580c] font-bold uppercase tracking-widest leading-relaxed">
+                    <strong>Final Approval:</strong> You review the input, edit if needed, and lock the final personality.
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </motion.div>
         </div>
 
         {/* Interaction Features */}
         <motion.div variants={item}>
-          <Card className="card-glass">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageCircle className="h-5 w-5" />
-                Interaction & Learning
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center gap-2 border-b border-border/50 pb-2">
-                  <MessageCircle className="h-4 w-4 text-blue-400" /> Chatting
+          <div className="border-2 border-foreground bg-background overflow-hidden">
+            <div className="flex items-center gap-3 px-5 py-3 border-b-2 border-foreground bg-foreground/5">
+              <MessageCircle className="h-5 w-5 text-foreground" />
+              <span className="text-xs font-mono font-bold tracking-wider uppercase">Interaction & Learning</span>
+            </div>
+            <div className="p-0 grid grid-cols-1 md:grid-cols-2">
+              <div className="p-6 border-b-2 md:border-b-0 md:border-r-2 border-foreground">
+                <h3 className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-[#ea580c] mb-6 flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 bg-[#ea580c]" /> CHATTING
                 </h3>
-                <ul className="space-y-3 text-sm text-muted-foreground">
+                <ul className="space-y-4 text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
                   <li>• Ask questions naturally</li>
-                  <li>• The avatar responds <strong>only</strong> from stored memory</li>
-                  <li>• Conversations are temporary and do not auto‑train the AI</li>
-                  <li className="bg-secondary/20 p-2 rounded">
-                    If it says <em>"I don't know yet"</em>, it means no relevant memory exists. This is intentional.
+                  <li>• Responses <strong>only</strong> from memory</li>
+                  <li>• Context remains ephemeral</li>
+                  <li className="bg-foreground text-background p-4 border-2 border-foreground">
+                    If it says <em>"I don't know"</em>, no relevant memory exists.
                   </li>
                 </ul>
               </div>
 
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center gap-2 border-b border-border/50 pb-2">
-                  <Database className="h-4 w-4 text-green-400" /> Adding Memory
+              <div className="p-6">
+                <h3 className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-foreground mb-6 flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 bg-foreground" /> ADDING_MEMORY
                 </h3>
-                <p className="text-sm text-muted-foreground">Your avatar learns only when you choose to teach it.</p>
-                <div className="text-sm space-y-2">
-                  <p><strong>How:</strong> Select "Save as Memory" during chat, or use text/voice input.</p>
-                  <p><strong>What to add:</strong> Preferences, Opinions, Facts, Experiences.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Technical & Safety */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <motion.div variants={item} className="md:col-span-1">
-            <Card className="card-glass h-full">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Search className="h-4 w-4 text-yellow-500" />
-                  Generation
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground space-y-2">
-                <p>When you ask a question:</p>
-                <ol className="list-decimal pl-4 space-y-1">
-                  <li>System searches memories</li>
-                  <li>Finds most relevant matches</li>
-                  <li>Answers <strong>only</strong> using those matches</li>
-                  <li>Refuses to guess if no match found</li>
-                </ol>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div variants={item} className="md:col-span-2">
-            <Card className="card-glass h-full">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-green-500" />
-                  Privacy & Safety
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <Lock className="h-4 w-4 text-primary" /> Control
+                <p className="text-[11px] font-mono text-muted-foreground mb-4 uppercase tracking-wider">Avatar learns only with explicit permission.</p>
+                <div className="space-y-4">
+                  <div className="p-4 bg-foreground/5 border-l-2 border-foreground">
+                    <p className="text-[10px] font-mono text-foreground font-bold uppercase tracking-widest mb-1">METHOD</p>
+                    <p className="text-[11px] font-mono text-muted-foreground uppercase">Select "Save as Memory" during chat.</p>
                   </div>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• No automatic learning from chat</li>
-                    <li>• No public access to your avatar</li>
-                    <li>• Your identity remains under your control</li>
-                  </ul>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-destructive">
-                    <XCircle className="h-4 w-4" /> AI Limitations
-                  </div>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Will NOT guess or hallucinate</li>
-                    <li>• Will NOT learn without permission</li>
-                    <li>• Will NOT override your preferences</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-
-        {/* Best Practices & Help */}
-        <motion.div variants={item}>
-          <Card className="card-glass">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lightbulb className="h-5 w-5 text-yellow-400" />
-                Best Practices & Support
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h4 className="font-semibold mb-3">Tips for Success</h4>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
-                    Add memories gradually
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
-                    Use clear, factual inputs
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
-                    Review trainer input carefully
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
-                    Teach before expecting answers
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-3">Common Messages</h4>
-                <div className="space-y-3">
-                  <div className="bg-secondary/20 p-3 rounded-lg">
-                    <p className="text-sm font-medium">“I don’t know yet”</p>
-                    <p className="text-xs text-muted-foreground mt-1">The avatar has no memory about this topic.</p>
-                  </div>
-                  <div className="bg-secondary/20 p-3 rounded-lg">
-                    <p className="text-sm font-medium">Answers changed after memory</p>
-                    <p className="text-xs text-muted-foreground mt-1">This means learning is working correctly.</p>
+                  <div className="p-4 bg-foreground/5 border-l-2 border-foreground">
+                    <p className="text-[10px] font-mono text-foreground font-bold uppercase tracking-widest mb-1">CONTENT</p>
+                    <p className="text-[11px] font-mono text-muted-foreground uppercase">Preferences, Facts, Experiences.</p>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
 
         {/* Summary Footer */}
-        <motion.div variants={item} className="text-center py-8 text-muted-foreground">
-          <p className="text-sm">Mimic is a memory‑based AI • You control what it learns • Trust and accuracy come first</p>
+        <motion.div variants={item} className="text-center py-12 border-t-2 border-foreground/10">
+          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-[0.3em]">
+            Mimic: Memory‑based AI • Total Control • Verified Accuracy
+          </p>
         </motion.div>
 
       </motion.div>
