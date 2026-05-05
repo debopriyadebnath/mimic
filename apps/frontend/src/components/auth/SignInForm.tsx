@@ -35,7 +35,7 @@ export function SignInForm() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!signInLoaded) return;
+    if (!signInLoaded || !signIn) return;
     setIsLoading(true);
     try {
       const result = await signIn.create({
@@ -56,7 +56,7 @@ export function SignInForm() {
   };
 
   const handleGoogle = async () => {
-    if (!isLoaded) return;
+    if (!signInLoaded || !signIn) return;
     setIsLoading(true);
     try {
       await signIn.authenticateWithRedirect({
@@ -115,7 +115,7 @@ export function SignInForm() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  disabled={isLoading || !isLoaded}
+                  disabled={isLoading || !signInLoaded}
                   className="pl-10 bg-background border-2 border-foreground rounded-none h-12 font-mono text-xs focus:ring-0 focus:border-[#ea580c] transition-colors"
                 />
               </div>
@@ -136,7 +136,7 @@ export function SignInForm() {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  disabled={isLoading || !isLoaded}
+                  disabled={isLoading || !signInLoaded}
                   className="pl-10 bg-background border-2 border-foreground rounded-none h-12 font-mono text-xs focus:ring-0 focus:border-[#ea580c] transition-colors"
                 />
               </div>
@@ -144,7 +144,7 @@ export function SignInForm() {
 
             <Button
               type="submit"
-              disabled={isLoading || !isLoaded}
+              disabled={isLoading || !signInLoaded}
               className="w-full bg-foreground hover:bg-foreground/90 text-background rounded-none border-2 border-foreground font-mono text-xs uppercase tracking-widest h-12 mt-2"
             >
               {isLoading ? "AUTHENTICATING..." : "INITIATE_SESSION"}
@@ -162,7 +162,7 @@ export function SignInForm() {
             type="button"
             variant="outline"
             onClick={handleGoogle}
-            disabled={isLoading || !isLoaded}
+            disabled={isLoading || !signInLoaded}
             className="w-full rounded-none border-2 border-foreground bg-background hover:bg-foreground/5 text-foreground font-mono text-xs uppercase tracking-widest h-12"
           >
             <GoogleIcon className="mr-2 h-4 w-4" />
