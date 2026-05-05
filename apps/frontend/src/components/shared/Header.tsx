@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { Button } from "../ui/button"
+import { useUser } from '@clerk/nextjs'
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -14,6 +15,7 @@ const navItems = [
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const pathname = usePathname()
+  const { isLoaded: userLoaded, isSignedIn } = useUser()
 
   if (pathname.startsWith('/dashboard')) {
     return null;
@@ -71,20 +73,34 @@ export function Header() {
           <div className="h-4 w-px bg-border" />
           
           <div className="flex items-center gap-3">
-            <Link href="/signin" passHref>
-              <Button variant="ghost" size="sm">Sign In</Button>
-            </Link>
-            <Link href="/signup" passHref>
-              <Button variant="default" size="sm">Get Started</Button>
-            </Link>
+            {userLoaded && isSignedIn ? (
+              <Link href="/dashboard" passHref>
+                <Button variant="default" size="sm">Dashboard</Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/signin" passHref>
+                  <Button variant="ghost" size="sm">Sign In</Button>
+                </Link>
+                <Link href="/signup" passHref>
+                  <Button variant="default" size="sm">Get Started</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
         {/* Mobile Menu Toggle (simplified for brevity) */}
         <div className="md:hidden flex items-center gap-4">
-            <Link href="/signin" passHref>
-              <Button variant="ghost" size="sm">Sign In</Button>
-            </Link>
+            {userLoaded && isSignedIn ? (
+              <Link href="/dashboard" passHref>
+                <Button variant="default" size="sm">Dashboard</Button>
+              </Link>
+            ) : (
+              <Link href="/signin" passHref>
+                <Button variant="ghost" size="sm">Sign In</Button>
+              </Link>
+            )}
         </div>
       </div>
     </header>

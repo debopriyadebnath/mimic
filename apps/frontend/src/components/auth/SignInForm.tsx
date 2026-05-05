@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from "next/link";
-import { useSignIn } from '@clerk/nextjs';
+import { useSignIn, useUser } from '@clerk/nextjs';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -28,13 +28,14 @@ function getClerkError(error: unknown): string {
 export function SignInForm() {
   const router = useRouter();
   const { toast } = useToast();
-  const { isLoaded, signIn, setActive } = useSignIn();
+  const { isLoaded: signInLoaded, signIn, setActive } = useSignIn();
+  const { isLoaded: userLoaded, isSignedIn } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<SignInFields>({ email: "", password: "" });
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!isLoaded) return;
+    if (!signInLoaded) return;
     setIsLoading(true);
     try {
       const result = await signIn.create({
@@ -68,6 +69,12 @@ export function SignInForm() {
       toast({ title: "Google sign in failed", description: getClerkError(error), variant: "destructive" });
     }
   };
+
+  // If the current user is already signed in, redirect to dashboard immediately
+  if (userLoaded && isSignedIn) {
+    if (typeof window !== "undefined") router.push("/dashboard");
+    return <div className="w-full max-w-md px-4">Redirecting to dashboard...</div>;
+  }
 
   return (
     <div className="w-full max-w-md px-4">
