@@ -206,3 +206,30 @@ export const getFlowConversation = query({
       .first();
   },
 });
+
+// Fetch all avatar-flow conversations for a given avatar (owner view)
+export const getAvatarFlowConversations = query({
+  args: {
+    avatarId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const conversations = await ctx.db
+      .query("avatarFlowConversations")
+      .withIndex("by_avatarId", (q) => q.eq("avatarId", args.avatarId))
+      .collect();
+
+    return conversations
+      .map((conversation) => {
+        const firstUserMessage = conversation.messages.find((message) => message.role === "user");
+        const lastMessage = conversation.messages[conversation.messages.length - 1];
+
+        return {
+          ...conversation,
+          messageCount: conversation.messages.length,
+          firstMessagePreview: firstUserMessage?.content || conversation.messages[0]?.content || "",
+          lastMessagePreview: lastMessage?.content || "",
+        };
+      })
+      .sort((a, b) => b.updatedAt - a.updatedAt);
+  },
+});

@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Home, Bot, FileText, UserPlus, User, Sparkles, Menu, BrainCircuit, ClipboardList } from "lucide-react";
+import { Home, Bot, FileText, UserPlus, User, Sparkles, Menu, BrainCircuit, ClipboardList, Database } from "lucide-react";
 import { ColorSwitcher } from "../theme/ColorSwitcher";
 import { Button } from "../ui/button";
 import { ClientOnly } from "../shared/ClientOnly";
@@ -15,6 +15,7 @@ const viewMap: Record<string, { title: string; icon: React.ReactElement }> = {
   "create-avatar":   { title: "Create Avatar",   icon: <Sparkles className="h-4 w-4" />     },
   invite:            { title: "Invite Trainer",  icon: <UserPlus className="h-4 w-4" />     },
   "training-results":{ title: "Training Results",icon: <ClipboardList className="h-4 w-4" />},
+  memories:          { title: "Memories",        icon: <Database className="h-4 w-4" />     },
   profile:           { title: "Profile",         icon: <User className="h-4 w-4" />          },
 };
 

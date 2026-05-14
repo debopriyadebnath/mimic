@@ -61,21 +61,21 @@ interface Tier {
 
 const TIERS: Tier[] = [
   {
-    id: "free",
+    id: "starter",
     name: "STARTER",
-    price: "0",
-    period: "/ forever",
+    price: "7",
+    period: "/ month",
     tag: null,
-    description: "Create your first digital clone. Perfect for trying MIMIC.",
+    description: "Affordable entry plan for your first digital clone.",
     features: [
       { text: "1 avatar clone", included: true },
-      { text: "50 memory entries", included: true },
+      { text: "25 memory entries", included: true },
       { text: "Text chat only", included: true },
       { text: "Basic personality training", included: true },
       { text: "Voice cloning", included: false },
       { text: "Priority support", included: false },
     ],
-    cta: "START FREE",
+    cta: "GET STARTED",
     highlighted: false,
   },
   {
@@ -286,7 +286,7 @@ export function PricingSection() {
             Choose your clone plan
           </h2>
           <p className="text-xs lg:text-sm font-mono text-muted-foreground leading-relaxed max-w-md">
-            Start free and upgrade as you create more clones. All plans include our core AI personality engine.
+            Start small and upgrade as you create more clones. All plans include our core AI personality engine.
           </p>
         </div>
       </motion.div>

@@ -16,6 +16,7 @@ import {
   Menu,
   ClipboardList,
   Cpu,
+  Database,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -59,6 +60,11 @@ const links: SidebarLink[] = [
     label: 'Training Results',
     href: '/dashboard?view=training-results',
     icon: <ClipboardList className="h-5 w-5 shrink-0" />,
+  },
+  {
+    label: 'Memories',
+    href: '/dashboard?view=memories',
+    icon: <Database className="h-5 w-5 shrink-0" />,
   },
   {
     label: 'Docs',

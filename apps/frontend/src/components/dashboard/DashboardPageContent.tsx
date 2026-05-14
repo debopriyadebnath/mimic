@@ -9,6 +9,7 @@ import { CreateAvatarPage } from './CreateAvatar';
 import { InviteParticipantPage } from './InviteParticipant';
 import { AvatarTraining } from './AvatarTraining';
 import { TrainingResultsPage } from './TrainingResults';
+import { AvatarMemories } from './AvatarMemories';
 
 export function DashboardPageContent() {
   const searchParams = useSearchParams();
@@ -28,6 +29,8 @@ export function DashboardPageContent() {
         return <InviteParticipantPage />;
       case "training-results":
         return <TrainingResultsPage />;
+      case "memories":
+        return <AvatarMemories />;
       default:
         return <WelcomeDashboard />;
     }

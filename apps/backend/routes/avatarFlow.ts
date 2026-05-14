@@ -1079,4 +1079,49 @@ Write the master prompt as a single, well-structured paragraph or short set of p
       res.status(500).json({ error: error.message || "Failed to generate embedding" });
     }
   });
+
+  // Get all memories for an avatar (for owner view)
+  app.get("/api/avatar-flow/memories/:avatarId", async (req: Request, res: Response) => {
+    try {
+      const { avatarId } = req.params;
+      const avatarIdValue = Array.isArray(avatarId) ? avatarId[0] : avatarId;
+
+      // Fetch memories from Convex
+      const memories = await globalThis.convex.query("trainers:getAvatarTrainingMemories", {
+        avatarId: avatarIdValue,
+      });
+
+      res.json({
+        success: true,
+        avatarId: avatarIdValue,
+        memories: memories || [],
+        totalMemories: (memories || []).length,
+      });
+    } catch (error: any) {
+      console.error("Get memories error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get early avatar-flow conversations for an avatar (owner view)
+  app.get("/api/avatar-flow/conversations/:avatarId", async (req: Request, res: Response) => {
+    try {
+      const { avatarId } = req.params;
+      const avatarIdValue = Array.isArray(avatarId) ? avatarId[0] : avatarId;
+
+      const conversations = await globalThis.convex.query("conversations:getAvatarFlowConversations", {
+        avatarId: avatarIdValue,
+      });
+
+      res.json({
+        success: true,
+        avatarId: avatarIdValue,
+        conversations: conversations || [],
+        totalConversations: (conversations || []).length,
+      });
+    } catch (error: any) {
+      console.error("Get conversations error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
 };
